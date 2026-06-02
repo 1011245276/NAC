@@ -100,23 +100,61 @@ The look-ahead mechanism, not momentum alone, drives NAC's gains.
 ## Installation
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/1011245276/NAC.git
 cd nac_project
 pip install -r requirements.txt
 ```
 
 CLIP model weights download automatically on first use (~/.cache/clip/).
 
+## Dataset Preparation
+
+**Auto-download (no action needed):** CIFAR-10, CIFAR-100, STL-10, DTD, Flowers-102 download automatically on first run.
+
+**Manual download required — ImageNet-100:**
+
+```bash
+pip install modelscope
+python -c "
+from modelscope.msdatasets import MsDataset
+ds = MsDataset.load('tany0699/mini_imagenet100', subset_name='default', split='validation')
+"
+```
+
+After download, organize as:
+```
+data/imagenet-100/imagenet_folder/val/
+```
+
+See `data/README.md` for full dataset details.
+
 ## Quick Start
 
 ```bash
-# Run NAC on CIFAR-10
+# Single experiment: NAC on CIFAR-10, eps=4/255
 bash run.sh nac cifar10 4
 
 # Compare TTC vs NAC
 bash run.sh ttc cifar10 4
 bash run.sh nac cifar10 4
 ```
+
+## Reproduce All Paper Results
+
+| Script | Paper Table | Runs | Command |
+|--------|------------|------|---------|
+| `scripts/reproduce_main.sh` | Table 1: Main results | 36 | `bash scripts/reproduce_main.sh` |
+| `scripts/reproduce_multi_eps.sh` | Table 2: Multi-epsilon | 108 | `bash scripts/reproduce_multi_eps.sh` |
+| `scripts/reproduce_nstep.sh` | Table 3: N-step scaling | 24 | `bash scripts/reproduce_nstep.sh` |
+| `scripts/reproduce_autoattack.sh` | Table 4: AutoAttack | 6 | `bash scripts/reproduce_autoattack.sh` |
+| `scripts/reproduce_cross_arch.sh` | Table 5: Cross-architecture | 12 | `bash scripts/reproduce_cross_arch.sh` |
+| `scripts/reproduce_ablation.sh` | Table 7: Ablation | 18 | `bash scripts/reproduce_ablation.sh` |
+| `scripts/reproduce_mu_scan.sh` | Momentum coefficient | 18 | `bash scripts/reproduce_mu_scan.sh` |
+| `scripts/reproduce_aft.sh` | Table 6: AFT (needs weights) | 12 | `bash scripts/reproduce_aft.sh` |
+
+Results are saved to `results/<experiment>/` after each script completes.
+
+**Note:** AutoAttack requires `pip install autoattack`. AFT superposition (Table 6) requires TeCoA/FARE model checkpoints — the script will skip gracefully if unavailable.
 
 ## Project Structure
 
