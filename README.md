@@ -111,24 +111,28 @@ CLIP model weights download automatically on first use (~/.cache/clip/).
 
 ## Dataset Preparation
 
-**Auto-download (no action needed):** CIFAR-10, CIFAR-100, STL-10, DTD, Flowers-102 download automatically on first run.
-
-**Manual download required — ImageNet-100:**
+One command to download all datasets:
 
 ```bash
-pip install modelscope
-python -c "
-from modelscope.msdatasets import MsDataset
-ds = MsDataset.load('tany0699/mini_imagenet100', subset_name='default', split='validation')
-"
+python setup_datasets.py
 ```
 
-After download, organize as:
+This handles CIFAR-10/100, STL-10, DTD, Flowers-102 (auto-download) and ImageNet-100 (via ModelScope).
+
+Target layout after setup:
 ```
-data/imagenet-100/imagenet_folder/val/
+data/
+├── cifar-10-batches-py/          (auto)
+├── cifar-100-python/             (auto)
+├── stl10_binary/                 (auto)
+├── dtd/                          (auto)
+├── flowers-102/                  (auto)
+└── imagenet-100/
+    └── imagenet_folder/
+        └── val/                  (100 class subdirs)
 ```
 
-See `data/README.md` for full dataset details.
+See `data/README.md` for manual download alternatives.
 
 ## Quick Start
 
