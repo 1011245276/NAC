@@ -8,8 +8,9 @@ EPS=${3:-4}
 
 echo "NAC: method=$METHOD dataset=$DATASET eps=$EPS/255"
 
-python test_time_counterattack.py \
+python nac_fair_experiment.py \
     --batch_size 32 \
+    --root ./data \
     --test_attack_type pgd \
     --test_eps $EPS \
     --test_numsteps 10 \
@@ -22,4 +23,4 @@ python test_time_counterattack.py \
     --counterattack $METHOD \
     --nac_momentum 0.9 \
     --seed 0 \
-    --outdir results
+    --outdir ./results

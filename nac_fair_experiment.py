@@ -44,13 +44,13 @@ def parse_options():
     parser.add_argument('--name', type=str, default='')
     parser.add_argument('--prompt_size', type=int, default=30)
     parser.add_argument('--add_prompt_size', type=int, default=0)
-    parser.add_argument('--root', type=str, default='/f/code/data')
+    parser.add_argument('--root', type=str, default='./data')
     parser.add_argument('--dataset', type=str, default='tinyImageNet')
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--victim_resume', type=str, default=None)
     parser.add_argument('--outdir', type=str,
-                        default='/f/code/experiments/prompt_sensitivity/results/nac_fair')
+                        default='./results')
     parser.add_argument('--tau_thres', type=float, default=0.2)
     parser.add_argument('--beta', type=float, default=2.)
     parser.add_argument('--ttc_eps', type=float, default=4)
@@ -536,10 +536,11 @@ def main():
     args.ttc_stepsize = args.ttc_stepsize / 255.
     args.ttc_eps = args.ttc_eps / 255.
 
-    args.root = 'F:/code/data'
-    imagenet_root = 'F:/code/data/mini_imagenet100/imagenet_format'
-    tinyimagenet_root = '/f/code/data/tiny-imagenet-200/tiny-imagenet-200'
-    args.imagenet_root = imagenet_root
+    # Use user-provided root; set defaults for ImageNet/tinyImageNet if not specified
+    if not hasattr(args, 'imagenet_root') or args.imagenet_root is None:
+        args.imagenet_root = os.path.join(args.root, 'imagenet-100', 'imagenet_folder')
+    if not hasattr(args, 'tinyimagenet_root') or args.tinyimagenet_root is None:
+        args.tinyimagenet_root = os.path.join(args.root, 'tiny-imagenet-200', 'tiny-imagenet-200')
     args.tinyimagenet_root = tinyimagenet_root
 
     arch_map = {'vit_b32': 'ViT-B/32', 'vit_b16': 'ViT-B/16', 'RN50': 'RN50'}
