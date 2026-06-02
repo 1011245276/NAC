@@ -6,6 +6,9 @@
 # ============================================================
 set -e
 
+# Source common setup (dataset check + GPU auto-detect)
+source "$(dirname "$0")/common.sh"
+
 DATASET="cifar10"
 ARCHS=("vit_b32" "vit_b16")
 METHODS=("ttc" "nac")

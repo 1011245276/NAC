@@ -6,6 +6,9 @@
 # ============================================================
 set -e
 
+# Source common setup (dataset check + GPU auto-detect)
+source "$(dirname "$0")/common.sh"
+
 METHODS=("ttc" "nac")
 DATASETS=("cifar10" "cifar100" "STL10" "flowers102" "DTD" "imagenet100")
 EPS=1

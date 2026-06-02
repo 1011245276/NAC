@@ -111,7 +111,7 @@ CLIP model weights download automatically on first use (~/.cache/clip/).
 
 ## Dataset Preparation
 
-One command to download all datasets:
+Datasets download automatically when you run any experiment script. Or manually:
 
 ```bash
 python setup_datasets.py

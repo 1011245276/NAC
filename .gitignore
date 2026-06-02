@@ -12,4 +12,6 @@ results/*/
 *.toc
 *.bbl
 *.blg
-data/cifar-10-python.tar.gz
+data/*.tar.gz
+data/*.zip
+*.tar.gz
