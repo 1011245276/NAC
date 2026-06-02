@@ -9,33 +9,35 @@ set -e
 METHODS=("ttc" "nac")
 DATASETS=("cifar10" "cifar100" "STL10" "flowers102" "DTD" "imagenet100")
 EPSILONS=(1 2 4)
-SEED=0
+SEEDS=(0 1 2)
 
 echo "============================================"
 echo " NAC: Multi-Epsilon Results (Table 2)"
-echo " 2 methods x 6 datasets x 3 epsilons = 36 runs"
+echo " 2 methods x 6 datasets x 3 epsilons x 3 seeds = 108 runs"
 echo "============================================"
 
 for eps in "${EPSILONS[@]}"; do
   for method in "${METHODS[@]}"; do
     for dataset in "${DATASETS[@]}"; do
-      echo "[$(date '+%H:%M:%S')] eps=$eps method=$method dataset=$dataset"
-      python nac_fair_experiment.py \
-        --batch_size 32 \
-        --root ./data \
-        --test_attack_type pgd \
-        --test_eps $eps \
-        --test_numsteps 10 \
-        --test_stepsize 1 \
-        --test_set $dataset \
-        --ttc_eps 4 \
-        --beta 2 \
-        --tau_thres 0.2 \
-        --ttc_numsteps 2 \
-        --counterattack $method \
-        --nac_momentum 0.9 \
-        --seed $SEED \
-        --outdir ./results/multi_eps
+      for seed in "${SEEDS[@]}"; do
+        echo "[$(date '+%H:%M:%S')] eps=$eps method=$method dataset=$dataset seed=$seed"
+        python nac_fair_experiment.py \
+          --batch_size 32 \
+          --root ./data \
+          --test_attack_type pgd \
+          --test_eps $eps \
+          --test_numsteps 10 \
+          --test_stepsize 1 \
+          --test_set $dataset \
+          --ttc_eps 4 \
+          --beta 2 \
+          --tau_thres 0.2 \
+          --ttc_numsteps 2 \
+          --counterattack $method \
+          --nac_momentum 0.9 \
+          --seed $seed \
+          --outdir ./results/multi_eps
+      done
     done
   done
 done
