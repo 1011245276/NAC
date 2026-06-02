@@ -164,17 +164,47 @@ Results are saved to `results/<experiment>/` after each script completes.
 
 ## System Requirements
 
-- **GPU:** 8 GB VRAM minimum (RTX 4060 or equivalent). Lower VRAM: `BATCH_SIZE=8 bash scripts/reproduce_main.sh`
-- **Storage:** ~10 GB free (datasets + model weights)
+- **GPU:** 8 GB VRAM minimum. Lower VRAM: `BATCH_SIZE=8 bash scripts/reproduce_main.sh`
+- **Storage:** ~10 GB (datasets + model weights)
 - **Total runs:** 234 across all scripts (~222 without AFT)
-- **Estimated runtime:** ~6 hours for Table 1, ~24h for full reproduction on a single GPU
-- **Quick test:** run Table 1 on CIFAR-10 only first to verify setup:
-  ```bash
-  python nac_fair_experiment.py --batch_size 32 --root ./data \
-      --test_attack_type pgd --test_eps 1 --test_numsteps 10 --test_stepsize 1 \
-      --test_set cifar10 --ttc_eps 4 --beta 2 --tau_thres 0.2 --ttc_numsteps 2 \
-      --counterattack nac --nac_momentum 0.9 --seed 0 --outdir ./results/quick_test
-  ```
+
+### Runtime Estimates (RTX 4060, batch_size=32)
+
+| Script | Runs | ~Time | Notes |
+|--------|------|-------|-------|
+| `reproduce_main.sh` | 36 | 2.5 h | 6 datasets × 2 methods × 3 seeds |
+| `reproduce_multi_eps.sh` | 108 | 7 h | 3 epsilons × all above |
+| `reproduce_nstep.sh` | 24 | 1.5 h | 2 datasets × 2/4 steps |
+| `reproduce_autoattack.sh` | 6 | 0.5 h | AutoAttack is heavier per step |
+| `reproduce_cross_arch.sh` | 12 | 1 h | ViT-B/16 similar to B/32 |
+| `reproduce_ablation.sh` | 18 | 1 h | 2 datasets |
+| `reproduce_mu_scan.sh` | 18 | 1 h | 6 mu values |
+| `reproduce_aft.sh` | 12 | 1 h | Needs external weights |
+| **Total** | **234** | **~15 h** | |
+
+### Run a Single Experiment
+
+Use `run.sh` for one-off runs — much faster for debugging:
+
+```bash
+# Quick test (CIFAR-10, eps=4/255, NAC)
+bash run.sh nac cifar10 4
+
+# Syntax: bash run.sh [method] [dataset] [eps]
+# method:  nac | ttc | momentum
+# dataset: cifar10 | cifar100 | STL10 | flowers102 | DTD | imagenet100
+# eps:     1 | 2 | 4  (attack strength in /255)
+```
+
+Or call Python directly for full control:
+
+```bash
+python nac_fair_experiment.py \
+    --batch_size 32 --root ./data \
+    --test_set cifar10 --test_eps 4 --test_numsteps 10 \
+    --counterattack nac --nac_momentum 0.9 \
+    --ttc_numsteps 2 --seed 0 --outdir ./results/my_test
+```
 
 ## Project Structure
 
