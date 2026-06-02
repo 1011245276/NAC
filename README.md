@@ -133,9 +133,14 @@ nac_project/
 ├── support/                      # ImageNet class names
 ├── configs/default.yaml
 ├── scripts/                      # Reproduce all experiments
-│   ├── reproduce_main.sh         #   Table 1: main results
-│   ├── reproduce_multi_eps.sh    #   Table 2: multi-epsilon
-│   └── reproduce_ablation.sh     #   Table 7: ablation study
+│   ├── reproduce_main.sh         #   Table 1: 6 datasets, eps=1
+│   ├── reproduce_multi_eps.sh    #   Table 2: 3 epsilon values
+│   ├── reproduce_nstep.sh        #   Table 3: 2-step vs 4-step
+│   ├── reproduce_autoattack.sh   #   Table 4: AutoAttack eval
+│   ├── reproduce_cross_arch.sh   #   Table 5: ViT-B/32 + ViT-B/16
+│   ├── reproduce_aft.sh          #   Table 6: AFT superposition
+│   ├── reproduce_ablation.sh     #   Table 7: momentum ablation
+│   └── reproduce_mu_scan.sh      #   momentum coefficient scan
 ├── figures/                      # Paper figures (PDF + PNG)
 ├── results/
 │   ├── main_results.json         # All experiment data
