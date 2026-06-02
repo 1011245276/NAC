@@ -163,15 +163,16 @@ nac_project/
 ├── README.md                     # This file
 ├── requirements.txt
 ├── run.sh                        # Quick run script
-├── test_time_counterattack.py    # Main experiment (TTC + NAC + momentum)
+├── nac_fair_experiment.py        # Main experiment runner (NAC + TTC + momentum)
+├── test_time_counterattack.py    # TTC counterattack (imported as library)
 ├── nac.py / ttc.py               # Standalone counterattack modules
+├── evaluate.py                   # Lightweight single-dataset eval
 ├── attacks.py                    # PGD / CW / AutoAttack
 ├── func.py                       # CLIP preprocessing
 ├── utils.py                      # Dataset loading
 ├── replace/                      # CLIP model (self-contained)
 ├── models/                       # Visual prompters
 ├── support/                      # ImageNet class names
-├── configs/default.yaml
 ├── scripts/                      # Reproduce all experiments
 │   ├── reproduce_main.sh         #   Table 1: 6 datasets, eps=1
 │   ├── reproduce_multi_eps.sh    #   Table 2: 3 epsilon values
@@ -187,7 +188,11 @@ nac_project/
 │   ├── ablation/                 # Momentum ablation
 │   └── final/                    # N-step comparison
 ├── LICENSE                       # MIT License
-└── data/                         # Dataset directory
+├── paper/                        # arXiv preprint
+├── figures/                      # Paper figures (PDF + PNG)
+├── results/                      # Experiment outputs
+├── run.sh / run.ps1              # Quick run (Linux / Windows)
+├── data/                         # Dataset directory
 ```
 
 ## Method
@@ -231,4 +236,4 @@ Everything else — tau_threshold gating, step weighting, perturbation budget �
 
 ## License
 
-MIT
+MIT License. This project builds upon [TTC](https://github.com/Sxing2/CLIP-Test-time-Counterattacks) (CVPR 2025). The `replace/clip.py` and `replace/model.py` originate from [OpenAI CLIP](https://github.com/openai/CLIP) (MIT).
