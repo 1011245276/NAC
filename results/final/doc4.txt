@@ -1,0 +1,4 @@
+Files already downloaded and verified
+  0%|                                                   | 0/157 [00:00<?, ?it/s]F:\code\CLIP\03_²âÊÔÊ±·ÀÓù_Test-time_Defense\DOC\DOC_source\DOC-main\Code\DOC.py:192: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+  1%|¨†                                          | 1/157 [00:22<57:20, 22.05s/it]
