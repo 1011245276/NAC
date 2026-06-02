@@ -22,7 +22,7 @@ for method in "${METHODS[@]}"; do
     for seed in "${SEEDS[@]}"; do
       echo "[$(date '+%H:%M:%S')] method=$method dataset=$dataset seed=$seed"
       python nac_fair_experiment.py \
-        --batch_size 32 \
+        --batch_size ${BATCH_SIZE:-32} \
         --root ./data \
         --test_attack_type pgd \
         --test_eps $EPS \

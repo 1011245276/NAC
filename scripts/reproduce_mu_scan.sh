@@ -21,7 +21,7 @@ for mu in "${MU_VALUES[@]}"; do
       # mu=0 → equivalent to TTC
       echo "[$(date '+%H:%M:%S')] mu=$mu (TTC baseline) seed=$seed"
       python nac_fair_experiment.py \
-        --batch_size 32 --root ./data \
+        --batch_size ${BATCH_SIZE:-32} --root ./data \
         --test_attack_type pgd --test_eps 4 --test_numsteps 10 --test_stepsize 1 \
         --test_set $DATASET --ttc_eps 4 --beta 2 --tau_thres 0.2 \
         --ttc_numsteps 2 --counterattack ttc \
@@ -29,7 +29,7 @@ for mu in "${MU_VALUES[@]}"; do
     else
       echo "[$(date '+%H:%M:%S')] mu=$mu seed=$seed"
       python nac_fair_experiment.py \
-        --batch_size 32 --root ./data \
+        --batch_size ${BATCH_SIZE:-32} --root ./data \
         --test_attack_type pgd --test_eps 4 --test_numsteps 10 --test_stepsize 1 \
         --test_set $DATASET --ttc_eps 4 --beta 2 --tau_thres 0.2 \
         --ttc_numsteps 2 --counterattack nac --nac_momentum $mu \

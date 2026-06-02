@@ -164,7 +164,7 @@ Results are saved to `results/<experiment>/` after each script completes.
 
 ## System Requirements
 
-- **GPU:** 8 GB VRAM minimum (RTX 4060 or equivalent)
+- **GPU:** 8 GB VRAM minimum (RTX 4060 or equivalent). Lower VRAM: `BATCH_SIZE=8 bash scripts/reproduce_main.sh`
 - **Storage:** ~10 GB free (datasets + model weights)
 - **Total runs:** 234 across all scripts (~222 without AFT)
 - **Estimated runtime:** ~6 hours for Table 1, ~24h for full reproduction on a single GPU

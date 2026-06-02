@@ -22,7 +22,7 @@ for dataset in "${DATASETS[@]}"; do
       for seed in "${SEEDS[@]}"; do
         echo "[$(date '+%H:%M:%S')] steps=$steps method=$method dataset=$dataset seed=$seed"
         python nac_fair_experiment.py \
-          --batch_size 32 --root ./data \
+          --batch_size ${BATCH_SIZE:-32} --root ./data \
           --test_attack_type pgd --test_eps 4 --test_numsteps 10 --test_stepsize 1 \
           --test_set $dataset --ttc_eps 4 --beta 2 --tau_thres 0.2 \
           --ttc_numsteps $steps --counterattack $method --nac_momentum 0.9 \

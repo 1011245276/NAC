@@ -21,7 +21,7 @@ for arch in "${ARCHS[@]}"; do
     for seed in "${SEEDS[@]}"; do
       echo "[$(date '+%H:%M:%S')] arch=$arch method=$method seed=$seed"
       python nac_fair_experiment.py \
-        --batch_size 32 --root ./data --arch $arch \
+        --batch_size ${BATCH_SIZE:-32} --root ./data --arch $arch \
         --test_attack_type pgd --test_eps 4 --test_numsteps 10 --test_stepsize 1 \
         --test_set $DATASET --ttc_eps 4 --beta 2 --tau_thres 0.2 \
         --ttc_numsteps 2 --counterattack $method --nac_momentum 0.9 \
