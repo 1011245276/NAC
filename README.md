@@ -184,17 +184,25 @@ Results are saved to `results/<experiment>/` after each script completes.
 
 ### Run a Single Experiment
 
-Use `run.sh` for one-off runs — much faster for debugging:
+Use `run.sh` for one-off runs. Map each paper result to the right command:
 
 ```bash
-# Quick test (CIFAR-10, eps=4/255, NAC)
-bash run.sh nac cifar10 4
-
-# Syntax: bash run.sh [method] [dataset] [eps]
+bash run.sh [method] [dataset] [eps]
 # method:  nac | ttc | momentum
 # dataset: cifar10 | cifar100 | STL10 | flowers102 | DTD | imagenet100
 # eps:     1 | 2 | 4  (attack strength in /255)
 ```
+
+| Paper result | Command |
+|-------------|---------|
+| Table 1, CIFAR-10, eps=1 | `bash run.sh nac cifar10 1` |
+| Table 2, STL-10, eps=2 | `bash run.sh nac STL10 2` |
+| Table 7, TTC baseline | `bash run.sh ttc cifar10 4` |
+| Table 7, standard momentum | `bash run.sh momentum cifar10 4` |
+| Table 7, NAC (Nesterov) | `bash run.sh nac cifar10 4` |
+| Table 3 (4-step) | Use `reproduce_nstep.sh` (needs `--ttc_numsteps 4`) |
+| Table 4 (AutoAttack) | Use `reproduce_autoattack.sh` (needs `--test_attack_type autoattack`) |
+| Table 5 (ViT-B/16) | Use `reproduce_cross_arch.sh` (needs `--arch vit_b16`) |
 
 Or call Python directly for full control:
 
