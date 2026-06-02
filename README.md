@@ -132,11 +132,16 @@ nac_project/
 ├── models/                       # Visual prompters
 ├── support/                      # ImageNet class names
 ├── configs/default.yaml
-├── scripts/                      # Batch run scripts
+├── scripts/                      # Reproduce all experiments
+│   ├── reproduce_main.sh         #   Table 1: main results
+│   ├── reproduce_multi_eps.sh    #   Table 2: multi-epsilon
+│   └── reproduce_ablation.sh     #   Table 7: ablation study
+├── figures/                      # Paper figures (PDF + PNG)
 ├── results/
 │   ├── main_results.json         # All experiment data
 │   ├── ablation/                 # Momentum ablation
 │   └── final/                    # N-step comparison
+├── LICENSE                       # MIT License
 └── data/                         # Dataset directory
 ```
 
