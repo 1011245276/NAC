@@ -161,8 +161,9 @@ Results are saved to `results/<experiment>/` after each script completes.
 ```
 nac_project/
 ├── README.md                     # This file
+├── LICENSE                       # MIT License
 ├── requirements.txt
-├── run.sh                        # Quick run script
+├── run.sh / run.ps1              # Quick run (Linux / Windows)
 ├── nac_fair_experiment.py        # Main experiment runner (NAC + TTC + momentum)
 ├── test_time_counterattack.py    # TTC counterattack (imported as library)
 ├── nac.py / ttc.py               # Standalone counterattack modules
@@ -187,11 +188,7 @@ nac_project/
 │   ├── main_results.json         # All experiment data
 │   ├── ablation/                 # Momentum ablation
 │   └── final/                    # N-step comparison
-├── LICENSE                       # MIT License
 ├── paper/                        # arXiv preprint
-├── figures/                      # Paper figures (PDF + PNG)
-├── results/                      # Experiment outputs
-├── run.sh / run.ps1              # Quick run (Linux / Windows)
 ├── data/                         # Dataset directory
 ```
 
