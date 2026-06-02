@@ -1,0 +1,230 @@
+% Standalone TikZ figure — NAC Framework Diagram
+% Compile: pdflatex fig1_framework.tex
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, shapes.geometric, calc, backgrounds, fit, positioning}
+
+% ── Palette ──
+\definecolor{nacDark}{HTML}{1B3A5C}
+\definecolor{nacMid}{HTML}{3A7CB8}
+\definecolor{nacLight}{HTML}{D0E4F5}
+\definecolor{nacBg}{HTML}{EDF4FA}
+
+\definecolor{ttcDark}{HTML}{8B2E1C}
+\definecolor{ttcMid}{HTML}{C46A4A}
+\definecolor{ttcLight}{HTML}{F0D8CE}
+\definecolor{ttcBg}{HTML}{FAF4F0}
+
+\definecolor{cleanDark}{HTML}{2E6B3C}
+\definecolor{cleanMid}{HTML}{5B9E6A}
+\definecolor{cleanLight}{HTML}{D5E8D8}
+
+\definecolor{attackDark}{HTML}{7B2045}
+\definecolor{attackLight}{HTML}{F0DCE4}
+
+\definecolor{gold}{HTML}{C89630}
+\definecolor{slate}{HTML}{666666}
+\definecolor{linecolor}{HTML}{D0D0D0}
+\definecolor{white}{HTML}{FFFFFF}
+
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  % Node styles
+  nbox/.style={
+    rectangle, rounded corners=4pt, draw=#1, line width=0.8pt,
+    fill=#2, inner sep=10pt, font=\sffamily, align=center
+  },
+  cleanBox/.style={nbox={cleanDark}{cleanLight!35}},
+  attackBox/.style={nbox={attackDark}{attackLight!35}},
+  ttcBox/.style={nbox={ttcDark}{ttcBg}},
+  nacBox/.style={nbox={nacDark}{nacBg}},
+  whiteBox/.style={nbox={slate}{white}},
+  % Embedding circle
+  embC/.style={
+    circle, draw=#1!25, fill=#1!4, line width=0.4pt,
+    minimum size=6.5cm, inner sep=0pt
+  },
+  % Arrows
+  arr/.style={->, >=Stealth, line width=0.8pt, color=slate},
+  arrT/.style={->, >=Stealth, line width=1.5pt},
+  arrD/.style={->, >=Stealth, line width=0.7pt, densely dashed},
+]
+
+% ═══════════════════════════════════════════════
+% TITLE
+% ═══════════════════════════════════════════════
+\node[font=\sffamily\bfseries\LARGE, color=nacDark] at (0, 11.5)
+  {NAC: Nesterov Accelerated Counterattack};
+\node[font=\sffamily\small, color=slate] at (0, 10.85)
+  {Test-Time Adversarial Defense for Vision-Language Models};
+
+% ═══════════════════════════════════════════════
+% SECTION 1 — Attack Pipeline
+% ═══════════════════════════════════════════════
+% Clean Image
+\node[cleanBox] (clean) at (-7.5, 9.5) {
+  \textbf{Clean Image}\\[2pt]
+  {\footnotesize\color{cleanMid} $x$\quad $224\!\times\!224\!\times\!3$}
+};
+% CLIP
+\node[whiteBox] (encoder) at (-3.2, 9.5) {
+  \textbf{CLIP Encoder}\\[2pt]
+  {\footnotesize\color{slate} ViT-B/32 (frozen)}
+};
+% Clean Embedding
+\node[cleanBox] (embClean) at (1.8, 9.5) {
+  \textbf{Clean Embedding}\\[2pt]
+  {\footnotesize\color{cleanMid} $e_{\text{clean}} = f(x)$}
+};
+\draw[arr] (clean) -- (encoder);
+\draw[arr] (encoder) -- (embClean);
+
+% PGD Attack
+\node[attackBox] (attack) at (1.8, 7.8) {
+  \textbf{PGD Attack}\\[2pt]
+  {\footnotesize\color{attackDark} $10$ iterations \quad $\varepsilon\!\in\!\{1,2,4\}/255$}
+};
+\draw[arrT, color=attackDark] (embClean) -- (attack);
+
+% Adversarial Image
+\node[attackBox] (adv) at (1.8, 6.5) {
+  \textbf{Adversarial Image}\\[2pt]
+  {\footnotesize\color{attackDark} $x_{\text{adv}} = x + \delta_{\text{att}}$}
+};
+\draw[arrT, color=attackDark] (attack) -- (adv);
+
+% Counterattack label
+\node[font=\sffamily\bfseries\small, color=slate] (counterL) at (6.2, 6.5)
+  {Counterattack\\[-2pt] Optimization};
+\draw[arr, bend left=15] (adv.east) to (counterL.west);
+
+% Divider
+\draw[color=linecolor, line width=0.5pt] (-9, 5.4) -- (9, 5.4);
+
+% ═══════════════════════════════════════════════
+% SECTION 2 — TTC vs NAC
+% ═══════════════════════════════════════════════
+% ── LEFT: TTC ──
+\node[embC=ttcMid] (ttcE) at (-5.0, 2.6) {};
+
+% Scattered dots
+\foreach \i in {1,...,35} {
+  \pgfmathsetmacro{\rx}{-5.0 + rand*1.8}
+  \pgfmathsetmacro{\ry}{2.6 + 1.2 + rand*1.0}
+  \fill[ttcLight, opacity=0.55] (\rx, \ry) circle (1.1pt);
+}
+
+% Clean target star
+\node[star, star points=5, star point ratio=2.25, fill=cleanDark,
+      minimum size=11pt, inner sep=0pt] at (-4.3, -0.1) {};
+\node[font=\sffamily\footnotesize\color{cleanDark}] at (-4.3, -0.45) {$e_{\text{clean}}$};
+
+% Current δ_t
+\fill[ttcDark] (-5.5, 3.2) circle (3.2pt);
+\node[font=\sffamily\footnotesize\color{ttcDark}] at (-6.15, 3.2) {$\delta_t$};
+
+% Gradient (short)
+\draw[arrT, color=ttcMid] (-5.5, 3.2) -- (-4.9, 1.8);
+\node[font=\sffamily\footnotesize\color{ttcMid}] at (-4.4, 1.9) {$\nabla\mathcal{L}(\delta_t)$};
+
+% Next position (faint)
+\fill[ttcDark, opacity=0.35] (-4.85, 1.9) circle (2pt);
+\node[font=\sffamily\tiny\color{ttcDark}, opacity=0.5] at (-4.3, 1.9) {$\delta_{t+1}$};
+
+% Labels
+\node[font=\sffamily\scriptsize\color{slate}] at (-5.0, 5.2) {Embedding Space};
+\node[font=\sffamily\bfseries\large\color{ttcDark}] at (-5.0, -1.6) {TTC};
+\node[font=\sffamily\footnotesize\color{slate}] at (-5.0, -2.05) {gradient at current position};
+\node[font=\sffamily\footnotesize\color{slate}] at (-5.0, -2.4) {$O(1/K)$ convergence};
+
+% ── CENTER: Key insight ──
+\node[font=\sffamily\bfseries, align=center, color=slate] at (0, 2.8)
+  {The only\\difference:\\gradient\\evaluation};
+
+% ── RIGHT: NAC ──
+\node[embC=nacMid] (nacE) at (5.0, 2.6) {};
+
+\foreach \i in {1,...,35} {
+  \pgfmathsetmacro{\rx}{5.0 + rand*1.8}
+  \pgfmathsetmacro{\ry}{2.6 + 1.2 + rand*1.0}
+  \fill[nacLight, opacity=0.55] (\rx, \ry) circle (1.1pt);
+}
+
+% Clean target
+\node[star, star points=5, star point ratio=2.25, fill=cleanDark,
+      minimum size=11pt, inner sep=0pt] at (5.7, -0.1) {};
+\node[font=\sffamily\footnotesize\color{cleanDark}] at (5.7, -0.45) {$e_{\text{clean}}$};
+
+% Current δ_t (faint)
+\fill[nacMid, opacity=0.25] (4.5, 3.2) circle (2pt);
+
+% LOOK-AHEAD (gold diamond — key visual)
+\fill[gold] (6.2, 3.6) circle (3.8pt);
+\node[font=\sffamily\footnotesize\color{nacDark}] at (7.5, 3.6)
+  {$\delta_t + \mu\,v_t$\;\textit{(look-ahead)}};
+
+% Dashed momentum line
+\draw[arrD, color=nacMid] (4.5, 3.2) -- (6.2, 3.6);
+\node[font=\sffamily\tiny\color{nacMid}] at (5.35, 3.65) {$\mu v_t$};
+
+% Gradient from look-ahead (long, accurate)
+\draw[arrT, color=nacDark, line width=2.0pt] (6.2, 3.6) -- (5.8, 0.5);
+\node[font=\sffamily\footnotesize\color{nacDark}] at (6.8, 2.2)
+  {$\nabla\mathcal{L}(\delta_t\!+\!\mu v_t)$};
+
+% Next position (close!)
+\fill[nacDark] (5.85, 0.6) circle (3.2pt);
+\node[font=\sffamily\footnotesize\color{nacDark}] at (6.6, 0.6) {$\delta_{t+1}$};
+
+% Labels
+\node[font=\sffamily\scriptsize\color{slate}] at (5.0, 5.2) {Embedding Space};
+\node[font=\sffamily\bfseries\large\color{nacDark}] at (5.0, -1.6) {NAC (Ours)};
+\node[font=\sffamily\footnotesize\color{slate}] at (5.0, -2.05) {gradient at \textbf{look-ahead} position};
+\node[font=\sffamily\footnotesize\color{slate}] at (5.0, -2.4) {$O(1/K^2)$ convergence};
+
+% ── Code comparison boxes ──
+\node[ttcBox, minimum width=8.5cm, inner sep=8pt, font=\sffamily\scriptsize]
+  at (-4.0, -3.3) {
+  \textbf{\color{ttcDark} TTC}\hspace{6pt}
+  $g\!=\!\nabla\mathcal{L}(x_{\text{adv}}\!+\!\delta_t)$\hspace{10pt}
+  $\delta_{t+1}\!=\!\Pi_\varepsilon(\delta_t\!+\!\alpha\cdot\text{sign}(g))$
+};
+
+\node[nacBox, minimum width=8.5cm, inner sep=8pt, font=\sffamily\scriptsize]
+  at (4.3, -3.3) {
+  \textbf{\color{nacDark} NAC}\hspace{6pt}
+  $g\!=\!\nabla\mathcal{L}(x_{\text{adv}}\!+\!\delta_t\!+\!\mu v_t)$\hspace{10pt}
+  $v_{t+1}\!=\!\mu v_t\!+\!\alpha\cdot\text{sign}(g),\;
+   \delta_{t+1}\!=\!\Pi_\varepsilon(\delta_t\!+\!v_{t+1})$
+};
+
+\node[font=\sffamily\footnotesize\color{slate}] at (0.15, -4.0)
+  {$\longleftarrow$\quad Only 2 lines changed, zero extra FLOPs \quad$\longrightarrow$};
+
+% ═══════════════════════════════════════════════
+% SECTION 3 — Output
+% ═══════════════════════════════════════════════
+\draw[color=linecolor, line width=0.5pt] (-9, -4.6) -- (9, -4.6);
+
+% Converging arrows
+\draw[arr, bend right=15] (-5.0, -1.05) to (-0.3, -5.0);
+\draw[arr, bend left=15]  (5.0, -1.05) to (0.3, -5.0);
+
+% Defended Image
+\node[cleanBox, minimum width=9cm, inner sep=10pt] at (0, -5.5) {
+  \textbf{\large Defended Image}\\[3pt]
+  {\footnotesize\color{cleanMid}
+   $\tilde{x} = x_{\text{adv}} + \Delta$\quad$\rightarrow$\quad
+   CLIP Zero-Shot Classification}
+};
+
+% Bottom tagline
+\node[font=\sffamily\footnotesize\color{slate}] at (0, -6.35)
+  {NAC gains $+3.8\!\sim\!+7.5$ pp over TTC across 6 datasets
+   \quad$\cdot$\quad PGD \& AutoAttack};
+
+\end{tikzpicture}
+\end{document}
