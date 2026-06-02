@@ -90,25 +90,33 @@ def setup_imagenet100():
         print(f"    Target: {target}")
 
 def setup_auto_datasets():
-    """Trigger auto-download of torchvision datasets."""
-    print("[*] Pre-downloading torchvision datasets ...")
+    """Trigger download of all auto-downloadable datasets."""
+    print("[*] Pre-downloading datasets ...")
     import torchvision.datasets as tvdata
 
-    datasets = [
+    # CIFAR-10/100, STL-10: torchvision auto-download
+    for name, fn in [
         ("CIFAR-10", lambda: tvdata.CIFAR10(DATA_DIR, download=True)),
         ("CIFAR-100", lambda: tvdata.CIFAR100(DATA_DIR, download=True)),
         ("STL-10", lambda: tvdata.STL10(DATA_DIR, split='test', download=True)),
-    ]
-
-    for name, fn in datasets:
+    ]:
         print(f"  Downloading {name} ...")
         fn()
         print(f"  [OK] {name}")
 
-    # Flowers-102 and DTD use custom loaders in replace/datasets/
-    # They auto-download on first experiment run, so just verify here
-    print("  Flowers-102, DTD: auto-download on first experiment run")
-    print("[OK] All auto-download datasets ready.")
+    # DTD: auto-download (download=True in utils.py)
+    from replace.datasets import dtd
+    print("  Downloading DTD ...")
+    dtd.DTD(DATA_DIR, split='test', download=True)
+    print("  [OK] DTD")
+
+    # Flowers-102: needs explicit download (utils.py uses download=False)
+    from replace.datasets import flowers102
+    print("  Downloading Flowers-102 ...")
+    flowers102.Flowers102(DATA_DIR, split='test', download=True)
+    print("  [OK] Flowers-102")
+
+    print("[OK] All datasets ready.")
 
 if __name__ == "__main__":
     print("=" * 55)
