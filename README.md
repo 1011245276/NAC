@@ -4,6 +4,8 @@
 
 Research code for "Nesterov Accelerated Counterattack for Test-Time Adversarial Defense of Vision-Language Models." The main experiments were conducted using `nac_fair_experiment.py` in the TTC source directory. This folder provides a self-contained, runnable version for reproduction.
 
+📄 **Paper**: [arXiv version](paper/NAC_paper_arxiv.pdf) | [arXiv coming soon]()
+
 ---
 
 ## Overview

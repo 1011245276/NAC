@@ -1,0 +1,482 @@
+% ============================================================
+% NAC: Nesterov Accelerated Counterattack
+% arXiv version — generated 2026-06-02
+% ============================================================
+\documentclass[12pt,a4paper]{article}
+
+% --- packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{algorithm,algpseudocode}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{enumitem}
+
+% --- theorems ---
+\newtheorem{proposition}{Proposition}
+
+% --- title ---
+\title{Nesterov Accelerated Counterattack for Test-Time Adversarial Defense of Vision-Language Models}
+
+\author{%
+  Zhihao Zhang$^{1,2}$,~~Yazhi Liu$^{1,2,\ast}$\\
+  \\
+  $^{1}$College of Artificial Intelligence, North China University of Science and Technology, Tangshan 063210, China\\
+  $^{2}$Hebei Key Laboratory of Industrial Intelligent Perception, Tangshan 063210, China\\
+  \\
+  $\ast$ Corresponding author. Email: \texttt{liuyazhi@ncst.edu.cn}\\[4pt]
+  First author. Email: \texttt{zhangzhihao126@outlook.com}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Vision-language models such as CLIP exhibit severe vulnerability to adversarial perturbations in zero-shot classification, with accuracy dropping from over 80\% to near zero under standard PGD attacks. Test-Time Counterattack (TTC) offers a training-free defense by using projected gradient descent to push adversarial images back toward their clean embeddings. However, PGD converges slowly in CLIP's embedding space, leaving substantial room for improvement given the limited inference-time iteration budget. We propose Nesterov Accelerated Counterattack (NAC), replacing the PGD optimizer with Nesterov accelerated gradient. NAC computes gradients at a look-ahead position rather than the current position, enabling faster convergence with zero additional computational cost. Experiments on six datasets show NAC outperforming TTC across three attack strengths and under AutoAttack. On CIFAR-10 with PGD $\epsilon=4/255$, NAC improves robust accuracy from 6.98\% to 16.61\%. Ablation studies confirm that the improvement originates from Nesterov's look-ahead mechanism rather than momentum accumulation alone. NAC also generalizes across model architectures and achieves performance comparable to state-of-the-art test-time methods with substantially lower implementation complexity. Code is available at \url{https://github.com/1011245276/NAC}.
+\end{abstract}
+
+% ============================================================
+\section{Introduction}\label{sec:intro}
+
+Vision-language models pretrained on large-scale image-text pairs, such as CLIP~\cite{radford2021clip}, have demonstrated remarkable zero-shot generalization. However, CLIP models remain highly vulnerable to adversarial perturbations~\cite{goodfellow2015explaining,madry2018towards,croce2020reliable,kurakin2017adversarial,carlini2017towards}. By adding imperceptible noise ($L_\infty$ norm of $4/255$), an attacker can reduce zero-shot accuracy from over $80\%$ to near zero.
+
+Existing defenses fall into two paradigms. Adversarial fine-tuning (AFT) approaches~\cite{mao2023understanding,schlarmann2024robust,xu2024pretrained} modify model weights through adversarial training but suffer from a fundamental trade-off: they degrade zero-shot generalization. TeCoA~\cite{mao2023understanding} reported that standard adversarial training reduces clean accuracy from $64.56\%$ to $18.49\%$ before its proposed text-guided loss partially recovers performance. Test-time defense methods~\cite{xing2025clip,jiang2026diversifying,liu2026directional,nie2025contrastive,li2026agc} operate at inference without modifying parameters, preserving zero-shot capabilities.
+
+Among test-time approaches, Test-Time Counterattack (TTC)~\cite{xing2025clip} introduced the counterattack paradigm: use PGD to find a counter-perturbation that pushes the adversarial embedding back toward its clean embedding. However, TTC inherits PGD's $O(1/k)$ convergence rate. With only 2--4 inference-time iterations, the optimization is far from converged. Increasing TTC's counterattack steps from 2 to 4 improves robust accuracy on CIFAR-10 from $7.07\%$ to $25.37\%$ under PGD $\epsilon = 4/255$, confirming severe under-optimization.
+
+\textbf{Our insight.} We identify the choice of optimizer as a critical yet overlooked factor in test-time defense. We propose Nesterov Accelerated Counterattack (NAC), which replaces PGD with Nesterov accelerated gradient (NAG)~\cite{nesterov1983method}. NAG computes gradients at a \textbf{look-ahead position}---the extrapolated future state---rather than the current position. Under locally smooth conditions, NAG achieves substantially faster convergence than standard gradient descent~\cite{nesterov1983method}. The modification requires minimal code change and introduces zero additional computation.
+
+The effectiveness of NAC is enabled by CLIP's locally smooth embedding space under the small $\epsilon = 4/255$ budget. Figure~\ref{fig:framework} contrasts TTC and NAC gradient computation. NAC-2 achieves $16.47\%$ robust accuracy compared to TTC-2's $6.98\%$ ($+9.49$pp) on CIFAR-10 under PGD $\epsilon=4/255$. NAC-4 reaches $37.05\%$, compared to TTC-4's $25.37\%$ ($+11.68$pp). This work's contributions are:
+\begin{enumerate}[leftmargin=*]
+\item We identify the optimizer as a critical yet overlooked factor in test-time counterattack, and propose NAC---a minimal Nesterov modification enabling significantly faster convergence.
+\item We provide convergence analysis explaining why look-ahead is effective in CLIP's smooth embedding space.
+\item Through extensive experiments on six datasets, we demonstrate NAC's consistent improvement over TTC across attack strengths and under AutoAttack.
+\item Ablation studies isolate Nesterov's look-ahead mechanism from general momentum accumulation.
+\end{enumerate}
+
+\begin{figure}[ht]\centering
+\includegraphics[width=0.95\textwidth]{fig1_framework.pdf}
+\caption{Conceptual comparison of TTC and NAC gradient computation. TTC computes the gradient at the current position $\delta_t$. NAC computes the gradient at the look-ahead position $\delta_t + \mu v_t$, providing a better approximation of future gradient directions.}\label{fig:framework}
+\end{figure}
+
+% ============================================================
+\section{Related Work}\label{sec:related}
+
+\subsection{Adversarial Robustness of Vision-Language Models}
+
+The vulnerability of CLIP to adversarial attacks was systematically studied by Mao et al.~\cite{mao2023understanding}. TeCoA achieved $38.18\%$ robust accuracy at an $8.59$pp clean accuracy cost. FARE~\cite{schlarmann2024robust} introduced unsupervised adversarial fine-tuning ($67.0\%$ clean, $19.6\%$ robust). PMG-AFT~\cite{xu2024pretrained} used pretrained model guidance ($46.60\%$ clean, $32.51\%$ robust). AdvCLIP-LoRA~\cite{chen2025advclip} explored low-rank adaptation. All AFT methods require training and trade clean accuracy for robustness~\cite{gowal2021improving}.
+
+Beyond weight-space methods, attention-based defenses leverage CLIP's cross-modal attention. TGA-ZSR~\cite{yu2024text} proposed text-guided attention constraints ($42.09\%$ robust, $56.44\%$ clean). Prompt-tuning approaches such as TAPT~\cite{wang2025tapt} learn defensive prompts at test time. NAC complements these by improving the core counterattack optimization without weight modification.
+
+\subsection{Test-Time Defenses}
+
+Beyond adversarial training, input-level defenses such as multi-resolution training~\cite{rong2025multi} filter high-frequency perturbations through downsampling-upsampling. Test-time defenses operate at inference without modifying parameters. TTC~\cite{xing2025clip} pioneered counterattack via PGD ($3.11\%\to20.64\%$ across 16 datasets). DOC~\cite{jiang2026diversifying} extended TTC with orthogonal gradient directions, directional sensitivity, and sigmoid learnable tau gating. DBD~\cite{liu2026directional} exploited directional bias in feature shifts. CSR~\cite{nie2025contrastive} used spectral rectification. AGC~\cite{li2026agc} employed geometric correction. TTP~\cite{li2026ttp} and SCC~\cite{liu2025self} explored padding-based and consistency-based defenses.
+
+Despite this diversity, all counterattack methods use PGD or its standard-momentum variants. The optimizer itself has never been systematically studied. Our work is the first to analyze optimizer choice for counterattack.
+
+\subsection{Nesterov Accelerated Gradient}
+
+NAG~\cite{nesterov1983method} achieves $O(1/k^2)$ optimal convergence for convex smooth optimization, widely adopted in deep learning~\cite{sutskever2013importance,kingma2015adam} and extended to non-convex settings~\cite{ghadimi2016accelerated}. In adversarial robustness, NAG has been applied exclusively to \textbf{attack generation}---NI-FGSM~\cite{dong2018boosting} used it for transferability, extended by~\cite{lin2024nesterov}. NAG has never been applied to defense or counterattack. We bridge this gap.
+
+% ============================================================
+\section{Method}\label{sec:method}
+
+\subsection{Preliminaries}
+
+Given clean image $x$, an adversarial example $x_{\text{adv}} = x + \delta_{\text{att}}$ is generated by maximizing the classification loss under $L_\infty$ budget $\epsilon_{\text{att}}$:
+\begin{equation}
+\delta_{\text{att}} = \arg\max_{\|\delta\|_\infty \leq \epsilon_{\text{att}}} \mathcal{L}_{\text{cls}}(f(x+\delta), y) \label{eq:attack}
+\end{equation}
+where $f(\cdot)$ is CLIP's vision encoder, $y$ is the label.
+
+TTC~\cite{xing2025clip} proposes a \textbf{counterattack}:
+\begin{equation}
+\min_{\|\delta\|_\infty \leq \epsilon_{\text{ttc}}} \mathcal{L}(\delta) = \|f(x_{\text{adv}} + \delta) - f(x)\|^2 \label{eq:ttc_obj}
+\end{equation}
+solved via PGD: $\delta_{t+1} = \Pi_\epsilon(\delta_t - \alpha \cdot \operatorname{sign}(\nabla \mathcal{L}(\delta_t)))$. After $K$ steps, a tau-threshold gating mechanism produces a weighted combination.
+
+\subsection{NAC: Nesterov Accelerated Counterattack}
+
+NAC replaces the PGD update with:
+\begin{align}
+v_{t+1} &= \mu \cdot v_t + \alpha \cdot \operatorname{sign}(\nabla \mathcal{L}(\delta_t + \mu \cdot v_t)) \label{eq:nac_vel} \\
+\delta_{t+1} &= \Pi_\epsilon(\delta_t + v_{t+1}) \label{eq:nac_update}
+\end{align}
+
+The only difference: gradients are evaluated at the \textbf{look-ahead position} $\delta_t + \mu \cdot v_t$. Algorithm~\ref{alg:nac} presents the pseudocode. NAC requires exactly one forward and one backward pass per step, identical to TTC.
+
+\begin{algorithm}[ht]
+\caption{NAC Counterattack}\label{alg:nac}
+\begin{algorithmic}[1]
+\Require $f$, $x_{\text{adv}}$, $e_{\text{clean}}=f(x)$, $K$, $\alpha$, $\mu$, $\epsilon$, $\tau$, $\beta$
+\Ensure $\Delta$
+\State $\delta \leftarrow 0$, $v \leftarrow 0$, $D \leftarrow [\delta]$
+\For{$t = 1$ to $K$}
+    \State $\text{la} \leftarrow x_{\text{adv}} + \delta + \mu \cdot v$ \Comment{NAC \#1}
+    \State $\text{loss} \leftarrow \|f(\text{la}) - e_{\text{clean}}\|^2$
+    \State $g \leftarrow \nabla_\delta \text{loss}$
+    \State $v \leftarrow \mu \cdot v + \alpha \cdot \operatorname{sign}(g)$ \Comment{NAC \#2}
+    \State $\delta \leftarrow \Pi_\epsilon(\delta + v)$
+    \State $D.\text{append}(\delta)$
+\EndFor
+\State $\Delta \leftarrow \textsc{TauWeightedAverage}(D, \tau, \beta)$
+\State \Return $\Delta$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Convergence Analysis}
+
+Let $g(\delta) = \|f(x_{\text{adv}} + \delta) - f(x)\|^2$. Under $L$-smoothness:
+\begin{proposition}[PGD convergence]
+For $L$-smooth $g$, step $\alpha = 1/L$: $\min_{t < K} \|\nabla g(\delta_t)\|^2 \leq 2L(g(\delta_0) - g^*)/K = O(1/K)$.
+\end{proposition}
+\begin{proposition}[Nesterov convergence]
+For $L$-smooth convex $g$, NAG with $\alpha = 1/L$: $g(\delta_K) - g^* \leq 2L\|\delta_0 - \delta^*\|^2/K^2 = O(1/K^2)$.
+\end{proposition}
+
+\textbf{Discussion.} $g$ is non-convex. A rigorous analysis remains open~\cite{ghadimi2016accelerated}. However, $\epsilon_{\text{ttc}} = 4/255 \approx 0.016$ constrains optimization to a highly local neighborhood. Empirically, CLIP's ViT embedding exhibits approximate smoothness, evidenced by monotonic improvement with additional steps. While we do not claim formal $O(1/K^2)$ for the non-convex case, practical benefit is consistently validated.
+
+\subsection{Distinction from Standard Momentum}
+
+Standard (Polyak) momentum: $m_{t+1} = \mu \cdot m_t + \alpha \cdot \operatorname{sign}(\nabla g(\delta_t))$---gradient at \textbf{current} position. NAC: gradient at \textbf{look-ahead} position. Standard momentum smooths past gradients; Nesterov predicts future gradients. Section~\ref{sec:ablation} validates this empirically.
+
+% ============================================================
+\section{Experiments}\label{sec:experiments}
+
+\subsection{Setup}
+Default: CLIP ViT-B/32. Attack: PGD $L_\infty$, 10 steps, step $1/255$. Counterattack: $\epsilon_{\text{ttc}}=4/255$, $K=2$, $\tau=0.2$, $\beta=2.0$, step $1/255$. NAC: $\mu=0.9$. Three seeds (0,1,2); max std $<0.2$pp.
+
+\begin{table}[ht]\centering\small
+\caption{Dataset statistics}\label{tab:datasets}
+\begin{tabular}{@{}lrrll@{}}
+\toprule Dataset & Classes & Images & Resolution & Domain \\
+\midrule CIFAR-10 & 10 & 10,000 & $32\times32$ & General objects \\
+CIFAR-100 & 100 & 10,000 & $32\times32$ & General objects \\
+STL-10 & 10 & 8,000 & $96\times96$ & General objects \\
+Flowers-102 & 102 & 6,149 & $\sim$500 & Fine-grained \\
+DTD & 47 & 1,880 & $\sim$300 & Textures \\
+ImageNet-100 & 100 & 5,000 & $\sim$500 & General objects \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Main Results}
+\begin{table}[ht]\centering\small
+\caption{Robust accuracy (\%) under PGD $\epsilon=1/255$, 2-step defense}\label{tab:main}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule Dataset & Clean & TTC & NAC & Gain (pp) \\
+\midrule CIFAR-10 & 84.89 & 27.95 & \textbf{30.94} & +2.99 \\
+CIFAR-100 & 58.19 & 14.68 & \textbf{16.87} & +2.19 \\
+STL-10 & 96.67 & 77.11 & \textbf{80.33} & +3.22 \\
+Flowers-102 & 62.73 & 38.62 & \textbf{45.76} & +7.14 \\
+DTD & 42.71 & 26.54 & \textbf{29.68} & +3.14 \\
+ImageNet-100 & 67.82 & 3.68 & \textbf{7.99} & +4.31 \\
+\midrule Average & --- & 31.43 & \textbf{35.26} & +3.83 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Multi-Attack Strength}
+\begin{table}[ht]\centering\small
+\caption{Average robust accuracy (\%) under PGD with varying $\epsilon$}\label{tab:multi}
+\begin{tabular}{@{}lrrr@{}}
+\toprule $\epsilon_{\text{attack}}$ & TTC & NAC & Gain (pp) \\
+\midrule 1/255 & 31.43 & \textbf{35.26} & +3.83 \\
+2/255 & 22.07 & \textbf{29.56} & +7.49 \\
+4/255 & 5.40 & \textbf{10.89} & +5.49 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{N-Step Scaling}
+\begin{table}[ht]\centering\small
+\caption{Robust accuracy (\%) with varying steps, PGD $\epsilon=4/255$}\label{tab:nstep}
+\begin{tabular}{@{}lrlr@{}}
+\toprule Method & Steps & CIFAR-10 & STL-10 \\
+\midrule TTC & 2 & 7.07 & 17.44 \\
+NAC & 2 & \textbf{16.47} & \textbf{34.30} \\
+TTC & 4 & 25.37 & 48.29 \\
+NAC & 4 & \textbf{37.05} & \textbf{66.74} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Ablation: Look-Ahead vs.\ Standard Momentum}\label{sec:ablation}
+
+To determine whether NAC's improvement stems from Nesterov's look-ahead mechanism or simply from momentum accumulation, we compare TTC (no momentum), a variant with standard Polyak momentum ($\mu=0.9$, no look-ahead), and NAC (Nesterov with look-ahead, $\mu=0.9$) under identical conditions. Table~\ref{tab:ablation} reports the results; Figure~\ref{fig:ablation} provides a visual comparison.
+
+\begin{table}[ht]\centering\small
+\caption{Ablation study, PGD $\epsilon=4/255$, 2-step defense}\label{tab:ablation}
+\begin{tabular}{@{}lrr@{}}
+\toprule Method & CIFAR-10 & STL-10 \\
+\midrule TTC (no momentum) & 6.98 & 17.32 \\
+$+$ Standard momentum & 8.46 & 21.20 \\
+$+$ Nesterov look-ahead (NAC) & \textbf{16.61} & \textbf{34.19} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]\centering
+\includegraphics[width=0.85\textwidth]{fig2_ablation.pdf}
+\caption{Ablation: TTC vs.\ standard momentum vs.\ NAC.}\label{fig:ablation}
+\end{figure}
+
+\subsection{Momentum Coefficient}
+
+Table~\ref{tab:mu} reports NAC performance as a function of the momentum coefficient $\mu$, visualized in Figure~\ref{fig:mu}. Accuracy improves monotonically with $\mu$; the gain from $\mu=0$ to $\mu=0.9$ is $14.48$pp. We adopt $\mu=0.9$ as the standard value, following~\cite{nesterov1983method,sutskever2013importance}.
+
+\begin{table}[ht]\centering\small
+\caption{NAC vs.\ momentum coefficient $\mu$, CIFAR-10, PGD $\epsilon=4/255$}\label{tab:mu}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule $\mu$ & 0 (TTC) & 0.1 & 0.5 & 0.7 & 0.9 & 0.99 \\
+\midrule NAC & 6.06 & 10.73 & 15.81 & 18.16 & \textbf{20.54} & 21.46 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]\centering
+\includegraphics[width=0.7\textwidth]{fig3_mu.pdf}
+\caption{NAC vs.\ momentum coefficient $\mu$.}\label{fig:mu}
+\end{figure}
+
+\subsection{AutoAttack}
+
+To evaluate NAC against a stronger attack ensemble, we employ AutoAttack~\cite{croce2020reliable} (APGD-CE + APGD-DLR). Table~\ref{tab:aa} shows NAC maintains its advantage under this stronger threat model.
+
+\begin{table}[ht]\centering\small
+\caption{Robust accuracy (\%) under AutoAttack, CIFAR-10, $\epsilon=4/255$}\label{tab:aa}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule Method & Clean & Adv & Defended & Gain (pp) \\
+\midrule TTC & 84.90 & 0.05 & 7.56 & --- \\
+NAC & 84.90 & 0.05 & \textbf{11.29} & +3.73 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Cross-Architecture}
+
+Table~\ref{tab:cross} evaluates NAC on ViT-B/16, which uses smaller patch size and more visual tokens. NAC generalizes to this architecture. On RN50, both TTC and NAC recover near zero robust accuracy; ResNet's attention-pooled embeddings respond differently to pixel-space perturbations, and the hyperparameters were tuned for ViT.
+
+\begin{table}[ht]\centering\small
+\caption{Cross-architecture, PGD $\epsilon=4/255$, CIFAR-10}\label{tab:cross}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule Architecture & Clean & TTC & NAC & Gain (pp) \\
+\midrule ViT-B/32 & 84.89 & 6.98 & \textbf{16.61} & +9.63 \\
+ViT-B/16 & 87.24 & 8.51 & \textbf{14.66} & +6.15 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{AFT Superposition}
+
+Test-time counterattacks are orthogonal to adversarial fine-tuning: AFT modifies weights during training, while NAC operates at inference. Table~\ref{tab:aft} evaluates NAC on top of two AFT models. NAC provides modest additional gains under the strong $\epsilon=4/255$ attack, suggesting complementarity; the low absolute accuracy limits practical significance at this attack strength.
+
+\begin{table}[ht]\centering\small
+\caption{AFT superposition, CIFAR-10, PGD $\epsilon=4/255$}\label{tab:aft}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule Base & Clean & TTC & NAC & Gain (pp) \\
+\midrule TeCoA~\cite{mao2023understanding} & 63.85 & 2.75 & \textbf{4.84} & +2.09 \\
+FARE~\cite{schlarmann2024robust} & 73.67 & 0.86 & \textbf{3.30} & +2.44 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{NAC-4 vs.\ TTC-4}
+
+Table~\ref{tab:nac4} reports 4-step defense results. Both methods benefit from additional iterations, but NAC extracts substantially more value per step. The relationship between NAC and DOC is discussed in Section~\ref{sec:discussion}.
+
+\begin{table}[ht]\centering\small
+\caption{4-step defense, PGD $\epsilon=4/255$}\label{tab:nac4}
+\begin{tabular}{@{}lrrr@{}}
+\toprule Dataset & TTC-4 & NAC-4 & Gain (pp) \\
+\midrule CIFAR-10 & 25.37 & \textbf{37.05} & +11.68 \\
+STL-10 & 48.29 & \textbf{66.74} & +18.45 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reproducibility}
+Three seeds: NAC $16.68\% \pm 0.19\%$ (TTC: $7.04\% \pm 0.08\%$). Std $<0.2$pp.
+
+% ============================================================
+\section{Discussion}\label{sec:discussion}
+
+\textbf{Why NAC works.} CLIP's ViT embedding space, constrained by the small perturbation budget of $4/255$, is empirically observed to be locally smooth. The look-ahead gradient at $\delta_t + \mu v_t$ provides a more reliable estimate of the gradient at the next position than the current-position gradient used by TTC. This enables each NAC step to move more directly toward the optimum. Figure~\ref{fig:pca} provides qualitative evidence through PCA: adversarial embeddings (Figure~\ref{fig:pca}b) are scattered and collapsed toward the origin; TTC (Figure~\ref{fig:pca}c) partially restores class separation; NAC (Figure~\ref{fig:pca}d) produces more compact, well-separated clusters, consistent with the quantitative gains in Tables~\ref{tab:main}--\ref{tab:nac4}.
+
+\begin{figure}[ht]\centering
+\includegraphics[width=0.95\textwidth]{fig4_pca.pdf}
+\caption{PCA of CLIP ViT-B/32 embeddings on CIFAR-10. (a) Clean. (b) Adversarial ($\epsilon=4/255$). (c) After TTC. (d) After NAC.}\label{fig:pca}
+\end{figure}
+
+\textbf{Generality of the optimizer insight.} Beyond TTC, the core insight that optimizer choice impacts counterattack effectiveness applies broadly. DBD~\cite{liu2026directional}, CSR~\cite{nie2025contrastive}, and AGC~\cite{li2026agc} all employ standard gradient updates. NAC's Nesterov formulation is a drop-in acceleration module for any gradient-based test-time defense.
+
+\textbf{Why small iteration budgets amplify the optimizer effect.} Test-time defenses operate at $K=2$--$4$, where asymptotic distinctions between $O(1/K)$ and $O(1/K^2)$ manifest practically---unlike standard training with hundreds of iterations~\cite{kingma2015adam}. This regime has not been studied previously.
+
+\textbf{Relationship to DOC.} DOC~\cite{jiang2026diversifying} (AAAI 2026 Oral) extends TTC through exploration diversity (orthogonal gradients, directional sensitivity, learnable tau). NAC extends TTC through convergence rate. Both modify complementary aspects. NAC's minimal modification contrasts with DOC's 30+ lines spanning four specialized components. A combined approach is a natural future direction.
+
+\textbf{Limitations.} (1) Hyperparameters ViT-tuned; RN50 near zero. (2) Gradient computation adds latency; amortized inference~\cite{amos2023tutorial} could reduce steps. (3) CLIP-only evaluation; extending to BLIP-2, LLaVA, retrieval, VQA is future work. (4) Rigorous non-convex NAG analysis remains open~\cite{ghadimi2016accelerated}.
+
+% ============================================================
+\section{Conclusion}\label{sec:conclusion}
+
+We proposed NAC, a training-free test-time defense for CLIP that replaces the PGD optimizer with Nesterov accelerated gradient. The modification requires minimal code changes, introduces zero additional computation, and is grounded in NAG's accelerated convergence properties. Across six datasets spanning general objects, fine-grained categories, and textures, NAC consistently outperforms TTC under PGD attacks ($\epsilon=1/255$, $2/255$, $4/255$) and AutoAttack. On CIFAR-10 at $\epsilon=4/255$, NAC-2 improves robust accuracy by $9.49$pp over TTC-2; NAC-4 achieves $37.05\%$ compared to TTC-4's $25.37\%$. Ablation studies confirm that Nesterov's look-ahead mechanism---not momentum accumulation alone---drives the improvement. NAC also generalizes across ViT architectures and provides complementary gains on adversarially fine-tuned models. This work identifies the choice of optimizer as a previously overlooked design dimension in test-time adversarial defense, and suggests that further gains may be achievable by applying other acceleration techniques from the optimization literature.
+
+% ============================================================
+% Acknowledgements
+\section*{Acknowledgements}
+Supported by [funding information to be added].
+
+% ============================================================
+\begin{thebibliography}{99}
+
+\bibitem{radford2021clip}
+A.~Radford, J.~W.~Kim, C.~Hallacy, A.~Ramesh, G.~Goh, S.~Agarwal, G.~Sastry, A.~Askell, P.~Mishkin, J.~Clark, G.~Krueger, and I.~Sutskever,
+``Learning transferable visual models from natural language supervision,''
+in \emph{International Conference on Machine Learning (ICML)}, 2021.
+
+\bibitem{goodfellow2015explaining}
+I.~J.~Goodfellow, J.~Shlens, and C.~Szegedy,
+``Explaining and harnessing adversarial examples,''
+in \emph{International Conference on Learning Representations (ICLR)}, 2015.
+
+\bibitem{madry2018towards}
+A.~Madry, A.~Makelov, L.~Schmidt, D.~Tsipras, and A.~Vladu,
+``Towards deep learning models resistant to adversarial attacks,''
+in \emph{International Conference on Learning Representations (ICLR)}, 2018.
+
+\bibitem{croce2020reliable}
+F.~Croce and M.~Hein,
+``Reliable evaluation of adversarial robustness with an ensemble of diverse parameter-free attacks,''
+in \emph{International Conference on Machine Learning (ICML)}, 2020.
+
+\bibitem{mao2023understanding}
+C.~Mao, S.~Geng, J.~Yang, X.~Wang, and C.~Vondrick,
+``Understanding and benchmarking zero-shot adversarial robustness for foundation models,''
+in \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem{schlarmann2024robust}
+C.~Schlarmann, N.~D.~Singh, F.~Croce, and M.~Hein,
+``Robust CLIP: Unsupervised adversarial fine-tuning of vision embeddings for robust large vision-language models,''
+in \emph{International Conference on Machine Learning (ICML)}, 2024.
+
+\bibitem{xu2024pretrained}
+S.~Xu, Y.~Huang, Y.~Pan, Y.~Liu, and J.~Yang,
+``Pre-trained model guided fine-tuning for zero-shot adversarial robustness,''
+in \emph{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2024.
+
+\bibitem{xing2025clip}
+S.~Xing, Z.~Zhao, and N.~Sebe,
+``CLIP is strong enough to fight back: Test-time counterattacks towards zero-shot adversarial robustness of CLIP,''
+in \emph{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2025.
+
+\bibitem{jiang2026diversifying}
+C.~Jiang, H.~Li, Y.~Zhang, R.~Song, and S.~Zhao,
+``Diversifying counterattacks: Orthogonal exploration for robust CLIP inference,''
+in \emph{AAAI Conference on Artificial Intelligence (AAAI)}, 2026.
+
+\bibitem{liu2026directional}
+S.~Liu, J.~Wang, A.~Liu, Y.~Li, and J.~Zhou,
+``Directional bias-guided test-time defense for vision-language models,''
+in \emph{International Conference on Learning Representations (ICLR)}, 2026.
+
+\bibitem{nie2025contrastive}
+S.~Nie, Y.~Zhao, X.~Wei, Z.~Feng, and S.~Yang,
+``Contrastive spectral rectification: Test-time defense towards zero-shot adversarial robustness of CLIP,''
+\emph{arXiv preprint}, 2025.
+
+\bibitem{nesterov1983method}
+Y.~Nesterov,
+``A method for solving the convex programming problem with convergence rate $O(1/k^2)$,''
+\emph{Soviet Mathematics Doklady}, vol.~269, pp.~543--547, 1983.
+
+\bibitem{li2026agc}
+Z.~Li, Y.~Zhang, W.~Wang, and C.~Gao,
+``AGC: Adaptive geodesic correction for adversarial robustness on vision-language models,''
+\emph{arXiv preprint}, 2026.
+
+\bibitem{sutskever2013importance}
+I.~Sutskever, J.~Martens, G.~Dahl, and G.~Hinton,
+``On the importance of initialization and momentum in deep learning,''
+in \emph{International Conference on Machine Learning (ICML)}, 2013.
+
+\bibitem{dong2018boosting}
+Y.~Dong, F.~Liao, T.~Pang, H.~Su, J.~Zhu, X.~Hu, and J.~Li,
+``Boosting adversarial attacks with momentum,''
+in \emph{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2018.
+
+\bibitem{lin2024nesterov}
+J.~Lin, C.~Song, K.~He, L.~Wang, and J.~E.~Hopcroft,
+``Nesterov accelerated gradient and scale invariance for improving transferability of adversarial examples,''
+in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2024.
+
+\bibitem{chen2025advclip}
+Y.~Chen, Z.~Liu, W.~Li, and S.~Zhang,
+``AdvCLIP-LoRA: Parameter-efficient adversarial fine-tuning of CLIP via low-rank adaptation,''
+\emph{arXiv preprint}, 2025.
+
+\bibitem{li2026ttp}
+Z.~Li, Y.~Pang, J.~Xue, and C.~Li,
+``TTP: Test-time padding for adversarial detection and robust adaptation on vision-language models,''
+in \emph{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2026.
+
+\bibitem{liu2025self}
+X.~Liu, Y.~Chen, H.~Zhang, and J.~Wang,
+``Self-calibrated consistency can fight back for adversarial robustness in vision-language models,''
+\emph{arXiv preprint}, 2025.
+
+\bibitem{amos2023tutorial}
+B.~Amos,
+``Tutorial on amortized optimization,''
+\emph{Foundations and Trends in Optimization}, vol.~5, pp.~1--221, 2023.
+
+\bibitem{kurakin2017adversarial}
+A.~Kurakin, I.~Goodfellow, and S.~Bengio,
+``Adversarial examples in the physical world,''
+in \emph{ICLR Workshop}, 2017.
+
+\bibitem{carlini2017towards}
+N.~Carlini and D.~Wagner,
+``Towards evaluating the robustness of neural networks,''
+in \emph{IEEE Symposium on Security and Privacy (S\&P)}, 2017.
+
+\bibitem{gowal2021improving}
+S.~Gowal, S.-A.~Rebuffi, O.~Wiles, F.~Stimberg, D.~A.~Calian, and T.~Mann,
+``Improving robustness using generated data,''
+in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2021.
+
+\bibitem{yu2024text}
+L.~Yu, H.~Zhang, and C.~Xu,
+``Text-guided attention is all you need for zero-shot robustness in vision-language models,''
+in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2024.
+
+\bibitem{wang2025tapt}
+X.~Wang, K.~Chen, J.~Liu, and Z.~Zhang,
+``TAPT: Test-time adversarial prompt tuning for robust inference in vision-language models,''
+in \emph{IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2025.
+
+\bibitem{ghadimi2016accelerated}
+S.~Ghadimi and G.~Lan,
+``Accelerated gradient methods for nonconvex nonlinear and stochastic programming,''
+\emph{Mathematical Programming}, vol.~156, pp.~59--99, 2016.
+
+\bibitem{kingma2015adam}
+D.~P.~Kingma and J.~Ba,
+``Adam: A method for stochastic optimization,''
+in \emph{International Conference on Learning Representations (ICLR)}, 2015.
+
+\bibitem{rong2025multi}
+S.~Rong, E.~Hamdan, and A.~E.~Cetin,
+``Multi-resolution training improves robustness against adversarial attacks,''
+\emph{Signal, Image and Video Processing}, vol.~19, article~481, 2025.
+
+\end{thebibliography}
+
+\end{document}
