@@ -8,5 +8,7 @@ regex>=2023.0.0
 autoattack>=0.1
 gdown>=5.0.0
 modelscope>=1.10.0
+scikit-learn>=1.0.0
+matplotlib>=3.5.0
 # Note: CLIP is self-contained in replace/ directory; no pip install clip needed
 # Verified working: torch 2.5.1, torchvision 0.20.1, autoattack 0.1, Python 3.11
