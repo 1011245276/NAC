@@ -105,6 +105,8 @@ cd nac_project
 pip install -r requirements.txt
 ```
 
+**Windows users:** Use Git Bash, WSL, or PowerShell (`run.ps1`). The reproduction scripts (`scripts/*.sh`) require Bash.
+
 CLIP model weights download automatically on first use (~/.cache/clip/).
 
 ## Dataset Preparation
