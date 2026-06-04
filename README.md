@@ -32,8 +32,8 @@ We identify that TTC's standard PGD converges slowly due to the non-convex optim
 | STL-10 | 96.67 | 77.11 | 80.33 | +3.22 |
 | Flowers-102 | 62.73 | 38.62 | 45.76 | +7.14 |
 | DTD | 42.71 | 26.54 | 29.68 | +3.14 |
-| ImageNet-100 | 67.82 | 3.68 | 7.99 | +4.31 |
-| **Average** | — | 31.43 | **35.26** | +3.83 |
+| ImageNet-100 | 67.82 | 46.79 | **51.40** | +4.61 |
+| **Average** | — | 38.62 | **42.50** | +3.88 |
 
 ### Table 2: Multi-Attack Strength — 5-dataset avg, 2-step defense
 
