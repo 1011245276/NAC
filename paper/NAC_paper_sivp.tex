@@ -238,15 +238,15 @@ ImageNet-100 & 67.82 & 3.68 & \textbf{7.99} & +4.31 \\
 
 \subsection{Multi-Attack Strength Evaluation}
 
-To assess the robustness of NAC's advantage across varying threat intensities, we evaluate under three attack budgets $\epsilon_{\text{att}} \in \{1/255, 2/255, 4/255\}$. Table~\ref{tab:multi} reports average robust accuracy across all six datasets. NAC delivers consistent gains at every attack strength, with the largest absolute improvement at $\epsilon_{\text{att}}=2/255$ ($+7.49$pp). Notably, the gain at $\epsilon_{\text{att}}=4/255$ ($+5.49$pp) is smaller than at $\epsilon_{\text{att}}=2/255$, a counterintuitive pattern that warrants explanation. We attribute this to the severity of the adversarial perturbation at $\epsilon_{\text{att}}=4/255$: when the attack budget is large, the adversarial image's embedding is displaced so far from the clean embedding that the counterattack objective $g(\delta) = \|f_I(x_{\text{adv}} + \delta) - f_I(x)\|^2$ loses its local smoothness. The embedding function $f_I$ becomes highly nonlinear over the required traversal distance, and the look-ahead gradient---which relies on local regularity---provides a less reliable descent direction. Under the strongest attack ($\epsilon_{\text{att}}=4/255$), where PGD reduces clean accuracy to below $5\%$, NAC nevertheless more than doubles the average robust accuracy achieved by TTC ($10.89\%$ vs.\ $5.40\%$), underscoring the practical value of accelerated convergence even in partially degraded optimization landscapes.
+To assess the robustness of NAC's advantage across varying threat intensities, we evaluate under three attack budgets $\epsilon_{\text{att}} \in \{1/255, 2/255, 4/255\}$. Table~\ref{tab:multi} reports average robust accuracy across five datasets (CIFAR-10, CIFAR-100, STL-10, Flowers-102, and DTD).\footnote{ImageNet-100 is excluded from the multi-epsilon evaluation due to its substantially higher computational cost (${\sim}500$ resolution images) and its low absolute robust accuracy, which amplifies variance across epsilons without affecting the qualitative pattern.} NAC delivers consistent gains at every attack strength, with the largest absolute improvement at $\epsilon_{\text{att}}=2/255$ ($+8.90$pp). Notably, the gain at $\epsilon_{\text{att}}=4/255$ ($+6.82$pp) is smaller than at $\epsilon_{\text{att}}=2/255$, a counterintuitive pattern that warrants explanation. We attribute this to the severity of the adversarial perturbation at $\epsilon_{\text{att}}=4/255$: when the attack budget is large, the adversarial image's embedding is displaced so far from the clean embedding that the counterattack objective $g(\delta) = \|f_I(x_{\text{adv}} + \delta) - f_I(x)\|^2$ loses its local smoothness. The embedding function $f_I$ becomes highly nonlinear over the required traversal distance, and the look-ahead gradient---which relies on local regularity---provides a less reliable descent direction. Under the strongest attack ($\epsilon_{\text{att}}=4/255$), where PGD reduces clean accuracy to below $5\%$, NAC nevertheless more than doubles the average robust accuracy achieved by TTC ($12.88\%$ vs.\ $6.06\%$), underscoring the practical value of accelerated convergence even in partially degraded optimization landscapes.
 
 \begin{table}[ht]\centering\small
-\caption{Average robust accuracy (\%) across six datasets under PGD with varying attack budgets $\epsilon_{\text{att}}$. NAC's advantage is consistent across all threat levels, with the gap widening at intermediate perturbation strength ($\epsilon=2/255$).}\label{tab:multi}
+\caption{Average robust accuracy (\%) across five datasets under PGD with varying attack budgets $\epsilon_{\text{att}}$. NAC's advantage is consistent across all threat levels, with the gap widening at intermediate perturbation strength ($\epsilon=2/255$).}\label{tab:multi}
 \begin{tabular}{@{}lrrr@{}}
 \toprule $\epsilon_{\text{attack}}$ & TTC & NAC & Gain (pp) \\
-\midrule 1/255 & 31.43 & \textbf{35.26} & +3.83 \\
-2/255 & 22.07 & \textbf{29.56} & +7.49 \\
-4/255 & 5.40 & \textbf{10.89} & +5.49 \\
+\midrule 1/255 & 36.98 & \textbf{40.72} & +3.74 \\
+2/255 & 26.47 & \textbf{35.37} & +8.90 \\
+4/255 & 6.06 & \textbf{12.88} & +6.82 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -385,7 +385,7 @@ Two findings emerge. First, in the small-iteration regime (Config~A), NAC improv
 
 \subsection{Reproducibility}
 
-All experiments are conducted with three random seeds ($0, 1, 2$). Across the main experimental configurations, NAC achieves $16.68\% \pm 0.19\%$ robust accuracy on CIFAR-10 under PGD $\epsilon_{\text{att}}=4/255$, compared to TTC's $7.04\% \pm 0.08\%$. The maximum observed standard deviation across all experiments is below $0.2$ percentage points, indicating stable convergence and high reproducibility.
+The main experiments (Tables~\ref{tab:main}--\ref{tab:multi}) are conducted with three random seeds ($0, 1, 2$), with ImageNet-100 evaluated only on the primary seed due to its computational cost. The N-step scaling, ablation, momentum coefficient, cross-architecture, AFT, and DOC comparison experiments use a single seed, consistent with the evaluation protocol of prior work~\cite{xing2025clip,jiang2026diversifying}. Across all multi-seed configurations, the maximum observed standard deviation is below $0.2$ percentage points, indicating stable convergence and high reproducibility. The complete per-seed results are archived in \texttt{results/main\_results.json}.
 
 % ============================================================
 \section{Discussion}\label{sec:discussion}
