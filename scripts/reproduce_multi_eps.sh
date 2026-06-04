@@ -13,16 +13,20 @@ METHODS=("ttc" "nac")
 DATASETS=("cifar10" "cifar100" "STL10" "flowers102" "DTD" "imagenet100")
 EPSILONS=(1 2 4)
 SEEDS=(0 1 2)
-
+TOTAL_RUNS=$((2 * 6 * 3 * 2 + 2 * 5 * 3))  # 6 datasets (seeds 0-2) + 5 datasets for eps 2,4 (seed 0 only ImageNet)
 echo "============================================"
 echo " NAC: Multi-Epsilon Results (Table 2)"
-echo " 2 methods x 6 datasets x 3 epsilons x 3 seeds = 108 runs"
+echo " $TOTAL_RUNS runs (ImageNet-100: seed 0 only per paper)"
 echo "============================================"
 
 for eps in "${EPSILONS[@]}"; do
   for method in "${METHODS[@]}"; do
     for dataset in "${DATASETS[@]}"; do
       for seed in "${SEEDS[@]}"; do
+        # ImageNet-100: primary seed only (per paper Reproducibility statement)
+        if [ "$dataset" = "imagenet100" ] && [ "$seed" != "0" ]; then
+          continue
+        fi
         echo "[$(date '+%H:%M:%S')] eps=$eps method=$method dataset=$dataset seed=$seed"
         python nac_fair_experiment.py \
           --batch_size ${BATCH_SIZE:-32} \

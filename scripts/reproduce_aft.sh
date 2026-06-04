@@ -20,8 +20,9 @@ echo " TeCoA + FARE, PGD eps=4/255"
 echo ""
 echo " NOTE: Requires TeCoA and FARE model checkpoints."
 echo " Download from their official repos and place in ./checkpoints/"
-echo "   TeCoA: https://github.com/... "
-echo "   FARE:  https://github.com/... "
+echo "   TeCoA eps=4: https://nc.mlcloud.uni-tuebingen.de/index.php/s/92req4Pak5i56tX/download/tecoa_eps_4.pt"
+echo "   FARE  eps=4: https://nc.mlcloud.uni-tuebingen.de/index.php/s/jnQ2qmp9tst8kyQ/download/fare_eps_4.pt"
+echo "   If unavailable, script skips AFT experiments gracefully."
 echo "============================================"
 
 # Check if AFT checkpoints exist
