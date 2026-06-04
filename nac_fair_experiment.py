@@ -84,6 +84,9 @@ def nac_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
     """
     NAC: Nesterov Accelerated version of TTC counterattack.
     Same framework as original TTC, only gradient computation differs.
+    NOTE: This is a self-contained implementation optimized for the experiment
+    framework. The standalone nac.py module provides an equivalent implementation
+    with a slightly different interface for independent use.
     """
     lower_limit, upper_limit = 0, 1
 
