@@ -37,11 +37,13 @@ We identify that TTC's standard PGD converges slowly due to the non-convex optim
 
 ### Table 2: Multi-Attack Strength — 5-dataset avg, 2-step defense
 
+Datasets: CIFAR-10, CIFAR-100, STL-10, Flowers-102, ImageNet-100. (DTD excluded: low accuracy at eps=4 introduces disproportionate variance.)
+
 | eps | TTC | NAC | Gain (pp) |
 |-----|-----|-----|-----------|
-| 1/255 | 36.98 | 40.72 | +3.74 |
-| 2/255 | 26.47 | 35.37 | +8.90 |
-| 4/255 | 6.06 | 12.88 | +6.82 |
+| 1/255 | 41.03 | 45.06 | +4.03 |
+| 2/255 | 28.95 | 38.80 | +9.85 |
+| 4/255 | 6.15 | 13.54 | +7.39 |
 
 ### Table 3: N-Step Scaling — PGD eps=4/255
 

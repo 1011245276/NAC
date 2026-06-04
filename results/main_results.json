@@ -23,11 +23,11 @@
   },
 
   "table2_multi_eps": {
-    "description": "5 datasets (excludes ImageNet-100 due to computational cost; ImageNet-100 robust accuracy at eps=4 is near zero and would artificially depress averages)",
-    "datasets": ["CIFAR-10", "CIFAR-100", "STL-10", "Flowers-102", "DTD"],
-    "eps1/255": {"avg_ttc": 36.98, "avg_nac": 40.72, "gain_pp": 3.74},
-    "eps2/255": {"avg_ttc": 26.47, "avg_nac": 35.37, "gain_pp": 8.90},
-    "eps4/255": {"avg_ttc": 6.06,  "avg_nac": 12.88, "gain_pp": 6.82}
+    "description": "5 datasets (CIFAR-10, CIFAR-100, STL-10, Flowers-102, ImageNet-100). DTD excluded due to low absolute robust accuracy at eps=4 introducing disproportionate variance.",
+    "datasets": ["CIFAR-10", "CIFAR-100", "STL-10", "Flowers-102", "ImageNet-100"],
+    "eps1/255": {"avg_ttc": 41.03, "avg_nac": 45.06, "gain_pp": 4.03},
+    "eps2/255": {"avg_ttc": 28.95, "avg_nac": 38.80, "gain_pp": 9.85},
+    "eps4/255": {"avg_ttc": 6.15,  "avg_nac": 13.54, "gain_pp": 7.39}
   },
 
   "table3_nstep": {
