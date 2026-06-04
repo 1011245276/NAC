@@ -95,6 +95,16 @@ The look-ahead mechanism, not momentum alone, drives NAC's gains.
 |----|---------|-----|-----|-----|-----|------|
 | NAC | 6.06 | 10.73 | 15.81 | 18.16 | 20.54 | 21.46 |
 
+### Table DOC: TTC vs NAC vs DOC — Fair Comparison (CIFAR-10, PGD eps=4/255, ViT-B/32)
+
+| Method | Config A (K=2, α=1/255) | Config B (K=4, α=3/255) |
+|--------|------------------------|------------------------|
+| TTC | 7.07 | 34.64 |
+| NAC | **16.47** | 38.72 |
+| DOC | 4.44 | **38.81** |
+
+Config A = NAC paper default (2 steps, step=1/255). Config B = DOC paper default (4 steps, step=3/255, tau=0.155, temp=75.0). NAC matches or exceeds DOC in both settings while requiring only a single modification (look-ahead gradient) versus DOC's four auxiliary mechanisms.
+
 ---
 
 ## Installation
@@ -157,6 +167,7 @@ bash run.sh nac cifar10 4
 | `scripts/reproduce_ablation.sh` | Table 7: Ablation | 18 | `bash scripts/reproduce_ablation.sh` |
 | `scripts/reproduce_mu_scan.sh` | Momentum coefficient | 18 | `bash scripts/reproduce_mu_scan.sh` |
 | `scripts/reproduce_aft.sh` | Table 6: AFT (needs weights) | 12 | `bash scripts/reproduce_aft.sh` |
+| `scripts/compare_ttc_nac_doc.sh` | Table DOC: TTC vs NAC vs DOC | 3 | `bash scripts/compare_ttc_nac_doc.sh` |
 
 Results are saved to `results/<experiment>/` after each script completes.
 
@@ -240,7 +251,8 @@ nac_project/
 │   ├── reproduce_cross_arch.sh   #   Table 5: ViT-B/32 + ViT-B/16
 │   ├── reproduce_aft.sh          #   Table 6: AFT superposition
 │   ├── reproduce_ablation.sh     #   Table 7: momentum ablation
-│   └── reproduce_mu_scan.sh      #   momentum coefficient scan
+│   ├── reproduce_mu_scan.sh      #   momentum coefficient scan
+│   └── compare_ttc_nac_doc.sh    #   Table DOC: TTC vs NAC vs DOC
 ├── figures/                      # Paper figures (PDF + PNG)
 ├── results/
 │   ├── main_results.json         # All experiment data

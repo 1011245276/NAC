@@ -61,6 +61,12 @@ def parse_options():
                         choices=['ttc', 'nac', 'doc', 'momentum'],
                         help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum')
     parser.add_argument('--nac_momentum', type=float, default=0.9)
+    # DOC config
+    parser.add_argument('--DOC_eps', type=float, default=4.0)
+    parser.add_argument('--DOC_numsteps', type=int, default=2)
+    parser.add_argument('--DOC_stepsize', type=float, default=1.0)
+    parser.add_argument('--learnable_tau', type=float, default=0.155)
+    parser.add_argument('--temperature', type=float, default=75.0)
     return parser.parse_args()
 
 
@@ -310,8 +316,8 @@ def doc_counterattack(args, model, X, prompter, add_prompter, alpha, attack_iter
     deltas_per_step = [delta.data.clone()]
     momentum = torch.zeros_like(X)
 
-    learnable_tau = getattr(args, 'learnable_tau', 0.155)
-    temperature = getattr(args, 'temperature', 75.0)
+    learnable_tau = args.learnable_tau
+    temperature = args.temperature
 
     for _step_id in range(attack_iters):
         prompted_images = prompter(clip_img_preprocessing(X + delta))
@@ -362,7 +368,7 @@ def doc_counterattack(args, model, X, prompter, add_prompter, alpha, attack_iter
 
 def validate(args, val_dataset_name, model, model_text, model_image,
              prompter, add_prompter, criterion, visual_model_orig=None, clip_visual=None):
-    tag = f"{args.counterattack}_m{args.nac_momentum}" if args.counterattack == 'nac' else "ttc_original"
+    tag = f"{args.counterattack}" + (f"_m{args.nac_momentum}" if args.counterattack == 'nac' else "")
 
     logging.info(f"Counterattack: {tag} | Attack: {args.test_attack_type}")
     logging.info(f"tau_thres={args.tau_thres} beta={args.beta}")
@@ -541,7 +547,6 @@ def main():
         args.imagenet_root = os.path.join(args.root, 'imagenet-100', 'imagenet_folder')
     if not hasattr(args, 'tinyimagenet_root') or args.tinyimagenet_root is None:
         args.tinyimagenet_root = os.path.join(args.root, 'tiny-imagenet-200', 'tiny-imagenet-200')
-    args.tinyimagenet_root = tinyimagenet_root
 
     arch_map = {'vit_b32': 'ViT-B/32', 'vit_b16': 'ViT-B/16', 'RN50': 'RN50'}
     arch = getattr(args, 'arch', 'ViT-B/32')

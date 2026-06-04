@@ -66,5 +66,21 @@
   "momentum_ablation": {
     "description": "CIFAR-10, PGD eps=4/255, 5-step attack",
     "mu_values": {"0.0": 6.06, "0.1": 10.73, "0.5": 15.81, "0.7": 18.16, "0.9": 20.54, "0.99": 21.46}
+  },
+
+  "table_doc_comparison": {
+    "description": "Fair comparison: TTC vs NAC vs DOC under identical conditions. Attack: PGD-10, eps=4/255. Model: ViT-B/32. CIFAR-10.",
+    "config_A_nac_default": {
+      "description": "NAC paper default: K=2, step_size=1.0/255, seed=0",
+      "TTC": {"clean": 84.89, "adv": 0.00, "defended": 7.07, "gain_pp": 7.07},
+      "NAC": {"clean": 84.89, "adv": 0.00, "defended": 16.47, "gain_pp": 16.47, "mu": 0.9},
+      "DOC": {"clean": 84.89, "adv": 0.00, "defended": 4.44, "gain_pp": 4.44, "tau": 0.155, "temp": 75.0}
+    },
+    "config_B_doc_default": {
+      "description": "DOC paper default: K=4, step_size=3.0/255, seed=1",
+      "TTC": {"clean": 84.90, "adv": 0.00, "defended": 34.64, "gain_pp": 34.64},
+      "NAC": {"clean": 84.90, "adv": 0.00, "defended": 38.72, "gain_pp": 38.72, "mu": 0.9},
+      "DOC": {"clean": 84.90, "adv": 0.00, "defended": 38.81, "gain_pp": 38.81, "tau": 0.155, "temp": 75.0}
+    }
   }
 }
