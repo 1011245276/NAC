@@ -17,9 +17,9 @@
       "STL-10":      {"clean": 96.67, "ttc": 77.11, "nac": 80.33, "gain_pp": 3.22},
       "Flowers-102": {"clean": 62.73, "ttc": 38.62, "nac": 45.76, "gain_pp": 7.14},
       "DTD":         {"clean": 42.71, "ttc": 26.54, "nac": 29.68, "gain_pp": 3.14},
-      "ImageNet-100":{"clean": 67.82, "ttc_eps1": 46.79, "nac_eps1": 51.40, "gain_eps1": 4.61, "ttc_eps2": 25.64, "nac_eps2": 36.07, "gain_eps2": 10.43, "ttc_eps4": 3.25, "nac_eps4": 8.09, "gain_eps4": 4.84, "_note": "Full 100-class, 5000 images. Run 2026-06-04."}
+      "ImageNet-100":{"clean": 67.82, "ttc": 46.79, "nac": 51.40, "gain_pp": 4.61, "_note": "Full 100-class data, eps=1/255. Run 2026-06-04."}
     },
-    "avg": {"ttc": 31.43, "nac": 35.26, "gain_pp": 3.83}
+    "avg": {"ttc": 38.62, "nac": 42.50, "gain_pp": 3.88}
   },
 
   "table2_multi_eps": {

@@ -217,12 +217,12 @@ ImageNet-100 & 100 & 5,000 & ${\sim}500$ & General objects \\
 
 \subsection{Main Results}
 
-Table~\ref{tab:main} reports robust accuracy under PGD $\epsilon_{\text{att}}=1/255$ with the default 2-step counterattack. NAC consistently outperforms TTC across all six datasets, with gains ranging from $+2.19$ percentage points on CIFAR-100 to $+7.14$ percentage points on Flowers-102. The average improvement of $+3.83$ percentage points is substantial in the context of test-time defense, where gains are typically modest due to the fixed model and limited inference budget.
+Table~\ref{tab:main} reports robust accuracy under PGD $\epsilon_{\text{att}}=1/255$ with the default 2-step counterattack. NAC consistently outperforms TTC across all six datasets, with gains ranging from $+2.19$ percentage points on CIFAR-100 to $+7.14$ percentage points on Flowers-102. The average improvement of $+3.88$ percentage points is substantial in the context of test-time defense, where gains are typically modest due to the fixed model and limited inference budget.
 
 Notably, the magnitude of NAC's improvement varies considerably across datasets. The largest gain is observed on Flowers-102 ($+7.14$pp), a fine-grained dataset where subtle inter-class distinctions are easily disrupted by adversarial perturbations---and where the accelerated convergence of NAG appears particularly beneficial for recovering discriminative embedding structure. In contrast, the more modest gain on CIFAR-100 ($+2.19$pp) likely reflects the higher difficulty of the 100-class setting under zero-shot evaluation, where the absolute robust accuracy ($16.87\%$) leaves less headroom for any defense method.
 
 \begin{table}[ht]\centering\small
-\caption{Robust accuracy (\%) under PGD attack with $\epsilon_{\text{att}}=1/255$, using 2-step counterattack ($K=2$). NAC consistently outperforms TTC across all six datasets, with an average gain of $+3.83$ percentage points. Bold indicates best result.}\label{tab:main}
+\caption{Robust accuracy (\%) under PGD attack with $\epsilon_{\text{att}}=1/255$, using 2-step counterattack ($K=2$). NAC consistently outperforms TTC across all six datasets, with an average gain of $+3.88$ percentage points. Bold indicates best result.}\label{tab:main}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule Dataset & Clean & TTC & NAC & Gain (pp) \\
 \midrule CIFAR-10 & 84.89 & 27.95 & \textbf{30.94} & +2.99 \\
@@ -230,8 +230,8 @@ CIFAR-100 & 58.19 & 14.68 & \textbf{16.87} & +2.19 \\
 STL-10 & 96.67 & 77.11 & \textbf{80.33} & +3.22 \\
 Flowers-102 & 62.73 & 38.62 & \textbf{45.76} & +7.14 \\
 DTD & 42.71 & 26.54 & \textbf{29.68} & +3.14 \\
-ImageNet-100 & 67.82 & 3.68 & \textbf{7.99} & +4.31 \\
-\midrule Average & -- & 31.43 & \textbf{35.26} & +3.83 \\
+ImageNet-100 & 67.82 & 46.79 & \textbf{51.40} & +4.61 \\
+\midrule Average & -- & 38.62 & \textbf{42.50} & +3.88 \\
 \bottomrule
 \end{tabular}
 \end{table}
