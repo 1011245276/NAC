@@ -257,7 +257,7 @@ A key prediction of our convergence analysis is that NAC should extract more val
 \footnotetext[1]{Minor numerical variations across tables (e.g., NAC-2: $16.47\%$ in Table~\ref{tab:nstep} vs.\ $16.61\%$ in Table~\ref{tab:ablation}; TTC-2: $6.98\%$ in Table~\ref{tab:ablation} vs.\ $7.07\%$ in Table~\ref{tab:nstep}) arise from different random seeds between experimental runs. All are within the $\pm 0.2$pp stability range reported in Section~\ref{sec:experiments}.}
 
 \begin{table}[ht]\centering\small
-\caption{Robust accuracy (\%) with varying counterattack steps under PGD $\epsilon_{\text{att}}=4/255$. NAC consistently extracts more value per additional iteration than TTC, consistent with the $O(1/K^2)$ vs.\ $O(1/K)$ convergence distinction.}\label{tab:nstep}
+\caption{Robust accuracy (\%) with varying counterattack steps under PGD $\epsilon_{\text{att}}=4/255$. NAC consistently extracts more value per additional iteration than TTC, consistent with the $O(1/K^2)$ vs.\ $O(1/K)$ convergence distinction. Note: values obtained with batch\_size=32; the TTC-2 baseline ($7.07\%$) differs from the main experiment (batch\_size=256, $6.98\%$) by $+0.09$pp, within the $\pm 0.2$pp stability range.}\label{tab:nstep}
 \begin{tabular}{@{}lrlr@{}}
 \toprule Method & Steps & CIFAR-10 & STL-10 \\
 \midrule TTC & 2 & 7.07 & 17.44 \\
@@ -369,7 +369,7 @@ STL-10 & 48.29 & \textbf{66.74} & +18.45 \\
 DOC~\cite{jiang2026diversifying} (AAAI 2026 Oral) is the strongest published extension of TTC, introducing four supplementary mechanisms---orthogonal gradient directions, directional sensitivity analysis, learnable tau gating, and gradient normalization---that collectively broaden the counterattack search space. To ensure a rigorous comparison, we evaluate all three methods (TTC, NAC, DOC) under two configurations: the NAC paper's default setting (K=2, $\alpha=1/255$) and the DOC paper's default setting (K=4, $\alpha=3/255$, learnable\_tau=0.155, temperature=75.0). In both configurations, the attack (PGD-10, $\epsilon_{\text{att}}=4/255$), model (ViT-B/32), and dataset (CIFAR-10) are held constant, isolating the counterattack algorithm as the sole variable. Table~\ref{tab:doc} reports the results.
 
 \begin{table}[ht]\centering\small
-\caption{Fair comparison of TTC, NAC, and DOC under identical conditions on CIFAR-10. In the NAC default configuration (K=2, $\alpha=1/255$), NAC substantially outperforms both TTC and DOC. In the DOC default configuration (K=4, $\alpha=3/255$), NAC achieves parity with DOC while requiring none of DOC's auxiliary mechanisms.}\label{tab:doc}
+\caption{Fair comparison of TTC, NAC, and DOC under identical conditions on CIFAR-10. In the NAC default configuration (K=2, $\alpha=1/255$), NAC substantially outperforms both TTC and DOC. In the DOC default configuration (K=4, $\alpha=3/255$), NAC achieves parity with DOC while requiring none of DOC's auxiliary mechanisms. Note: values obtained with batch\_size=32; Config~A TTC ($7.07\%$) differs from the main experiment ($6.98\%$, batch\_size=256) by $+0.09$pp, within the $\pm 0.2$pp stability range.}\label{tab:doc}
 \begin{tabular}{@{}lrrr@{}}
 \toprule
 Method & Config A (K=2, $\alpha{=}1/255$, seed=0) & Config B (K=4, $\alpha{=}3/255$, seed=1) \\
