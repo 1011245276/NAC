@@ -59,11 +59,13 @@
   },
 
   "table7_ablation": {
-    "description": "PGD eps=4/255, 2-step defense. Pure look-ahead result shows super-additive Nesterov coupling.",
-    "TTC_no_momentum":        {"cifar10": 6.98,  "stl10": 17.32},
-    "standard_momentum":      {"cifar10": 8.46,  "stl10": 21.20},
-    "pure_lookahead_no_momentum": {"cifar10": 9.64, "note": "Gradient at delta + alpha*sign(grad), no momentum"},
-    "NAC_nesterov_lookahead": {"cifar10": 16.61, "stl10": 34.19, "note": "Super-additive: 2.66+1.48=4.14 << 9.63"}
+    "description": "PGD eps=4/255. Gradient evaluation budget noted. Key: Nesterov coupling is super-additive.",
+    "TTC_no_momentum":        {"cifar10": 6.98,  "stl10": 17.32, "grad_evals": 2},
+    "standard_momentum":      {"cifar10": 8.46,  "stl10": 21.20, "grad_evals": 2},
+    "pure_lookahead_no_momentum_K2": {"cifar10": 9.64, "stl10": 22.68, "grad_evals": 4, "note": "2 evals/step. At equal budget, TTC-4=25.37 >> 9.64"},
+    "pure_lookahead_no_momentum_K4": {"cifar10": 14.54, "grad_evals": 8, "note": "8 evaluations, still below TTC-4 (4 evals, 25.37)"},
+    "NAC_nesterov_K2":        {"cifar10": 16.61, "stl10": 34.19, "grad_evals": 2, "note": "Super-additive: 2.66+1.48=4.14 << 9.63"},
+    "NAC_nesterov_K4":        {"cifar10": 37.05, "stl10": 66.74, "grad_evals": 4, "note": "4 evals, beats TTC-4 (25.37) at same budget"}
   },
 
   "momentum_ablation": {
