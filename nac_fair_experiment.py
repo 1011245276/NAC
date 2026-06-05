@@ -58,8 +58,8 @@ def parse_options():
     parser.add_argument('--ttc_stepsize', type=float, default=1.)
     # NAC config
     parser.add_argument('--counterattack', type=str, default='nac',
-                        choices=['ttc', 'nac', 'doc', 'momentum'],
-                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum')
+                        choices=['ttc', 'nac', 'doc', 'momentum', 'pure_la'],
+                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum, pure_la=pure look-ahead without momentum')
     parser.add_argument('--nac_momentum', type=float, default=0.9)
     # DOC config
     parser.add_argument('--DOC_eps', type=float, default=4.0)
@@ -284,6 +284,71 @@ def compute_scheme_weight(diff_ratio, learnable_tau=0.3, temperature=20):
     return torch.sigmoid((learnable_tau - diff_ratio) * temperature)
 
 
+def pure_la_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
+                           norm="l_inf", epsilon=0, tau_thres=None, beta=None,
+                           clip_visual=None, preprocess_fn=None):
+    """Pure Look-Ahead: gradient at δ_t + α·sign(∇g(δ_t)) without momentum."""
+    lower_limit, upper_limit = 0, 1
+    def clamp(X, lo, hi):
+        return torch.max(torch.min(X, hi), lo)
+
+    delta = torch.zeros_like(X)
+    if epsilon <= 0.:
+        return delta
+
+    if norm == "l_inf":
+        delta.uniform_(-epsilon, epsilon)
+    elif norm == "l_2":
+        delta.normal_()
+        d_flat = delta.view(delta.size(0), -1)
+        n = d_flat.norm(p=2, dim=1).view(delta.size(0), 1, 1, 1)
+        r = torch.zeros_like(n).uniform_(0, 1)
+        delta = delta * r / n * epsilon
+
+    delta = clamp(delta, lower_limit - X, upper_limit - X)
+    delta.requires_grad = True
+
+    if attack_iters == 0:
+        return delta.data
+
+    original_X = X.clone()
+    prompt_token = add_prompter()
+    with torch.no_grad():
+        X_ori_reps = model.module.encode_image(prompter(preprocess_fn(X)), prompt_token)
+
+    deltas_per_step = [delta.data.clone()]
+
+    for _step_id in range(attack_iters):
+        # Step 1: Compute gradient at current position (TTC direction)
+        prompted_images = prompter(preprocess_fn(X + delta))
+        X_att_reps = model.module.encode_image(prompted_images, prompt_token)
+        l2_loss = (((X_att_reps - X_ori_reps) ** 2).sum(1)).sum()
+        grad = torch.autograd.grad(l2_loss, delta, retain_graph=False, create_graph=False)[0]
+
+        # Step 2: Look ahead along TTC direction (no momentum)
+        ttc_direction = alpha * torch.sign(grad)
+        delta_la = delta.data + ttc_direction
+        delta_la = clamp(delta_la, lower_limit - X, upper_limit - X)
+        delta_la = torch.clamp(delta_la, -epsilon, epsilon)
+
+        # Step 3: Compute gradient at look-ahead position
+        delta_la = delta_la.detach().requires_grad_(True)
+        prompted_la = prompter(preprocess_fn(X + delta_la))
+        X_la_reps = model.module.encode_image(prompted_la, prompt_token)
+        l2_loss_la = (((X_la_reps - X_ori_reps) ** 2).sum(1)).sum()
+        grad_la = torch.autograd.grad(l2_loss_la, delta_la, retain_graph=False, create_graph=False)[0]
+
+        # Step 4: Update using look-ahead gradient (no momentum accumulation)
+        delta.data = delta.data + alpha * torch.sign(grad_la)
+        delta.data = torch.clamp(delta.data, -epsilon, epsilon)
+        delta.data = clamp(delta.data, lower_limit - X, upper_limit - X)
+        delta.requires_grad = True
+        deltas_per_step.append(delta.data.clone())
+
+    # Return last delta (tau-weighted average handled by framework-level evaluate if needed)
+    return delta.data
+
+
 def doc_counterattack(args, model, X, prompter, add_prompter, alpha, attack_iters,
                        norm="l_inf", epsilon=0, beta=None, clip_visual=None):
     """DOC: Directional Orthogonal Counterattack (AAAI 2026)."""
@@ -455,6 +520,15 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         clip_visual=clip_visual,
                         preprocess_fn=clip_img_preprocessing,
                         momentum_coef=getattr(args, 'nac_momentum', 0.9)
+                    )
+                elif args.counterattack == 'pure_la':
+                    delta_def = pure_la_counterattack(
+                        model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        tau_thres=args.tau_thres, beta=args.beta,
+                        clip_visual=clip_visual,
+                        preprocess_fn=clip_img_preprocessing
                     )
                 elif args.counterattack == 'doc':
                     delta_def = doc_counterattack(
