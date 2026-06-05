@@ -393,10 +393,130 @@ def plot_pca():
     save(fig, 'fig4_pca')
 
 
+# ================================================================
+# Figure 5: Radar chart — multi-dataset overview (Table 1)
+# ================================================================
+def plot_radar():
+    datasets = ['CIFAR-10', 'CIFAR-100', 'STL-10', 'Flowers-102', 'DTD', 'ImageNet-100']
+    ttc_vals = [27.95, 14.68, 77.11, 38.62, 26.54, 46.79]
+    nac_vals = [30.94, 16.87, 80.33, 45.76, 29.68, 51.40]
+    gains = [2.99, 2.19, 3.22, 7.14, 3.14, 4.61]
+
+    N = len(datasets)
+    angles = np.linspace(0, 2*np.pi, N, endpoint=False).tolist()
+    angles += angles[:1]  # close loop
+    ttc_vals_c = ttc_vals + ttc_vals[:1]
+    nac_vals_c = nac_vals + nac_vals[:1]
+
+    fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
+    ax.set_theta_offset(np.pi / 2)
+    ax.set_theta_direction(-1)
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(datasets, fontsize=10, fontweight='bold')
+
+    ax.fill(angles, ttc_vals_c, alpha=0.15, color=C['ttc'])
+    ax.plot(angles, ttc_vals_c, 'o-', color=C['ttc'], linewidth=2, markersize=6, label='TTC')
+    ax.fill(angles, nac_vals_c, alpha=0.2, color=C['blue'])
+    ax.plot(angles, nac_vals_c, 'o-', color=C['blue'], linewidth=2, markersize=6, label='NAC (ours)')
+
+    # Annotate gains
+    for i, (a, t, n, g) in enumerate(zip(angles[:-1], ttc_vals, nac_vals, gains)):
+        mid_v = (t + n) / 2
+        ax.annotate(f'+{g:.1f}pp', xy=(a, n+3), fontsize=8, color=C['blue'],
+                    ha='center', fontweight='bold')
+
+    ax.set_ylim(0, 90)
+    ax.set_yticks([20, 40, 60, 80])
+    ax.set_yticklabels(['20%', '40%', '60%', '80%'], fontsize=8, color='gray')
+    ax.legend(loc='lower right', bbox_to_anchor=(1.3, 0.0), fontsize=10)
+    ax.set_title('Robust Accuracy Across Six Datasets\n(PGD ε=1/255, 2-step)', fontsize=13, fontweight='bold', pad=25)
+    save(fig, 'fig5_radar')
+
+
+# ================================================================
+# Figure 6: Multi-epsilon trend (Table 2 → line chart)
+# ================================================================
+def plot_eps_trend():
+    epsilons = ['1/255', '2/255', '4/255']
+    ttc_vals = [41.03, 28.95, 6.15]
+    nac_vals = [45.06, 38.80, 13.54]
+    gains = [4.03, 9.85, 7.39]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.5))
+
+    # Left: accuracy curves
+    x = np.arange(len(epsilons))
+    ax1.plot(x, ttc_vals, 's-', color=C['ttc'], linewidth=2.5, markersize=8, label='TTC')
+    ax1.plot(x, nac_vals, 'o-', color=C['blue'], linewidth=2.5, markersize=8, label='NAC')
+    for i, (t, n) in enumerate(zip(ttc_vals, nac_vals)):
+        ax1.text(i, n+2, f'{n:.1f}', ha='center', fontsize=9, fontweight='bold', color=C['blue'])
+        ax1.text(i, t-3, f'{t:.1f}', ha='center', fontsize=9, color=C['ttc'])
+    ax1.set_xticks(x)
+    ax1.set_xticklabels([f'ε={e}' for e in epsilons], fontsize=11)
+    ax1.set_ylabel('Robust Accuracy (%)', fontsize=11)
+    ax1.legend(fontsize=10)
+    ax1.set_title('Accuracy vs Attack Strength', fontsize=12, fontweight='bold')
+    ax1.grid(axis='y', alpha=0.3)
+    ax1.set_ylim(0, 55)
+
+    # Right: gain bar chart
+    colors = [C['blue'] if g > 0 else C['ttc'] for g in gains]
+    bars = ax2.bar(x, gains, color=colors, width=0.5, edgecolor='white', linewidth=0.8)
+    for i, (b, g) in enumerate(zip(bars, gains)):
+        ax2.text(i, g+0.3, f'+{g:.2f}pp', ha='center', fontsize=10, fontweight='bold', color=C['blue'])
+    ax2.axhline(y=0, color='black', linewidth=0.5)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels([f'ε={e}' for e in epsilons], fontsize=11)
+    ax2.set_ylabel('NAC Gain (pp)', fontsize=11)
+    ax2.set_title('Improvement Margin', fontsize=12, fontweight='bold')
+    ax2.grid(axis='y', alpha=0.3)
+
+    fig.suptitle('Multi-Attack Strength — 5-Dataset Average', fontsize=13, fontweight='bold')
+    plt.tight_layout()
+    save(fig, 'fig6_eps_trend')
+
+
+# ================================================================
+# Figure 7: DOC comparison bars (Table DOC → grouped bar)
+# ================================================================
+def plot_doc_bars():
+    methods = ['TTC', 'NAC (ours)', 'DOC']
+    config_a = [7.07, 16.47, 4.44]
+    config_b = [34.64, 38.72, 38.81]
+
+    fig, ax = plt.subplots(figsize=(6, 5))
+    x = np.arange(len(methods))
+    w = 0.35
+    bars_a = ax.bar(x - w/2, config_a, w, color=['#999999', C['blue'], '#DDDDDD'],
+                     edgecolor='white', linewidth=0.8, label='Config A\n(K=2, α=1/255)')
+    bars_b = ax.bar(x + w/2, config_b, w, color=[C['ttc'], C['blue'], C['orange']],
+                     edgecolor='white', linewidth=0.8, alpha=0.85, label='Config B\n(K=4, α=3/255)')
+
+    for b in bars_a:
+        ax.text(b.get_x()+b.get_width()/2, b.get_height()+0.8, f'{b.get_height():.1f}',
+                ha='center', fontsize=9, fontweight='bold')
+    for b in bars_b:
+        ax.text(b.get_x()+b.get_width()/2, b.get_height()+0.8, f'{b.get_height():.1f}',
+                ha='center', fontsize=9, fontweight='bold')
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(methods, fontsize=12, fontweight='bold')
+    ax.set_ylabel('Robust Accuracy (%)', fontsize=11)
+    ax.legend(fontsize=9)
+    ax.set_title('TTC vs NAC vs DOC — Fair Comparison\n(CIFAR-10, PGD ε=4/255)', fontsize=12, fontweight='bold')
+    ax.grid(axis='y', alpha=0.3)
+    ax.set_ylim(0, 48)
+    plt.tight_layout()
+    save(fig, 'fig7_doc_bars')
+
+
 if __name__ == '__main__':
     print('Generating figures...')
     plot_framework()
     plot_ablation()
     plot_mu()
     plot_pca()
+    plot_radar()
+    plot_eps_trend()
+    plot_doc_bars()
     print('Done.')
