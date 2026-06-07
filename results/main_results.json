@@ -82,10 +82,10 @@
       "DOC": {"clean": 84.89, "adv": 0.00, "defended": 4.44, "gain_pp": 4.44, "tau": 0.155, "temp": 75.0}
     },
     "config_B_doc_default": {
-      "description": "DOC paper default: K=4, step_size=3.0/255, seed=1",
-      "TTC": {"clean": 84.90, "adv": 0.00, "defended": 34.64, "gain_pp": 34.64},
-      "NAC": {"clean": 84.90, "adv": 0.00, "defended": 38.72, "gain_pp": 38.72, "mu": 0.9},
-      "DOC": {"clean": 84.90, "adv": 0.00, "defended": 38.81, "gain_pp": 38.81, "tau": 0.155, "temp": 75.0}
+      "description": "DOC paper default: K=4, step_size=3.0/255, seed=0 (unified with Config A)",
+      "TTC": {"clean": 84.89, "adv": 0.00, "defended": 35.01, "gain_pp": 35.01},
+      "NAC": {"clean": 84.89, "adv": 0.00, "defended": 38.33, "gain_pp": 38.33, "mu": 0.9},
+      "DOC": {"clean": 84.89, "adv": 0.00, "defended": 40.38, "gain_pp": 40.38, "tau": 0.155, "temp": 75.0}
     }
   }
 }
