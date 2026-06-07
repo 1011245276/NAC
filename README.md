@@ -50,11 +50,11 @@ Datasets: CIFAR-10, CIFAR-100, STL-10, Flowers-102, ImageNet-100. (DTD excluded:
 | Method | Steps | CIFAR-10 | STL-10 |
 |--------|-------|----------|--------|
 | TTC | 2 | 7.07 | 17.44 |
-| NAC | 2 | **16.47** | **34.30** |
+| NAC | 2 | **16.47** | **34.19** |
 | TTC | 4 | 25.37 | 48.29 |
 | NAC | 4 | **37.05** | **66.74** |
 
-NAC-2 outperforms TTC-2 by 9.40pp (CIFAR-10) and 16.86pp (STL-10).
+NAC-2 outperforms TTC-2 by 9.40pp (CIFAR-10) and 16.75pp (STL-10).
 
 ### Table 4: AutoAttack — CIFAR-10, eps=4/255
 
@@ -89,23 +89,23 @@ RN50: ResNet's attention-pooled embedding is more sensitive to pixel-space pertu
 | + Nesterov look-ahead (NAC) | **16.61** | **34.19** |
 
 Standard momentum gives +1.48pp; Nesterov look-ahead adds +8.15pp beyond that.
-The look-ahead mechanism, not momentum alone, drives NAC's gains.
+The Nesterov coupling of momentum and look-ahead—not either component alone—drives NAC's gains (super-additive: 2.66+1.48=4.14 << 9.63pp).
 
 ### Momentum Coefficient (CIFAR-10, eps=4, 5-step)
 
 | mu | 0 (TTC) | 0.1 | 0.5 | 0.7 | 0.9 | 0.99 |
 |----|---------|-----|-----|-----|-----|------|
-| NAC | 6.06 | 10.73 | 15.81 | 18.16 | 20.54 | 21.46 |
+| NAC | 7.07 | 8.14 | 12.32 | 14.38 | 16.47 | 17.47 |
 
 ### Table DOC: TTC vs NAC vs DOC — Fair Comparison (CIFAR-10, PGD eps=4/255, ViT-B/32)
 
 | Method | Config A (K=2, α=1/255) | Config B (K=4, α=3/255) |
 |--------|------------------------|------------------------|
-| TTC | 7.07 | 34.64 |
-| NAC | **16.47** | 38.72 |
-| DOC | 4.44 | **38.81** |
+| TTC | 7.07 | 35.01 |
+| NAC | **16.47** | 38.33 |
+| DOC | 4.44 | **40.38** |
 
-Config A = NAC paper default (2 steps, step=1/255). Config B = DOC paper default (4 steps, step=3/255, tau=0.155, temp=75.0). NAC matches or exceeds DOC in both settings while requiring only a single modification (look-ahead gradient) versus DOC's four auxiliary mechanisms.
+Config A = NAC paper default (2 steps, step=1/255). Config B = DOC paper default (4 steps, step=3/255, tau=0.155, temp=75.0). NAC approaches DOC in Config B using a single modification versus DOC's four auxiliary components, and substantially outperforms both TTC and DOC under constrained iteration budgets (Config A).
 
 ---
 
