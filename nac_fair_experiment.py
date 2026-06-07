@@ -36,7 +36,7 @@ def parse_options():
     parser.add_argument('--test_attack_type', type=str, default="pgd",
                         choices=['pgd', 'CW', 'autoattack'])
     parser.add_argument('--test_eps', type=float, default=4)
-    parser.add_argument('--test_numsteps', type=int, default=5)
+    parser.add_argument('--test_numsteps', type=int, default=10)
     parser.add_argument('--test_stepsize', type=float, default=1)
     parser.add_argument('--model', type=str, default='clip')
     parser.add_argument('--arch', type=str, default='vit_b32')
