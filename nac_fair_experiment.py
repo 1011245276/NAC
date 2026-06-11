@@ -17,6 +17,7 @@ from tqdm import tqdm
 from copy import deepcopy as dcopy
 
 import torch
+import torch.nn.functional as F
 from torch.cuda.amp import GradScaler, autocast
 
 from replace import clip
@@ -48,6 +49,8 @@ def parse_options():
     parser.add_argument('--dataset', type=str, default='tinyImageNet')
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--num_seeds', type=int, default=1,
+                        help='Number of seeds to evaluate (default: 1). When >1, evaluates seeds 0..num_seeds-1 and reports mean±std.')
     parser.add_argument('--victim_resume', type=str, default=None)
     parser.add_argument('--outdir', type=str,
                         default='./results')
@@ -58,15 +61,15 @@ def parse_options():
     parser.add_argument('--ttc_stepsize', type=float, default=1.)
     # NAC config
     parser.add_argument('--counterattack', type=str, default='nac',
-                        choices=['ttc', 'nac', 'doc', 'momentum', 'pure_la'],
-                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum, pure_la=pure look-ahead without momentum')
+                        choices=['ttc', 'nac', 'doc', 'momentum', 'pure_la', 'adam'],
+                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum, pure_la=pure look-ahead without momentum, adam=Adam optimizer')
     parser.add_argument('--nac_momentum', type=float, default=0.9)
     # DOC config
     parser.add_argument('--DOC_eps', type=float, default=4.0)
     parser.add_argument('--DOC_numsteps', type=int, default=2)
     parser.add_argument('--DOC_stepsize', type=float, default=1.0)
     parser.add_argument('--learnable_tau', type=float, default=0.155)
-    parser.add_argument('--temperature', type=float, default=75.0)
+    parser.add_argument('--temperature', type=float, default=70.0)
     return parser.parse_args()
 
 
@@ -267,6 +270,95 @@ def momentum_counterattack(model, X, prompter, add_prompter, alpha, attack_iters
     return Delta
 
 
+def adam_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
+                        norm="l_inf", epsilon=0, tau_thres=None, beta=None,
+                        clip_visual=None, preprocess_fn=None,
+                        betas=(0.9, 0.999), eps_adam=1e-8):
+    """Adam optimizer counterattack (additional baseline).
+
+    Uses Adam (Kingma & Ba, ICLR 2015) instead of PGD sign update.
+    Same tau-threshold gating as TTC/NAC. Gradient evaluation at current position.
+    """
+    lower_limit, upper_limit = 0, 1
+
+    def clamp(X, lo, hi):
+        return torch.max(torch.min(X, hi), lo)
+
+    delta = torch.zeros_like(X)
+    if epsilon <= 0.:
+        return delta
+    if norm == "l_inf":
+        delta.uniform_(-epsilon, epsilon)
+    delta = clamp(delta, lower_limit - X, upper_limit - X)
+    delta.requires_grad = True
+    if attack_iters == 0:
+        return delta.data
+
+    tunable_param_names = []
+    for n, p in model.module.named_parameters():
+        if p.requires_grad:
+            tunable_param_names.append(n)
+            p.requires_grad = False
+
+    prompt_token = add_prompter()
+    with torch.no_grad():
+        X_prep = preprocess_fn(X) if preprocess_fn else X
+        X_ori_reps = model.module.encode_image(prompter(X_prep), prompt_token)
+        X_ori_norm = torch.norm(X_ori_reps, dim=-1)
+
+    deltas_per_step = [delta.data.clone()]
+
+    # Adam state
+    m = torch.zeros_like(delta)  # first moment
+    v = torch.zeros_like(delta)  # second moment
+    beta1, beta2 = betas
+
+    for _step_id in range(attack_iters):
+        X_prep = preprocess_fn(X + delta) if preprocess_fn else (X + delta)
+        prompted_images = prompter(X_prep)
+        X_att_reps = model.module.encode_image(prompted_images, prompt_token)
+
+        if _step_id == 0:
+            feature_diff = X_att_reps - X_ori_reps
+            diff_ratio = torch.norm(feature_diff, dim=-1) / X_ori_norm
+
+        scheme_sign = (tau_thres - diff_ratio).sign()
+        l2_loss = (((X_att_reps - X_ori_reps) ** 2).sum(1)).sum()
+        grad = torch.autograd.grad(l2_loss, delta)[0]
+
+        # Adam update (element-wise, no sign)
+        m = beta1 * m + (1 - beta1) * grad
+        v = beta2 * v + (1 - beta2) * (grad ** 2)
+        m_hat = m / (1 - beta1 ** (_step_id + 1))
+        v_hat = v / (1 - beta2 ** (_step_id + 1))
+        update = alpha * m_hat / (torch.sqrt(v_hat) + eps_adam)
+
+        d = delta[:, :, :, :] + update
+        x = X[:, :, :, :]
+
+        if norm == "l_inf":
+            d = torch.clamp(d, min=-epsilon, max=epsilon)
+        d = clamp(d, lower_limit - x, upper_limit - x)
+        delta.data[:, :, :, :] = d
+        deltas_per_step.append(delta.data.clone())
+
+    # Tau-threshold weighted step averaging (same as TTC/NAC)
+    Delta = torch.stack(deltas_per_step, dim=1)
+    weights = torch.arange(attack_iters + 1).unsqueeze(0).expand(X.size(0), -1).to(device)
+    weights = torch.exp(scheme_sign.view(-1, 1) * weights * beta)
+    weights /= weights.sum(dim=1, keepdim=True)
+    weights_hard = torch.zeros_like(weights)
+    weights_hard[:, 0] = 1.
+    weights = torch.where(scheme_sign.unsqueeze(1) > 0, weights, weights_hard)
+    weights = weights.view(X.size(0), attack_iters + 1, 1, 1, 1)
+    Delta = (weights * Delta).sum(dim=1)
+
+    for n, p in model.module.named_parameters():
+        if n in tunable_param_names:
+            p.requires_grad = True
+    return Delta
+
+
 # ========== DOC Counterattack ==========
 def compute_tau_directional(clip_visual, images, eps=0.05, trials=5):
     with torch.no_grad():
@@ -287,7 +379,12 @@ def compute_scheme_weight(diff_ratio, learnable_tau=0.3, temperature=20):
 def pure_la_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
                            norm="l_inf", epsilon=0, tau_thres=None, beta=None,
                            clip_visual=None, preprocess_fn=None):
-    """Pure Look-Ahead: gradient at δ_t + α·sign(∇g(δ_t)) without momentum."""
+    """Pure Look-Ahead: gradient at δ_t + α·sign(∇g(δ_t)) without momentum.
+
+    Performs TWO gradient evaluations per step (one at current position to find
+    the direction, one at the look-ahead position). Includes tau-threshold
+    weighted step averaging for fair comparison with TTC/NAC.
+    """
     lower_limit, upper_limit = 0, 1
     def clamp(X, lo, hi):
         return torch.max(torch.min(X, hi), lo)
@@ -311,10 +408,17 @@ def pure_la_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
     if attack_iters == 0:
         return delta.data
 
-    original_X = X.clone()
+    # Freeze model
+    tunable_param_names = []
+    for n, p in model.module.named_parameters():
+        if p.requires_grad:
+            tunable_param_names.append(n)
+            p.requires_grad = False
+
     prompt_token = add_prompter()
     with torch.no_grad():
         X_ori_reps = model.module.encode_image(prompter(preprocess_fn(X)), prompt_token)
+        X_ori_norm = torch.norm(X_ori_reps, dim=-1)
 
     deltas_per_step = [delta.data.clone()]
 
@@ -322,6 +426,13 @@ def pure_la_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
         # Step 1: Compute gradient at current position (TTC direction)
         prompted_images = prompter(preprocess_fn(X + delta))
         X_att_reps = model.module.encode_image(prompted_images, prompt_token)
+
+        if _step_id == 0:
+            feature_diff = X_att_reps - X_ori_reps
+            diff_ratio = torch.norm(feature_diff, dim=-1) / X_ori_norm
+
+        scheme_sign = (tau_thres - diff_ratio).sign()
+
         l2_loss = (((X_att_reps - X_ori_reps) ** 2).sum(1)).sum()
         grad = torch.autograd.grad(l2_loss, delta, retain_graph=False, create_graph=False)[0]
 
@@ -345,8 +456,24 @@ def pure_la_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
         delta.requires_grad = True
         deltas_per_step.append(delta.data.clone())
 
-    # Return last delta (tau-weighted average handled by framework-level evaluate if needed)
-    return delta.data
+    # Tau-threshold weighted step averaging (same as TTC/NAC)
+    Delta = torch.stack(deltas_per_step, dim=1)
+    weights = torch.arange(attack_iters + 1).unsqueeze(0).expand(X.size(0), -1).to(device)
+    weights = torch.exp(scheme_sign.view(-1, 1) * weights * beta)
+    weights /= weights.sum(dim=1, keepdim=True)
+
+    weights_hard = torch.zeros_like(weights)
+    weights_hard[:, 0] = 1.
+    weights = torch.where(scheme_sign.unsqueeze(1) > 0, weights, weights_hard)
+    weights = weights.view(X.size(0), attack_iters + 1, 1, 1, 1)
+    Delta = (weights * Delta).sum(dim=1)
+
+    # Restore model
+    for n, p in model.module.named_parameters():
+        if n in tunable_param_names:
+            p.requires_grad = True
+
+    return Delta
 
 
 def doc_counterattack(args, model, X, prompter, add_prompter, alpha, attack_iters,
@@ -423,9 +550,18 @@ def doc_counterattack(args, model, X, prompter, add_prompter, alpha, attack_iter
     Delta = torch.stack(deltas_per_step, dim=1)
     raw_weights = torch.arange(attack_iters + 1).float().unsqueeze(0).expand(X.size(0), -1).to(X.device)
     soft_weights = torch.exp(raw_weights * beta)
-    soft_weights = soft_weights / soft_weights.sum(dim=1, keepdim=True)
-    soft_weights = soft_weights.view(X.size(0), attack_iters + 1, 1, 1, 1)
-    Delta = (soft_weights * Delta).sum(dim=1)
+    soft_weights = soft_weights / soft_weights.sum(dim=1, keepdim=True)  # [B, T]
+
+    # DOC-style scheme_weight blending (matches original DOC.py)
+    # When scheme_weight → 1 (small embedding shift): use soft weights across all steps
+    # When scheme_weight → 0 (large embedding shift): fall back to δ₀ only (no counterattack)
+    one_hot_first = torch.zeros_like(soft_weights)
+    one_hot_first[:, 0] = 1.
+
+    weights = scheme_weight.unsqueeze(1) * soft_weights + (1 - scheme_weight).unsqueeze(1) * one_hot_first
+    weights = weights.view(X.size(0), attack_iters + 1, 1, 1, 1)
+
+    Delta = (weights * Delta).sum(dim=1)
 
     for n, p in model.module.named_parameters():
         if n in tunable_param_names:
@@ -447,8 +583,7 @@ def validate(args, val_dataset_name, model, model_text, model_image,
     for cnt in range(dataset_num):
         val_dataset, val_loader = load_val_dataset(args, val_dataset_name[cnt])
         dataset_name = val_dataset_name[cnt]
-        texts = get_text_prompts_val([val_dataset], [dataset_name],
-                                     template='a photo of a {}.', force_template=True)[0]
+        texts = get_text_prompts_val([val_dataset], [dataset_name])[0]
 
         binary = ['PCAM', 'hateful_memes']
         attacks_to_run = ['apgd-ce', 'apgd-dlr']
@@ -530,6 +665,15 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         clip_visual=clip_visual,
                         preprocess_fn=clip_img_preprocessing
                     )
+                elif args.counterattack == 'adam':
+                    delta_def = adam_counterattack(
+                        model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        tau_thres=args.tau_thres, beta=args.beta,
+                        clip_visual=clip_visual,
+                        preprocess_fn=clip_img_preprocessing
+                    )
                 elif args.counterattack == 'doc':
                     delta_def = doc_counterattack(
                         args, model, attacked.data, prompter, add_prompter,
@@ -584,6 +728,9 @@ def validate(args, val_dataset_name, model, model_text, model_image,
     logging.info(summary)
     print(summary)
 
+    # Return results for multi-seed aggregation
+    return all_clean_org, all_adv_org, all_adv_def
+
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -597,25 +744,6 @@ def main():
 
     args.test_eps = args.test_eps / 255.
     args.test_stepsize = args.test_stepsize / 255.
-
-    seed = args.seed
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-
-    log_filename = f"seed_{seed}.log"
-    log_filename = os.path.join(outdir, log_filename)
-    logging.basicConfig(
-        filename=log_filename,
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s"
-    )
-    logging.info(f"NAC Fair: method={args.counterattack} momentum={args.nac_momentum}")
-    logging.info(args)
-
     args.ttc_stepsize = args.ttc_stepsize / 255.
     args.ttc_eps = args.ttc_eps / 255.
 
@@ -628,32 +756,92 @@ def main():
     arch_map = {'vit_b32': 'ViT-B/32', 'vit_b16': 'ViT-B/16', 'RN50': 'RN50'}
     arch = getattr(args, 'arch', 'ViT-B/32')
     arch = arch_map.get(arch, arch)
-    model, _ = clip.load(arch, device, jit=False, prompt_len=0)
-    for p in model.parameters():
-        p.requires_grad = False
-    convert_models_to_fp32(model)
 
-    clip_visual = None
-    if args.victim_resume:
-        clip_visual = dcopy(model.visual)
-        model = load_checkpoints2(args, args.victim_resume, model, None)
+    # Multi-seed evaluation
+    num_seeds = args.num_seeds
+    base_seed = args.seed
+    all_seed_results = []
 
-    model = torch.nn.DataParallel(model)
-    model.eval()
-    prompter = NullPrompter()
-    add_prompter = TokenPrompter(0)
-    prompter = torch.nn.DataParallel(prompter).cuda()
-    add_prompter = torch.nn.DataParallel(add_prompter).cuda()
+    for seed_idx in range(num_seeds):
+        seed = base_seed + seed_idx
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
-    if len(args.test_set) == 0:
-        test_set = DATASETS
-    else:
-        test_set = args.test_set
+        log_filename = f"seed_{seed}.log"
+        log_filename = os.path.join(outdir, log_filename)
+        logging.basicConfig(
+            filename=log_filename,
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            filemode='w'  # overwrite per seed, don't append
+        )
+        logging.info(f"NAC Fair: method={args.counterattack} momentum={args.nac_momentum} seed={seed}")
+        logging.info(args)
 
-    criterion_attack = torch.nn.CrossEntropyLoss(reduction='sum').to(device)
+        # Load model (fresh load per seed for clean state)
+        model, _ = clip.load(arch, device, jit=False, prompt_len=0)
+        for p in model.parameters():
+            p.requires_grad = False
+        convert_models_to_fp32(model)
 
-    validate(args, test_set, model, None, None, prompter,
-             add_prompter, criterion_attack, None, clip_visual)
+        clip_visual = None
+        if args.victim_resume:
+            clip_visual = dcopy(model.visual)
+            model = load_checkpoints2(args, args.victim_resume, model, None)
+
+        model = torch.nn.DataParallel(model)
+        model.eval()
+        prompter = NullPrompter()
+        add_prompter = TokenPrompter(0)
+        prompter = torch.nn.DataParallel(prompter).cuda()
+        add_prompter = torch.nn.DataParallel(add_prompter).cuda()
+
+        if len(args.test_set) == 0:
+            test_set = DATASETS
+        else:
+            test_set = args.test_set
+
+        criterion_attack = torch.nn.CrossEntropyLoss(reduction='sum').to(device)
+
+        seed_results = validate(args, test_set, model, None, None, prompter,
+                               add_prompter, criterion_attack, None, clip_visual)
+        all_seed_results.append(seed_results)
+
+        # Clean up GPU memory between seeds
+        del model, prompter, add_prompter
+        torch.cuda.empty_cache()
+
+    # Aggregate and report multi-seed results
+    if num_seeds > 1:
+        print(f"\n{'='*60}")
+        print(f"MULTI-SEED SUMMARY ({num_seeds} seeds: {base_seed}..{base_seed+num_seeds-1})")
+        print(f"{'='*60}")
+        for dataset_name in all_seed_results[0][0].keys():
+            clean_vals = [r[0].get(dataset_name, 0) for r in all_seed_results]
+            adv_vals = [r[1].get(dataset_name, 0) for r in all_seed_results]
+            def_vals = [r[2].get(dataset_name, 0) for r in all_seed_results]
+            gain_vals = [d - a for d, a in zip(def_vals, adv_vals)]
+
+            clean_mean, clean_std = np.mean(clean_vals), np.std(clean_vals)
+            adv_mean, adv_std = np.mean(adv_vals), np.std(adv_vals)
+            def_mean, def_std = np.mean(def_vals), np.std(def_vals)
+            gain_mean, gain_std = np.mean(gain_vals), np.std(gain_vals)
+
+            print(f"  {dataset_name}: clean={clean_mean:.2f}±{clean_std:.2f} | "
+                  f"adv={adv_mean:.2f}±{adv_std:.2f} | "
+                  f"{tag}={def_mean:.2f}±{def_std:.2f} | "
+                  f"gain={gain_mean:.2f}±{gain_std:.2f}")
+
+            # Log to the last seed's log file
+            logging.info(f"MULTI-SEED {dataset_name}: "
+                        f"clean={clean_mean:.2f}±{clean_std:.2f} "
+                        f"adv={adv_mean:.2f}±{adv_std:.2f} "
+                        f"{tag}={def_mean:.2f}±{def_std:.2f} "
+                        f"gain={gain_mean:.2f}±{gain_std:.2f}")
 
 
 if __name__ == "__main__":

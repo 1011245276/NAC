@@ -184,8 +184,11 @@ def plot_framework():
     ax_mid_r.set_title('CIFAR-10 ($\\epsilon$=4/255)', fontsize=11, fontweight='bold', color=C['gray'], pad=8, family='sans-serif')
 
     # Small performance comparison
-    methods = ['TTC-2', 'NAC-2', 'TTC-4', 'NAC-4']
-    values = [6.98, 16.47, 25.37, 37.05]
+    # K=2: VERIFIED from logs (cifar10)
+    # TTC-2: 7.07, NAC-2: 16.47
+    # K=4: Reported in paper Table 3, not yet independently re-verified in this codebase.
+    methods = ['TTC-2', 'NAC-2', 'TTC-4*', 'NAC-4*']
+    values = [7.07, 16.47, 25.37, 37.05]
     colors = [C['ttc'], C['blue'], C['ttc'], C['blue']]
     y_pos = [8.5, 7.3, 6.1, 4.9]
 
@@ -197,7 +200,7 @@ def plot_framework():
         ax_mid_r.text(0.8, y_pos[i], m, ha='right', va='center', fontsize=9, fontweight='bold', color='#555555')
 
     ax_mid_r.text(5, 8.8, 'Robust Accuracy', ha='center', fontsize=9, fontweight='bold', color=C['gray'])
-    ax_mid_r.text(5, 3.5, 'NAC-4: +11.7pp over TTC-4', ha='center', fontsize=9, fontweight='bold', color=C['blue'])
+    ax_mid_r.text(5, 3.5, 'K=2: NAC-2 (16.47%) > TTC-2 (7.07%) by +9.40pp', ha='center', fontsize=9, fontweight='bold', color=C['blue'])
 
     # ---- Row 3: Output ----
     ax_bot = fig.add_subplot(gs[2, :])
@@ -229,12 +232,17 @@ def plot_framework():
 # ================================================================
 # Figure 2: Ablation — cleaner bar chart
 # ================================================================
+# Ablation (CIFAR-10, STL-10, PGD eps=4/255, K=2) — VERIFIED from logs
+# Note: STL-10 NAC value is 34.19 (from results/ablation/pgd_eps_4.0/nac_m0.9/seed_0.log);
+#       an earlier draft used 34.76 from a now-lost run. Updated to match log.
 def plot_ablation():
     fig, ax = plt.subplots(figsize=(8, 5))
     datasets = ['CIFAR-10', 'STL-10']
-    ttc = [6.98, 17.32]
-    mom = [8.46, 21.20]
-    nac = [16.61, 34.19]
+    ttc = [7.07, 17.30]   # results/ablation/pgd_eps_4.0/ttc/seed_0.log (K=2, R3=0.0/0.0/adv)
+    mom = [8.71, 21.31]   # Note: 8.71/21.31 are from a separate run; the visible log file
+                          # "ablation/momentum/seed_0.log" actually contains ttc results (8.46/21.20)
+                          # from a mislabeled run. The 8.71/21.31 values are the paper-reported values.
+    nac = [16.47, 34.19]  # results/ablation/pgd_eps_4.0/nac_m0.9/seed_0.log
 
     x = np.arange(len(datasets))
     w = 0.22
@@ -267,7 +275,7 @@ def plot_ablation():
     ax.tick_params(labelsize=11)
 
     # Annotation explaining the key finding
-    ax.text(0.98, 0.15, 'Nesterov look-ahead ≠ momentum\nLook-ahead contributes +8.2 pp\nbeyond standard momentum',
+    ax.text(0.98, 0.15, 'Nesterov look-ahead ≠ momentum\nLook-ahead contributes +7.8 pp\nbeyond standard momentum',
             transform=ax.transAxes, fontsize=8.5, ha='right', va='bottom',
             bbox=dict(boxstyle='round,pad=0.4', facecolor='#E3F2FD', edgecolor=C['blue'], alpha=0.8))
 
@@ -277,10 +285,12 @@ def plot_ablation():
 # ================================================================
 # Figure 3: Momentum Coefficient — cleaner line chart
 # ================================================================
+# Momentum coefficient (mu) — VERIFIED from results/mu_scan/pgd_eps_4.0/nac_m*/seed_0.log
+# (CIFAR-10, PGD eps=4/255, K=2, 10 attack steps, seed=0)
 def plot_mu():
     fig, ax = plt.subplots(figsize=(8, 5))
     mu = [0, 0.1, 0.5, 0.7, 0.9, 0.99]
-    acc = [6.06, 10.73, 15.81, 18.16, 20.54, 21.46]
+    acc = [7.07, 8.14, 12.32, 14.38, 16.47, 17.47]
 
     ax.plot(mu, acc, 'o-', color=C['blue'], lw=2.8, markersize=10,
             markerfacecolor='white', markeredgewidth=2.5, markeredgecolor=C['blue'])
@@ -479,10 +489,16 @@ def plot_eps_trend():
 # ================================================================
 # Figure 7: DOC comparison bars (Table DOC → grouped bar)
 # ================================================================
+# DOC comparison (CIFAR-10, PGD eps=4/255) — VERIFIED from results/compare/pgd_eps_4.0/*/seed_0.log
+# Config A (NAC default: K=2, alpha=1/255): TTC=7.07, NAC=16.47, DOC=4.44
+# Config B (DOC default: K=4, alpha=3/255): TTC=35.01, NAC=38.33, DOC=40.38
+# NOTE: At Config B, DOC outperforms NAC by +2.05pp in seed=0 run.
+# This is reported honestly in the updated paper; earlier draft's claim of NAC > DOC was
+# based on a lost earlier DOC run (37.74) that no longer reproduces.
 def plot_doc_bars():
     methods = ['TTC', 'NAC (ours)', 'DOC']
     config_a = [7.07, 16.47, 4.44]
-    config_b = [34.64, 38.72, 38.81]
+    config_b = [35.01, 38.33, 40.38]
 
     fig, ax = plt.subplots(figsize=(6, 5))
     x = np.arange(len(methods))

@@ -9,7 +9,7 @@ from tqdm import tqdm
 from copy import deepcopy as dcopy
 
 import torch
-from torch.amp import GradScaler, autocast
+from torch.cuda.amp import GradScaler, autocast
 
 from replace import clip
 from models.prompters import TokenPrompter, NullPrompter
@@ -207,7 +207,7 @@ def validate(args, val_dataset_name, model, model_text, model_image,
             images = images.to(device)
             target = target.to(device)
 
-            with autocast('cuda'):
+            with autocast():
 
                 # original acc of clean images
                 with torch.no_grad():

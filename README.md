@@ -2,9 +2,11 @@
 
 **Nesterov Accelerated Counterattack for Test-Time Adversarial Defense in Vision-Language Models**
 
-Research code for "Nesterov Accelerated Counterattack for Test-Time Adversarial Defense of Vision-Language Models." The main experiments were conducted using `nac_fair_experiment.py` in the TTC source directory. This folder provides a self-contained, runnable version for reproduction.
+Research code for "Nesterov Accelerated Counterattack for Test-Time Adversarial Defense of Vision-Language Models." The main experiments were conducted using `nac_fair_experiment.py`. This folder provides a self-contained, runnable version for reproduction.
 
-📄 **Paper**: [arXiv version](paper/NAC_paper_arxiv.pdf) | [arXiv coming soon]()
+📄 **Paper**: [`paper_backup/NAC_paper_arxiv.pdf`](paper_backup/NAC_paper_arxiv.pdf) (arXiv) · [`paper_backup/NAC_paper_sivp_8page.pdf`](paper_backup/NAC_paper_sivp_8page.pdf) (SIVP 8-page) · [`paper_backup/NAC_paper_sivp_chinese.pdf`](paper_backup/NAC_paper_sivp_chinese.pdf) (internal Chinese reference)
+
+> ⚠️ **Data integrity notice (2026-06-12)**: An earlier draft of this paper/plot script reported a DOC K=4 α=3 value of `37.74` and a NAC > DOC conclusion (`+0.59pp`). Subsequent re-runs in the same config give `DOC=40.38`, `NAC=38.33`, i.e. **DOC outperforms NAC by +2.05pp**. We have updated the paper and this README to report the verified value honestly. See `results/main_results.json` and `results/compare/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_0.log` for the raw logs.
 
 ---
 
@@ -12,7 +14,7 @@ Research code for "Nesterov Accelerated Counterattack for Test-Time Adversarial 
 
 CLIP models are highly vulnerable to adversarial perturbations in zero-shot classification. Test-Time Counterattack (TTC, CVPR 2025) proposes a training-free defense: use PGD to push adversarial images back toward their clean embeddings.
 
-We identify that TTC's standard PGD converges slowly due to the non-convex optimization landscape. **NAC replaces PGD with Nesterov accelerated gradient** — a two-line change that provides significant gains with zero additional computation.
+We identify that TTC's standard PGD converges slowly due to the non-convex optimization landscape. **NAC replaces PGD with Nesterov accelerated gradient** — a two-line change that provides substantial gains in the small-iteration regime at zero additional computation.
 
 | Method | Update Rule | Convergence |
 |--------|-------------|-------------|
@@ -23,6 +25,8 @@ We identify that TTC's standard PGD converges slowly due to the non-convex optim
 
 ## Results
 
+All numbers below are from a single seed (seed 0). For per-experiment raw outputs see `results/main_results.json` and `results/<experiment>/seed_0.log`.
+
 ### Table 1: Main Results — PGD eps=1/255, ViT-B/32, 2-step defense
 
 | Dataset | Clean | TTC | NAC | Gain (pp) |
@@ -32,7 +36,7 @@ We identify that TTC's standard PGD converges slowly due to the non-convex optim
 | STL-10 | 96.67 | 77.11 | 80.33 | +3.22 |
 | Flowers-102 | 62.73 | 38.62 | 45.76 | +7.14 |
 | DTD | 42.71 | 26.54 | 29.68 | +3.14 |
-| ImageNet-100 | 67.82 | 46.79 | **51.40** | +4.61 |
+| ImageNet-100 | 67.82 | 46.79 | 51.40 | +4.61 |
 | **Average** | — | 38.62 | **42.50** | +3.88 |
 
 ### Table 2: Multi-Attack Strength — 5-dataset avg, 2-step defense
@@ -47,57 +51,67 @@ Datasets: CIFAR-10, CIFAR-100, STL-10, Flowers-102, ImageNet-100. (DTD excluded:
 
 ### Table 3: N-Step Scaling — PGD eps=4/255
 
+*All K=2 and K=4 values verified 2026-06-12. Small discrepancies with paper (0.4-0.9pp) are PGD random-init noise.*
+
 | Method | Steps | CIFAR-10 | STL-10 |
 |--------|-------|----------|--------|
-| TTC | 2 | 7.07 | 17.44 |
+| TTC | 2 | 7.07 | 17.32 |
 | NAC | 2 | **16.47** | **34.19** |
-| TTC | 4 | 25.37 | 48.29 |
-| NAC | 4 | **37.05** | **66.74** |
+| TTC | 4 | 25.83$^{+}$ | 49.16$^{+}$ |
+| NAC | 4 | **37.05** | **66.34** |
 
-NAC-2 outperforms TTC-2 by 9.40pp (CIFAR-10) and 16.75pp (STL-10).
+NAC-2 outperforms TTC-2 by +9.40pp (CIFAR-10) and +16.87pp (STL-10). At $K=4$, NAC exceeds TTC by +11.22pp (CIFAR-10) and +17.18pp (STL-10), both verified.
 
 ### Table 4: AutoAttack — CIFAR-10, eps=4/255
 
 | Method | Clean | Adv | Defended | Gain (pp) |
 |--------|-------|-----|----------|-----------|
-| TTC | 84.90 | 0.05 | 7.56 | — |
-| NAC | 84.90 | 0.05 | **11.29** | +3.73 |
+| TTC | 84.90 | 0.05 | 7.59 | — |
+| NAC | 84.90 | 0.05 | **11.29** | +3.70 |
 
-### Table 5: Cross-Model — PGD eps=4/255, CIFAR-10
+### Table 5: Cross-Model — PGD eps=4/255
 
 | Model | Clean | TTC | NAC |
 |-------|-------|-----|-----|
-| ViT-B/32 | 84.89 | 6.98 | **16.61** |
-| ViT-B/16 | 87.24 | 8.51 | **14.66** |
-| RN50 | 65.58 | 0.00 | 0.00 |
+| ViT-B/32 (CIFAR-10) | 84.89 | 7.07 | **16.47** |
+| ViT-B/16 (CIFAR-10) | 87.24 | 8.51 | **14.66** |
+| ViT-B/16 (STL-10) | 97.71 | 24.64 | **41.02** |
+| RN50 (CIFAR-10) | 65.58 | 0.00 | 0.00 |
 
 RN50: ResNet's attention-pooled embedding is more sensitive to pixel-space perturbations. tau/epsilon were tuned for ViT. Consistent with TTC paper's ViT focus.
 
-### Table 6: AFT Superposition — PGD eps=4/255, CIFAR-10
+### Table 6: AFT Superposition — PGD eps=4/255
 
 | Base | Clean | TTC | NAC | Gain (pp) |
 |------|-------|-----|-----|-----------|
-| TeCoA | 63.85 | 2.75 | **4.84** | +2.09 |
-| FARE | 73.67 | 0.86 | **3.30** | +2.44 |
+| TeCoA (CIFAR-10) | 63.85 | 2.75 | **4.84** | +2.09 |
+| TeCoA (STL-10) | 87.53 | 25.07 | **30.89** | +5.82 |
+| FARE (CIFAR-10) | 73.67 | 0.86 | **3.30** | +2.44 |
+| FARE (STL-10) | 91.74 | 14.32 | **24.21** | +9.89 |
 
-### Table 7: Ablation — Momentum vs Nesterov
+### Table 7: Ablation — Momentum vs Nesterov (CIFAR-10, eps=4/255, K=2)
 
 | Method | CIFAR-10 | STL-10 |
 |--------|----------|--------|
-| TTC (no momentum) | 6.98 | 17.32 |
-| + Standard momentum | 8.46 | 21.20 |
-| + Nesterov look-ahead (NAC) | **16.61** | **34.19** |
+| TTC (no momentum) | 7.07 | 17.30 |
+| + Standard momentum | 8.71 | 21.31 |
+| + Pure look-ahead (no momentum) | 7.92 | 19.31 |
+| + Nesterov look-ahead (NAC) | **16.47** | **34.19** |
 
-Standard momentum gives +1.48pp; Nesterov look-ahead adds +8.15pp beyond that.
-The Nesterov coupling of momentum and look-ahead—not either component alone—drives NAC's gains (super-additive: 2.66+1.48=4.14 << 9.63pp).
+Standard momentum gives +1.64pp; pure look-ahead gives +0.85pp; NAC gives +9.40pp.
+The Nesterov coupling of momentum and look-ahead—not either component alone—drives NAC's gains (super-additive: 0.85+1.64=2.49 << 9.40pp).
 
-### Momentum Coefficient (CIFAR-10, eps=4, 5-step)
+### Momentum Coefficient (CIFAR-10, eps=4/255, K=2, 10 attack steps)
+
+*Verified from `results/mu_scan/pgd_eps_4.0/nac_m*/seed_0.log`.*
 
 | mu | 0 (TTC) | 0.1 | 0.5 | 0.7 | 0.9 | 0.99 |
-|----|---------|-----|-----|-----|-----|------|
-| NAC | 7.07 | 8.14 | 12.32 | 14.38 | 16.47 | 17.47 |
+|----|---------|----|----|----|----|------|
+| NAC | 7.07 | 8.14 | 12.32 | 14.38 | **16.47** | 17.47 |
 
 ### Table DOC: TTC vs NAC vs DOC — Fair Comparison (CIFAR-10, PGD eps=4/255, ViT-B/32)
+
+*Verified from `results/compare/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_0.log`.*
 
 | Method | Config A (K=2, α=1/255) | Config B (K=4, α=3/255) |
 |--------|------------------------|------------------------|
@@ -105,7 +119,13 @@ The Nesterov coupling of momentum and look-ahead—not either component alone—
 | NAC | **16.47** | 38.33 |
 | DOC | 4.44 | **40.38** |
 
-Config A = NAC paper default (2 steps, step=1/255). Config B = DOC paper default (4 steps, step=3/255, tau=0.155, temp=75.0). NAC approaches DOC in Config B using a single modification versus DOC's four auxiliary components, and substantially outperforms both TTC and DOC under constrained iteration budgets (Config A).
+**Honest reading:**
+- Config A (NAC default): NAC leads by +9.40pp over TTC, +12.03pp over DOC.
+- Config B (DOC default): DOC leads by +5.37pp over TTC, +2.05pp over NAC.
+
+The two methods address complementary axes: NAC is a single-principled-modification optimizer substitution that dominates at small $K$; DOC's exploration mechanisms (orthogonal gradient directions, directional sensitivity, learnable $\tau$ gating, gradient normalization) provide additional benefit at higher $K$ with a larger step size.
+
+> Earlier draft of this README and the paper reported a DOC value of `3.87` (Config A) and `37.74` (Config B). The Config A `3.87` came from a buggy run; the verified value is `4.44`. The Config B `37.74` came from a lost earlier run; the verified value is `40.38`. The paper and this README have been updated to match the verified logs.
 
 ---
 
@@ -161,15 +181,22 @@ bash run.sh nac cifar10 4
 
 | Script | Paper Table | Runs | Command |
 |--------|------------|------|---------|
-| `scripts/reproduce_main.sh` | Table 1: Main results | 36 | `bash scripts/reproduce_main.sh` |
-| `scripts/reproduce_multi_eps.sh` | Table 2: Multi-epsilon | 108 | `bash scripts/reproduce_multi_eps.sh` |
-| `scripts/reproduce_nstep.sh` | Table 3: N-step scaling | 24 | `bash scripts/reproduce_nstep.sh` |
-| `scripts/reproduce_autoattack.sh` | Table 4: AutoAttack | 6 | `bash scripts/reproduce_autoattack.sh` |
-| `scripts/reproduce_cross_arch.sh` | Table 5: Cross-architecture | 12 | `bash scripts/reproduce_cross_arch.sh` |
-| `scripts/reproduce_ablation.sh` | Table 7: Ablation | 18 | `bash scripts/reproduce_ablation.sh` |
-| `scripts/reproduce_mu_scan.sh` | Momentum coefficient | 18 | `bash scripts/reproduce_mu_scan.sh` |
-| `scripts/reproduce_aft.sh` | Table 6: AFT (needs weights) | 12 | `bash scripts/reproduce_aft.sh` |
-| `scripts/compare_ttc_nac_doc.sh` | Table DOC: TTC vs NAC vs DOC | 3 | `bash scripts/compare_ttc_nac_doc.sh` |
+| `scripts/reproduce_main.sh` | Table 1: Main results | 6 (single seed) | `bash scripts/reproduce_main.sh` |
+| `scripts/reproduce_multi_eps.sh` | Table 2: Multi-epsilon | 18 | `bash scripts/reproduce_multi_eps.sh` |
+| `scripts/reproduce_nstep.sh` | Table 3: N-step scaling | 4 | `bash scripts/reproduce_nstep.sh` |
+| `scripts/reproduce_autoattack.sh` | Table 4: AutoAttack | 2 | `bash scripts/reproduce_autoattack.sh` |
+| `scripts/reproduce_cross_arch.sh` | Table 5: Cross-architecture | 4 | `bash scripts/reproduce_cross_arch.sh` |
+| `scripts/reproduce_ablation.sh` | Table 7: Ablation | 4 | `bash scripts/reproduce_ablation.sh` |
+| `scripts/reproduce_mu_scan.sh` | Momentum coefficient | 6 | `bash scripts/reproduce_mu_scan.sh` |
+| `scripts/reproduce_aft.sh` | Table 6: AFT (needs weights) | 4 | `bash scripts/reproduce_aft.sh` |
+| `scripts/compare_ttc_nac_doc.sh` | Table DOC: TTC vs NAC vs DOC | 6 | `bash scripts/compare_ttc_nac_doc.sh` |
+
+After running, aggregate with: `python scripts/aggregate_results.py --root ./results/main`
+
+For multi-seed mode (paper claims of "std < 0.2pp across seeds" not formally verified; informal pilots suggest std ≤ 0.8pp):
+```bash
+SEEDS="0 1 2" bash scripts/reproduce_main.sh
+```
 
 Results are saved to `results/<experiment>/` after each script completes.
 
@@ -179,90 +206,21 @@ Results are saved to `results/<experiment>/` after each script completes.
 
 - **GPU:** 8 GB VRAM minimum. Lower VRAM: `BATCH_SIZE=8 bash scripts/reproduce_main.sh`
 - **Storage:** ~10 GB (datasets + model weights)
-- **Total runs:** 234 across all scripts (~222 without AFT)
+- **Total runs:** ~50 across all scripts
 
 ### Runtime Estimates (RTX 4060, batch_size=32)
 
-| Script | Runs | ~Time | Notes |
-|--------|------|-------|-------|
-| `reproduce_main.sh` | 36 | 2.5 h | 6 datasets × 2 methods × 3 seeds |
-| `reproduce_multi_eps.sh` | 108 | 7 h | 3 epsilons × all above |
-| `reproduce_nstep.sh` | 24 | 1.5 h | 2 datasets × 2/4 steps |
-| `reproduce_autoattack.sh` | 6 | 0.5 h | AutoAttack is heavier per step |
-| `reproduce_cross_arch.sh` | 12 | 1 h | ViT-B/16 similar to B/32 |
-| `reproduce_ablation.sh` | 18 | 1 h | 2 datasets |
-| `reproduce_mu_scan.sh` | 18 | 1 h | 6 mu values |
-| `reproduce_aft.sh` | 12 | 1 h | Needs external weights |
-| **Total** | **234** | **~15 h** | |
-
-### Run a Single Experiment
-
-Use `run.sh` for one-off runs. Map each paper result to the right command:
-
-```bash
-bash run.sh [method] [dataset] [eps]
-# method:  nac | ttc | momentum
-# dataset: cifar10 | cifar100 | STL10 | flowers102 | DTD | imagenet100
-# eps:     1 | 2 | 4  (attack strength in /255)
-```
-
-| Paper result | Command |
-|-------------|---------|
-| Table 1, CIFAR-10, eps=1 | `bash run.sh nac cifar10 1` |
-| Table 2, STL-10, eps=2 | `bash run.sh nac STL10 2` |
-| Table 7, TTC baseline | `bash run.sh ttc cifar10 4` |
-| Table 7, standard momentum | `bash run.sh momentum cifar10 4` |
-| Table 7, NAC (Nesterov) | `bash run.sh nac cifar10 4` |
-| Table 3 (4-step) | Use `reproduce_nstep.sh` (needs `--ttc_numsteps 4`) |
-| Table 4 (AutoAttack) | Use `reproduce_autoattack.sh` (needs `--test_attack_type autoattack`) |
-| Table 5 (ViT-B/16) | Use `reproduce_cross_arch.sh` (needs `--arch vit_b16`) |
-
-Or call Python directly for full control:
-
-```bash
-python nac_fair_experiment.py \
-    --batch_size 32 --root ./data \
-    --test_set cifar10 --test_eps 4 --test_numsteps 10 \
-    --counterattack nac --nac_momentum 0.9 \
-    --ttc_numsteps 2 --seed 0 --outdir ./results/my_test
-```
-
-## Project Structure
-
-```
-nac_project/
-├── README.md                     # This file
-├── LICENSE                       # MIT License
-├── requirements.txt
-├── run.sh / run.ps1              # Quick run (Linux / Windows)
-├── nac_fair_experiment.py        # Main experiment runner (NAC + TTC + momentum)
-├── test_time_counterattack.py    # TTC counterattack (imported as library)
-├── nac.py / ttc.py               # Standalone counterattack modules
-├── evaluate.py                   # Lightweight single-dataset eval
-├── attacks.py                    # PGD / CW / AutoAttack
-├── func.py                       # CLIP preprocessing
-├── utils.py                      # Dataset loading
-├── replace/                      # CLIP model (self-contained)
-├── models/                       # Visual prompters
-├── support/                      # ImageNet class names
-├── scripts/                      # Reproduce all experiments
-│   ├── reproduce_main.sh         #   Table 1: 6 datasets, eps=1
-│   ├── reproduce_multi_eps.sh    #   Table 2: 3 epsilon values
-│   ├── reproduce_nstep.sh        #   Table 3: 2-step vs 4-step
-│   ├── reproduce_autoattack.sh   #   Table 4: AutoAttack eval
-│   ├── reproduce_cross_arch.sh   #   Table 5: ViT-B/32 + ViT-B/16
-│   ├── reproduce_aft.sh          #   Table 6: AFT superposition
-│   ├── reproduce_ablation.sh     #   Table 7: momentum ablation
-│   ├── reproduce_mu_scan.sh      #   momentum coefficient scan
-│   └── compare_ttc_nac_doc.sh    #   Table DOC: TTC vs NAC vs DOC
-├── figures/                      # Paper figures (PDF + PNG)
-├── results/
-│   ├── main_results.json         # All experiment data
-│   ├── ablation/                 # Momentum ablation
-│   └── final/                    # N-step comparison
-├── paper/                        # arXiv preprint
-├── data/                         # Dataset directory
-```
+| Script | Runs | ~Time |
+|--------|------|-------|
+| `reproduce_main.sh` | 6 | 30 min |
+| `reproduce_multi_eps.sh` | 18 | 1.5 h |
+| `reproduce_nstep.sh` | 4 | 30 min |
+| `reproduce_autoattack.sh` | 2 | 30 min |
+| `reproduce_cross_arch.sh` | 4 | 30 min |
+| `reproduce_ablation.sh` | 4 | 30 min |
+| `reproduce_mu_scan.sh` | 6 | 30 min |
+| `reproduce_aft.sh` | 4 | 30 min |
+| **Total** | **~50** | **~5 h** |
 
 ## Method
 
@@ -291,9 +249,9 @@ Everything else — tau_threshold gating, step weighting, perturbation budget �
 
 ```
 @article{nac2026,
-  title={Nesterov Accelerated Counterattack for Test-Time Adversarial Defense in Vision-Language Models},
-  author={},
-  journal={},
+  title={Nesterov Accelerated Counterattack for Test-Time Adversarial Defense of Vision-Language Models},
+  author={Zhang, Zhihao and Liu, Yazhi},
+  journal={Signal, Image and Video Processing (under review)},
   year={2026}
 }
 ```
@@ -302,6 +260,7 @@ Everything else — tau_threshold gating, step weighting, perturbation budget �
 
 - [CLIP](https://github.com/openai/CLIP) (Radford et al., ICML 2021)
 - [TTC](https://github.com/Sxing2/CLIP-Test-time-Counterattacks) (Xing et al., CVPR 2025)
+- [DOC](https://github.com/Chengze-Jiang/DOC) (Jiang et al., AAAI 2026 Oral)
 
 ## License
 

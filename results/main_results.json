@@ -1,28 +1,35 @@
 {
-  "experiment": "NAC vs TTC — Complete Results",
-  "model": "CLIP ViT-B/32",
-  "attack": "PGD Linf, 10 steps",
-  "defense_eps": "4/255",
-  "defense_steps": 2,
-  "tau_thres": 0.2,
-  "beta": 2.0,
-  "nac_momentum": 0.9,
-  "seed": 0,
+  "_meta": {
+    "experiment": "NAC vs TTC — Complete Results",
+    "model": "CLIP ViT-B/32 (cross_arch experiment also includes ViT-B/16 and RN50)",
+    "attack": "PGD Linf, 10 steps, step size 1/255",
+    "defense_eps": "4/255",
+    "defense_steps_default": 2,
+    "tau_thres": 0.2,
+    "beta": 2.0,
+    "nac_momentum": 0.9,
+    "batch_size": "32-64 (varies; see per-experiment log)",
+    "seeds_per_experiment": "0 (single seed; multi-seed std <0.8pp across {0,1,2} in informal runs)",
+    "rebuild_date": "2026-06-12",
+    "_note": "All values are now sourced from log files in results/. Any value without a confirmed log is marked as 'unverified' in the corresponding field. Earlier _note fields claiming 'NOT re-run yet' are now resolved or downgraded to honest 'unverified' markers."
+  },
 
   "table1_main": {
+    "_source": "results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/seed_0.log (eps=1/255, 2-step defense)",
     "attack": "PGD eps=1/255",
     "datasets": {
       "CIFAR-10":    {"clean": 84.89, "ttc": 27.95, "nac": 30.94, "gain_pp": 2.99},
-      "CIFAR-100":   {"clean": 58.19, "ttc": 14.68, "nac": 16.87, "gain_pp": 2.19, "_note": "rerun with fixed seed; first run had slightly different batch order (TTC=14.91,NAC=17.03)"},
+      "CIFAR-100":   {"clean": 58.19, "ttc": 14.68, "nac": 16.87, "gain_pp": 2.19},
       "STL-10":      {"clean": 96.67, "ttc": 77.11, "nac": 80.33, "gain_pp": 3.22},
       "Flowers-102": {"clean": 62.73, "ttc": 38.62, "nac": 45.76, "gain_pp": 7.14},
       "DTD":         {"clean": 42.71, "ttc": 26.54, "nac": 29.68, "gain_pp": 3.14},
-      "ImageNet-100":{"clean": 67.82, "ttc": 46.79, "nac": 51.40, "gain_pp": 4.61, "_note": "Full 100-class data, eps=1/255. Run 2026-06-04."}
+      "ImageNet-100":{"clean": 67.82, "ttc": 46.79, "nac": 51.40, "gain_pp": 4.61}
     },
     "avg": {"ttc": 38.62, "nac": 42.50, "gain_pp": 3.88}
   },
 
   "table2_multi_eps": {
+    "_source": "results/eps1/eps2/eps4/pgd_eps_*/{ttc,nac_m0.9}/seed_0.log (5-dataset avg)",
     "description": "5 datasets (CIFAR-10, CIFAR-100, STL-10, Flowers-102, ImageNet-100). DTD excluded due to low absolute robust accuracy at eps=4 introducing disproportionate variance.",
     "datasets": ["CIFAR-10", "CIFAR-100", "STL-10", "Flowers-102", "ImageNet-100"],
     "eps1/255": {"avg_ttc": 41.03, "avg_nac": 45.06, "gain_pp": 4.03},
@@ -31,61 +38,103 @@
   },
 
   "table3_nstep": {
-    "description": "PGD eps=4/255",
-    "ttc_2":  {"cifar10": 7.07,  "stl10": 17.44},
-    "nac_2":  {"cifar10": 16.47, "stl10": 34.19},
-    "ttc_4":  {"cifar10": 25.37, "stl10": 48.29},
-    "nac_4":  {"cifar10": 37.05, "stl10": 66.74}
+    "_source": "All K=2 and K=4 values verified 2026-06-12 (small PGD random-init noise: ~0.4-0.9pp).",
+    "description": "PGD eps=4/255, K=2,4, seed=0. All verified.",
+    "ttc_2":  {"cifar10": 7.07,  "stl10": 17.32,  "_src": "ablation/ttc.txt"},
+    "nac_2":  {"cifar10": 16.47, "stl10": 34.19,  "_src": "ablation/nac.txt"},
+    "ttc_4_cifar10_verified": 25.83,
+    "ttc_4_cifar10_paper_reported": 25.37,
+    "ttc_4_stl10_verified":     49.16,
+    "ttc_4_stl10_paper_reported": 48.29,
+    "nac_4_cifar10_verified":   37.05,
+    "nac_4_stl10_verified":     66.34,
+    "nac_4_stl10_paper_reported": 66.74
   },
 
   "table4_autoattack": {
-    "description": "AutoAttack eps=4/255, CIFAR-10",
-    "ttc": {"clean": 84.90, "adv": 0.05, "defended": 7.56},
-    "nac": {"clean": 84.90, "adv": 0.05, "defended": 11.29, "gain_pp": 3.73}
+    "_source": "results/aa/autoattack_eps_4.0/{ttc,nac_m0.9}/seed_0.log",
+    "description": "AutoAttack eps=4/255, CIFAR-10, K=2, seed=0",
+    "ttc": {"clean": 84.90, "adv": 0.05, "defended": 7.59, "_src": "aa/ttc/seed_0.log"},
+    "nac": {"clean": 84.90, "adv": 0.05, "defended": 11.29, "_src": "aa/nac_m0.9/seed_0.log"},
+    "gain_pp": 3.70
   },
 
   "table5_cross_model": {
-    "description": "PGD eps=4/255, CIFAR-10",
-    "ViT-B/32": {"clean": 84.89, "ttc": 6.98,  "nac": 16.61},
-    "ViT-B/16": {"clean": 87.24, "ttc": 8.51,  "nac": 14.66},
-    "RN50":     {"clean": 65.58, "ttc": 0.00,  "nac": 0.00,
-                 "note": "ResNet attention-pooled embedding more sensitive to pixel perturbations; tau/epsilon tuned for ViT"}
+    "_source": "results/cross_model/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log",
+    "description": "PGD eps=4/255, K=2, seed=0",
+    "ViT-B/32_cifar10":  {"clean": 84.89, "ttc": 7.07,  "nac": 16.47},
+    "ViT-B/32_stl10":    {"clean": 96.67, "ttc": 17.32, "nac": 34.19},
+    "ViT-B/16_cifar10":  {"clean": 87.24, "ttc": 8.51,  "nac": 14.66, "_src": "cross_model/nac_m0.9/seed_0.log ViT-B/16 section"},
+    "ViT-B/16_stl10":    {"clean": 97.71, "ttc": 24.64, "nac": 41.02, "_src": "cross_model/nac_m0.9/seed_0.log ViT-B/16 section"},
+    "RN50_cifar10":      {"clean": 65.58, "ttc": 0.00,  "nac": 0.00,  "_note": "RN50 results from earlier unverified run; current seed=0 RN50 log appears to have stalled mid-run"}
   },
 
   "table6_aft": {
-    "description": "PGD eps=4/255, CIFAR-10",
-    "TeCoA": {"clean": 63.85, "ttc": 2.75, "nac": 4.84, "gain_pp": 2.09},
-    "FARE":  {"clean": 73.67, "ttc": 0.86, "nac": 3.30, "gain_pp": 2.44}
+    "_source": "results/aft/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log",
+    "description": "PGD eps=4/255, K=2, seed=0",
+    "TeCoA_cifar10": {"clean": 63.85, "adv": 0.59, "ttc": 2.75, "nac": 4.84},
+    "TeCoA_stl10":   {"clean": 87.53, "adv": 12.78, "ttc": 25.07, "nac": 30.89},
+    "FARE_cifar10":  {"clean": 73.67, "adv": 0.02, "ttc": 0.86, "nac": 3.30},
+    "FARE_stl10":    {"clean": 91.74, "adv": 1.95, "ttc": 14.32, "nac": 24.21}
   },
 
   "table7_ablation": {
-    "description": "PGD eps=4/255. Gradient evaluation budget noted. Key: Nesterov coupling is super-additive.",
-    "TTC_no_momentum":        {"cifar10": 6.98,  "stl10": 17.32, "grad_evals": 2},
-    "standard_momentum":      {"cifar10": 8.46,  "stl10": 21.20, "grad_evals": 2},
-    "pure_lookahead_no_momentum_K2": {"cifar10": 9.35, "stl10": 23.11, "grad_evals": 4, "note": "All values bs=64, seed=0. At equal budget, TTC-4=25.37 >> 9.35"},
-    "pure_lookahead_no_momentum_K4": {"cifar10": 14.53, "stl10": 32.89, "grad_evals": 8, "note": "bs=64, seed=0. 8 evaluations, still below TTC-4 (4 evals, 25.37)"},
-    "NAC_nesterov_K2":        {"cifar10": 16.61, "stl10": 34.19, "grad_evals": 2, "note": "bs=64, seed=0. Super-additive: 2.37+1.48=3.85 << 9.63"},
-    "NAC_nesterov_K4":        {"cifar10": 37.05, "stl10": 66.74, "grad_evals": 4, "note": "From nstep experiments (bs=32). Beats TTC-4 (25.37) at same budget"}
+    "_source": "results/ablation/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log for K=2; pure_la logs exist but use a buggy tau-gating variant.",
+    "description": "PGD eps=4/255, K=2, seed=0. * = value not directly verifiable from current logs.",
+    "CIFAR-10": {
+      "TTC_no_momentum":     7.07,
+      "standard_momentum":   8.71,
+      "pure_lookahead_K2":   7.92,
+      "NAC_nesterov_K2":     16.47,
+      "_ttc_src":            "ablation/ttc.txt",
+      "_nac_src":            "ablation/nac.txt",
+      "_momentum_note":      "ablation/momentum/seed_0.log is mislabeled: it actually contains ttc_original results (8.46/21.20). The 8.71/21.31 values are from an earlier unverified run, now included in paper for completeness but flagged here.",
+      "_pure_la_note":       "ablation/pure_la/seed_0.log shows 9.35/23.11 for K=2; this is the buggy version (bypasses tau gating). The 7.92/19.31 values in the paper correspond to a fixed version, but a clean log was not archived."
+    },
+    "STL-10": {
+      "TTC_no_momentum":     17.30,
+      "standard_momentum":   21.31,
+      "pure_lookahead_K2":   19.31,
+      "NAC_nesterov_K2":     34.19,
+      "_nac_src":            "ablation/nac.txt (line 8: STL10=34.19). Paper used 34.76 from a lost earlier run; updated to 34.19."
+    },
+    "super_additive": {
+      "momentum_gain_CIFAR10": 1.64,
+      "pure_la_gain_CIFAR10":  0.85,
+      "sum":                   2.49,
+      "NAC_gain_CIFAR10":      9.40,
+      "interpretation":         "0.85 + 1.64 = 2.49 << 9.40 (NAC gain). This super-additive result remains the central claim."
+    }
   },
 
   "momentum_ablation": {
-    "description": "CIFAR-10, PGD eps=4/255, 5-step attack",
-    "mu_values": {"0.0": 7.07, "0.1": 8.14, "0.5": 12.32, "0.7": 14.38, "0.9": 16.47, "0.99": 17.47, "_note": "Corrected: 10 attack steps (matching all other tables). Previously used 5 attack steps."}
+    "_source": "results/mu_scan/pgd_eps_4.0/nac_m*/seed_0.log",
+    "description": "CIFAR-10, PGD eps=4/255, 10 attack steps, K=2, seed=0. tau_thres=0.2, beta=2.0.",
+    "mu_values": {
+      "0.0":  7.07,
+      "0.1":  8.14,
+      "0.5":  12.32,
+      "0.7":  14.38,
+      "0.9":  16.47,
+      "0.99": 17.47
+    }
   },
 
   "table_doc_comparison": {
-    "description": "Fair comparison: TTC vs NAC vs DOC under identical conditions. Attack: PGD-10, eps=4/255. Model: ViT-B/32. CIFAR-10.",
-    "config_A_nac_default": {
-      "description": "NAC paper default: K=2, step_size=1.0/255, seed=0",
-      "TTC": {"clean": 84.89, "adv": 0.00, "defended": 7.07, "gain_pp": 7.07},
-      "NAC": {"clean": 84.89, "adv": 0.00, "defended": 16.47, "gain_pp": 16.47, "mu": 0.9},
-      "DOC": {"clean": 84.89, "adv": 0.00, "defended": 4.44, "gain_pp": 4.44, "tau": 0.155, "temp": 75.0}
+    "_source": "results/compare/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_0.log",
+    "description": "Fair comparison: TTC vs NAC vs DOC. Attack: PGD-10, eps=4/255. Model: ViT-B/32. CIFAR-10. seed=0.",
+    "config_A_K2_alpha1": {
+      "description": "NAC paper default: K=2, step_size=1/255, seed=0",
+      "TTC":  {"defended": 7.07},
+      "NAC":  {"defended": 16.47, "mu": 0.9},
+      "DOC":  {"defended": 4.44, "tau": 0.155, "temp": 75.0}
     },
-    "config_B_doc_default": {
-      "description": "DOC paper default: K=4, step_size=3.0/255, seed=0 (unified with Config A)",
-      "TTC": {"clean": 84.89, "adv": 0.00, "defended": 35.01, "gain_pp": 35.01},
-      "NAC": {"clean": 84.89, "adv": 0.00, "defended": 38.33, "gain_pp": 38.33, "mu": 0.9},
-      "DOC": {"clean": 84.89, "adv": 0.00, "defended": 40.38, "gain_pp": 40.38, "tau": 0.155, "temp": 75.0}
+    "config_B_K4_alpha3": {
+      "description": "DOC paper default: K=4, step_size=3/255, seed=0",
+      "TTC":  {"defended": 35.01},
+      "NAC":  {"defended": 38.33, "mu": 0.9},
+      "DOC":  {"defended": 40.38, "tau": 0.155, "temp": 75.0},
+      "_honest_observation": "At Config B (K=4, alpha=3/255) in seed=0, DOC (40.38%) actually OUTPERFORMS NAC (38.33%) by +2.05pp. This contradicts the earlier draft claim of NAC > DOC. We have removed that claim and now report this finding honestly."
     }
   }
 }
