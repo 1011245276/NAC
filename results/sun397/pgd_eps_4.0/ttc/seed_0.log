@@ -1,0 +1,14 @@
+2026-06-01 16:07:55,673 - INFO - NAC Fair: method=ttc momentum=0.9
+2026-06-01 16:07:55,673 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['SUN397'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='F:/code/nac_project/results/sun397', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='ttc', nac_momentum=0.9)
+2026-06-01 16:07:57,278 - INFO - Counterattack: ttc_original | Attack: pgd
+2026-06-01 16:07:57,278 - INFO - tau_thres=0.2 beta=2.0
+2026-06-01 16:23:46,071 - INFO - NAC Fair: method=ttc momentum=0.9
+2026-06-01 16:23:46,071 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['SUN397'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='F:/code/nac_project/results/sun397', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='ttc', nac_momentum=0.9)
+2026-06-01 16:23:47,688 - INFO - Counterattack: ttc_original | Attack: pgd
+2026-06-01 16:23:47,688 - INFO - tau_thres=0.2 beta=2.0
+2026-06-01 16:37:37,841 - INFO - NAC Fair: method=ttc momentum=0.9
+2026-06-01 16:37:37,841 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['SUN397'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='F:/code/nac_project/results/sun397', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='ttc', nac_momentum=0.9)
+2026-06-01 16:37:44,491 - INFO - Counterattack: ttc_original | Attack: pgd
+2026-06-01 16:37:44,493 - INFO - tau_thres=0.2 beta=2.0
+2026-06-01 16:38:52,408 - INFO - SUN397: clean=70.80 | adv=0.00 | adv+ttc_original=2.20 | gain=2.20
+2026-06-01 16:38:52,408 - INFO - SUMMARY: avg adv=0.00 | avg def=2.20 | avg gain=2.20

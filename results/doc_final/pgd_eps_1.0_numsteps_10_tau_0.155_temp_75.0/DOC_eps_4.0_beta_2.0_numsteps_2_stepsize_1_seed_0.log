@@ -1,0 +1,17 @@
+2026-06-01 17:21:06,795 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=4, cache='./cache', test_set=['cifar10', 'STL10'], test_attack_type='pgd', test_eps=0.00392156862745098, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/doc_final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.155, temperature=75.0)
+2026-06-01 17:21:09,103 - INFO - Evaluate with Attack method: pgd
+2026-06-01 17:31:07,227 - INFO - cifar10:
+	- clean acc.  85.07 (DOC: 81.20)
+	- robust acc. 0.77 (DOC: 14.50)
+2026-06-01 17:44:34,213 - INFO - cifar100:
+	- clean acc.  57.16 (DOC: 56.20)
+	- robust acc. 0.18 (DOC: 8.27)
+2026-06-01 17:55:33,022 - INFO - STL10:
+	- clean acc.  96.40 (DOC: 95.90)
+	- robust acc. 11.12 (DOC: 68.36)
+2026-06-01 17:55:33,037 - INFO - ===== SUMMARY ACROSS 3 DATASETS =====
+	AVG acc. 79.54 (DOC: 77.77)
+	AVG acc. 4.02 (DOC: 30.38)
+2026-06-01 17:55:33,038 - INFO - ===== SUMMARY ACROSS 3 DATASETS (EXCEPT tinyImageNet) =====
+	AVG acc. 79.54 (DOC: 77.77)
+	AVG acc. 4.02 (DOC: 30.38)

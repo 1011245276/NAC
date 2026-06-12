@@ -1,0 +1,10 @@
+2026-05-30 16:22:55,366 - INFO - NAC Fair: method=ttc momentum=0.9
+2026-05-30 16:22:55,366 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=4, cache='./cache', test_set=['cifar10', 'cifar100', 'STL10', 'flowers102', 'dtd'], test_attack_type='pgd', test_eps=0.00784313725490196, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=1, victim_resume=None, outdir='F:/code/nac_project/results/seed1', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='ttc', nac_momentum=0.9)
+2026-05-30 16:23:01,117 - INFO - Counterattack: ttc_original | Attack: pgd
+2026-05-30 16:23:01,129 - INFO - tau_thres=0.2 beta=2.0
+2026-05-30 16:30:44,379 - INFO - cifar10: clean=84.89 | adv=0.00 | adv+ttc_original=28.67 | gain=28.67
+2026-05-30 16:40:39,058 - INFO - cifar100: clean=58.19 | adv=0.00 | adv+ttc_original=12.26 | gain=12.26
+2026-05-30 16:47:45,437 - INFO - STL10: clean=96.67 | adv=0.39 | adv+ttc_original=61.39 | gain=61.00
+2026-05-30 16:53:56,879 - INFO - flowers102: clean=62.73 | adv=0.00 | adv+ttc_original=15.84 | gain=15.84
+2026-05-30 16:55:43,116 - INFO - dtd: clean=42.71 | adv=0.11 | adv+ttc_original=14.52 | gain=14.41
+2026-05-30 16:55:43,116 - INFO - SUMMARY: avg adv=0.10 | avg def=26.54 | avg gain=26.44

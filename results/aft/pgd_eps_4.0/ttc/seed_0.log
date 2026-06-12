@@ -1,0 +1,14 @@
+2026-05-31 00:42:47,396 - INFO - NAC Fair: method=ttc momentum=0.9
+2026-05-31 00:42:47,396 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=4, cache='./cache', test_set=['cifar10', 'STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume='F:/code/model/tecoa_checkpoint_best.pth.tar', outdir='F:/code/nac_project/results/aft', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='ttc', nac_momentum=0.9)
+2026-05-31 00:42:55,004 - INFO - Counterattack: ttc_original | Attack: pgd
+2026-05-31 00:42:55,006 - INFO - tau_thres=0.2 beta=2.0
+2026-05-31 00:48:53,826 - INFO - cifar10: clean=63.85 | adv=0.59 | adv+ttc_original=2.75 | gain=2.16
+2026-05-31 00:54:48,312 - INFO - STL10: clean=87.53 | adv=12.78 | adv+ttc_original=25.07 | gain=12.30
+2026-05-31 00:54:48,312 - INFO - SUMMARY: avg adv=6.68 | avg def=13.91 | avg gain=7.23
+2026-05-31 01:07:06,031 - INFO - NAC Fair: method=ttc momentum=0.9
+2026-05-31 01:07:06,031 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=4, cache='./cache', test_set=['cifar10', 'STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume='F:/code/model/fare_checkpoint_best.pth.tar', outdir='F:/code/nac_project/results/aft', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='ttc', nac_momentum=0.9)
+2026-05-31 01:07:13,539 - INFO - Counterattack: ttc_original | Attack: pgd
+2026-05-31 01:07:13,539 - INFO - tau_thres=0.2 beta=2.0
+2026-05-31 01:13:25,090 - INFO - cifar10: clean=73.67 | adv=0.02 | adv+ttc_original=0.86 | gain=0.84
+2026-05-31 01:19:21,602 - INFO - STL10: clean=91.74 | adv=1.95 | adv+ttc_original=14.32 | gain=12.38
+2026-05-31 01:19:21,602 - INFO - SUMMARY: avg adv=0.98 | avg def=7.59 | avg gain=6.61

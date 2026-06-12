@@ -294,10 +294,10 @@ def plot_mu():
 
     ax.plot(mu, acc, 'o-', color=C['blue'], lw=2.8, markersize=10,
             markerfacecolor='white', markeredgewidth=2.5, markeredgecolor=C['blue'])
-    ax.fill_between(mu, [6.06]*len(mu), acc, alpha=0.08, color=C['blue'])
-    ax.axhline(y=6.06, color=C['ttc'], lw=1.2, ls='--', alpha=0.6)
+    ax.fill_between(mu, [7.07]*len(mu), acc, alpha=0.08, color=C['blue'])
+    ax.axhline(y=7.07, color=C['ttc'], lw=1.2, ls='--', alpha=0.6)
 
-    ax.text(0.85, 6.06, 'TTC ($\\mu$=0): 6.06%', fontsize=8.5, color=C['ttc'], va='bottom', ha='right')
+    ax.text(0.85, 7.07, 'TTC ($\\mu$=0): 7.07%', fontsize=8.5, color=C['ttc'], va='bottom', ha='right')
 
     # Labels with better positioning
     offsets = [(0, 1.2), (0.1, 1.2), (0.5, 1.2), (0.7, -1.5), (0.9, -1.5), (0.99, -1.5)]
@@ -316,8 +316,8 @@ def plot_mu():
     ax.set_ylim(4, 24)
 
     # Best mu annotation
-    ax.annotate(f'$\\mu$=0.99: best\nbut $\\mu$=0.9 adopted\n(following Nesterov 1983)',
-                xy=(0.99, 21.46), xytext=(0.65, 23),
+    ax.annotate(f'$\\mu$=0.99: best (17.47%)\nbut $\\mu$=0.9 adopted\n(following Nesterov 1983)',
+                xy=(0.99, 17.47), xytext=(0.65, 22.5),
                 fontsize=8.5, color=C['blue'],
                 arrowprops=dict(arrowstyle='->', color=C['blue'], lw=1.2),
                 bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#DDDDDD', alpha=0.8))

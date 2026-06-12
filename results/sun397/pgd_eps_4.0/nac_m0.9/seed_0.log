@@ -1,0 +1,10 @@
+2026-06-01 16:23:58,764 - INFO - NAC Fair: method=nac momentum=0.9
+2026-06-01 16:23:58,764 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['SUN397'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='F:/code/nac_project/results/sun397', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='nac', nac_momentum=0.9)
+2026-06-01 16:24:00,371 - INFO - Counterattack: nac_m0.9 | Attack: pgd
+2026-06-01 16:24:00,371 - INFO - tau_thres=0.2 beta=2.0
+2026-06-01 16:38:56,985 - INFO - NAC Fair: method=nac momentum=0.9
+2026-06-01 16:38:56,985 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['SUN397'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='F:/code/nac_project/results/sun397', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='nac', nac_momentum=0.9)
+2026-06-01 16:39:03,558 - INFO - Counterattack: nac_m0.9 | Attack: pgd
+2026-06-01 16:39:03,558 - INFO - tau_thres=0.2 beta=2.0
+2026-06-01 16:40:08,700 - INFO - SUN397: clean=70.80 | adv=0.00 | adv+nac_m0.9=5.40 | gain=5.40
+2026-06-01 16:40:08,700 - INFO - SUMMARY: avg adv=0.00 | avg def=5.40 | avg gain=5.40

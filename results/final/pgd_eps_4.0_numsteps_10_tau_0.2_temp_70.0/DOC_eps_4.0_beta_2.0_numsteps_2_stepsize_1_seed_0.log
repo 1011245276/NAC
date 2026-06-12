@@ -1,0 +1,31 @@
+2026-05-31 22:19:39,511 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['cifar10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.2, temperature=70.0)
+2026-05-31 22:19:41,536 - INFO - Evaluate with Attack method: pgd
+2026-05-31 22:20:35,991 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['cifar10', 'STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.2, temperature=70.0)
+2026-05-31 22:20:39,661 - INFO - Evaluate with Attack method: pgd
+2026-05-31 22:23:32,172 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['cifar10', 'STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.2, temperature=70.0)
+2026-05-31 22:23:37,729 - INFO - Evaluate with Attack method: pgd
+2026-06-01 00:58:19,051 - INFO - Namespace(evaluate=True, batch_size=16, num_workers=2, cache='./cache', test_set=['cifar10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.2, temperature=70.0)
+2026-06-01 00:58:23,501 - INFO - Evaluate with Attack method: pgd
+2026-06-01 01:12:29,209 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=4, cache='./cache', test_set=['cifar10', 'STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.2, temperature=70.0)
+2026-06-01 01:12:33,052 - INFO - Evaluate with Attack method: pgd
+2026-06-01 01:24:03,848 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=4, cache='./cache', test_set=['cifar10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.2, temperature=70.0)
+2026-06-01 01:24:05,728 - INFO - Evaluate with Attack method: pgd
+2026-06-01 01:36:19,438 - INFO - cifar10:
+	- clean acc.  85.07 (DOC: 81.21)
+	- robust acc. 0.00 (DOC: 4.41)
+2026-06-01 01:52:13,768 - INFO - cifar100:
+	- clean acc.  57.16 (DOC: 56.11)
+	- robust acc. 0.00 (DOC: 1.28)
+2026-06-01 02:01:31,293 - INFO - STL10:
+	- clean acc.  96.40 (DOC: 95.90)
+	- robust acc. 0.04 (DOC: 13.19)
+2026-06-01 02:01:31,306 - INFO - ===== SUMMARY ACROSS 3 DATASETS =====
+	AVG acc. 79.54 (DOC: 77.74)
+	AVG acc. 0.01 (DOC: 6.29)
+2026-06-01 02:01:31,306 - INFO - ===== SUMMARY ACROSS 3 DATASETS (EXCEPT tinyImageNet) =====
+	AVG acc. 79.54 (DOC: 77.74)
+	AVG acc. 0.01 (DOC: 6.29)
+2026-06-01 04:17:53,600 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=4, cache='./cache', test_set=['STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.2, temperature=70.0)
+2026-06-01 04:17:55,289 - INFO - Evaluate with Attack method: pgd
+2026-06-01 04:19:16,848 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=4, cache='./cache', test_set=['STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, root='F:/code/data', dataset='tinyImageNet', seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.2, temperature=70.0)
+2026-06-01 04:19:20,397 - INFO - Evaluate with Attack method: pgd

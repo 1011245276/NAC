@@ -1,0 +1,12 @@
+2026-06-07 16:24:29,749 - INFO - NAC Fair: method=nac momentum=0.99
+2026-06-07 16:24:29,749 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['cifar10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='./results/mu_scan', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=5, ttc_stepsize=1.0, counterattack='nac', nac_momentum=0.99, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.155, temperature=75.0)
+2026-06-07 16:24:35,760 - INFO - Counterattack: nac_m0.99 | Attack: pgd
+2026-06-07 16:24:35,784 - INFO - tau_thres=0.2 beta=2.0
+2026-06-07 16:38:38,026 - INFO - cifar10: clean=84.89 | adv=0.00 | adv+nac_m0.99=38.64 | gain=38.64
+2026-06-07 16:38:38,027 - INFO - SUMMARY: avg adv=0.00 | avg def=38.64 | avg gain=38.64
+2026-06-07 18:00:35,466 - INFO - NAC Fair: method=nac momentum=0.99
+2026-06-07 18:00:35,466 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['cifar10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='./results/mu_scan', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='nac', nac_momentum=0.99, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.155, temperature=75.0)
+2026-06-07 18:00:42,570 - INFO - Counterattack: nac_m0.99 | Attack: pgd
+2026-06-07 18:00:42,571 - INFO - tau_thres=0.2 beta=2.0
+2026-06-07 18:11:53,947 - INFO - cifar10: clean=84.89 | adv=0.00 | adv+nac_m0.99=17.47 | gain=17.47
+2026-06-07 18:11:53,947 - INFO - SUMMARY: avg adv=0.00 | avg def=17.47 | avg gain=17.47

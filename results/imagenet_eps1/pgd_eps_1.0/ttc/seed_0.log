@@ -1,0 +1,4 @@
+2026-06-04 17:32:20,479 - INFO - NAC Fair: method=ttc momentum=0.9
+2026-06-04 17:32:20,479 - INFO - Namespace(evaluate=True, batch_size=16, num_workers=2, cache='./cache', test_set=['ImageNet'], test_attack_type='pgd', test_eps=0.00392156862745098, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='./data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='./results/imagenet_eps1', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=2, ttc_stepsize=1.0, counterattack='ttc', nac_momentum=0.9, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.155, temperature=75.0)
+2026-06-04 17:32:22,858 - INFO - Counterattack: ttc | Attack: pgd
+2026-06-04 17:32:22,858 - INFO - tau_thres=0.2 beta=2.0

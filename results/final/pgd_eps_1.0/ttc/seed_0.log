@@ -1,0 +1,7 @@
+2026-06-01 20:23:51,277 - INFO - NAC Fair: method=ttc momentum=0.9
+2026-06-01 20:23:51,277 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=2, cache='./cache', test_set=['cifar10', 'STL10'], test_attack_type='pgd', test_eps=0.00392156862745098, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='F:/code/data', dataset='tinyImageNet', image_size=224, seed=0, victim_resume=None, outdir='F:/code/nac_project/results/final', tau_thres=0.2, beta=2.0, ttc_eps=4.0, ttc_numsteps=4, ttc_stepsize=1.0, counterattack='ttc', nac_momentum=0.9)
+2026-06-01 20:23:53,524 - INFO - Counterattack: ttc_original | Attack: pgd
+2026-06-01 20:23:53,524 - INFO - tau_thres=0.2 beta=2.0
+2026-06-01 20:35:29,005 - INFO - cifar10: clean=84.89 | adv=0.82 | adv+ttc_original=27.20 | gain=26.38
+2026-06-01 20:45:41,177 - INFO - STL10: clean=96.67 | adv=11.12 | adv+ttc_original=73.66 | gain=62.54
+2026-06-01 20:45:41,187 - INFO - SUMMARY: avg adv=5.97 | avg def=50.43 | avg gain=44.46

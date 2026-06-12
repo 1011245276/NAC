@@ -1,0 +1,6 @@
+2026-06-11 16:48:31,151 - INFO - NAC Fair: method=pure_la momentum=0.9 seed=0
+2026-06-11 16:48:31,151 - INFO - Namespace(evaluate=True, batch_size=32, num_workers=4, cache='./cache', test_set=['STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='./data', dataset='tinyImageNet', image_size=224, seed=0, num_seeds=1, victim_resume=None, outdir='./results/test_fix', tau_thres=0.2, beta=2.0, ttc_eps=0.01568627450980392, ttc_numsteps=2, ttc_stepsize=0.00392156862745098, counterattack='pure_la', nac_momentum=0.9, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.155, temperature=75.0, imagenet_root='./data\\imagenet-100\\imagenet_folder', tinyimagenet_root='./data\\tiny-imagenet-200\\tiny-imagenet-200')
+2026-06-11 16:48:37,367 - INFO - Counterattack: pure_la | Attack: pgd
+2026-06-11 16:48:37,367 - INFO - tau_thres=0.2 beta=2.0
+2026-06-11 16:58:59,325 - INFO - STL10: clean=96.67 | adv=0.00 | adv+pure_la=19.31 | gain=19.31
+2026-06-11 16:58:59,336 - INFO - SUMMARY: avg adv=0.00 | avg def=19.31 | avg gain=19.31
