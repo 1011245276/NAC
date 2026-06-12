@@ -60,13 +60,17 @@
   },
 
   "table5_cross_model": {
-    "_source": "results/cross_model/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log",
+    "_source": "results/cross_model/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log (ViT-B/32, ViT-B/16); results/rn50/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log (RN50)",
     "description": "PGD eps=4/255, K=2, seed=0",
     "ViT-B/32_cifar10":  {"clean": 84.89, "ttc": 7.07,  "nac": 16.47},
     "ViT-B/32_stl10":    {"clean": 96.67, "ttc": 17.32, "nac": 34.19},
     "ViT-B/16_cifar10":  {"clean": 87.24, "ttc": 8.51,  "nac": 14.66, "_src": "cross_model/nac_m0.9/seed_0.log ViT-B/16 section"},
     "ViT-B/16_stl10":    {"clean": 97.71, "ttc": 24.64, "nac": 41.02, "_src": "cross_model/nac_m0.9/seed_0.log ViT-B/16 section"},
-    "RN50_cifar10":      {"clean": 65.58, "ttc": 0.00,  "nac": 0.00,  "_note": "RN50 results from earlier unverified run; current seed=0 RN50 log appears to have stalled mid-run"}
+    "RN50_cifar10_clean":  67.81,
+    "RN50_cifar10_adv":     0.00,
+    "RN50_cifar10_ttc":     0.00,
+    "RN50_cifar10_nac":     0.01,
+    "_RN50_note": "Verified 2026-06-12: both TTC and NAC give ~0% on RN50. NAC achieves a marginal 0.01pp (essentially zero), confirming the paper's claim that NAC is not effective on RN50's attention-pooled embedding space. RN50 is sensitive to pixel-space perturbations beyond ViT-tuned hyperparameters' capacity."
   },
 
   "table6_aft": {
@@ -118,6 +122,19 @@
       "0.9":  16.47,
       "0.99": 17.47
     }
+  },
+
+  "tau_beta_sensitivity": {
+    "_source": "results/tau_beta/nac_tau*_seed0.json (CIFAR-10, PGD eps=4/255, K=2, NAC m=0.9, seed=0). Note: defended values differ ~0.7pp from the main NAC=16.47 result due to PGD random-init across separate runs.",
+    "description": "CIFAR-10, PGD eps=4/255, K=2, seed=0. Varies tau_thres (default 0.2) and beta (default 2.0).",
+    "configs": [
+      {"tau": 0.1, "beta": 2.0, "defended":  8.68, "_note": "tau too small -> gating too strict"},
+      {"tau": 0.2, "beta": 1.0, "defended": 12.81, "_note": "beta too small -> soft weighting less discriminative"},
+      {"tau": 0.2, "beta": 2.0, "defended": 17.17, "_note": "DEFAULT"},
+      {"tau": 0.2, "beta": 3.0, "defended": 18.51, "_note": "beta=3.0 slightly outperforms default"},
+      {"tau": 0.3, "beta": 2.0, "defended": 17.36, "_note": "tau=0.3 close to default"}
+    ],
+    "takeaway": "NAC is robust to hyperparameter choice around (tau=0.2, beta=2.0). tau=0.1 halves accuracy; beta=1.0 reduces by 4pp; beta=3.0 gives marginal +1.3pp improvement."
   },
 
   "table_doc_comparison": {

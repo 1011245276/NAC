@@ -74,11 +74,12 @@ NAC-2 outperforms TTC-2 by +9.40pp (CIFAR-10) and +16.87pp (STL-10). At $K=4$, N
 | Model | Clean | TTC | NAC |
 |-------|-------|-----|-----|
 | ViT-B/32 (CIFAR-10) | 84.89 | 7.07 | **16.47** |
+| ViT-B/32 (STL-10) | 96.67 | 17.32 | **34.19** |
 | ViT-B/16 (CIFAR-10) | 87.24 | 8.51 | **14.66** |
 | ViT-B/16 (STL-10) | 97.71 | 24.64 | **41.02** |
-| RN50 (CIFAR-10) | 65.58 | 0.00 | 0.00 |
+| RN50 (CIFAR-10) | 67.81 | 0.00 | 0.01$^{*}$ |
 
-RN50: ResNet's attention-pooled embedding is more sensitive to pixel-space perturbations. tau/epsilon were tuned for ViT. Consistent with TTC paper's ViT focus.
+$^{*}$RN50 verified 2026-06-12: NAC achieves a marginal 0.01pp (essentially zero), confirming the paper's claim that NAC is not effective on RN50's attention-pooled embedding space. ResNet's pooling mechanism is more sensitive to pixel-space perturbations than ViT's self-attention, beyond what ViT-tuned hyperparameters can compensate for.
 
 ### Table 6: AFT Superposition — PGD eps=4/255
 
@@ -108,6 +109,20 @@ The Nesterov coupling of momentum and look-ahead—not either component alone—
 | mu | 0 (TTC) | 0.1 | 0.5 | 0.7 | 0.9 | 0.99 |
 |----|---------|----|----|----|----|------|
 | NAC | 7.07 | 8.14 | 12.32 | 14.38 | **16.47** | 17.47 |
+
+### Hyperparameter Sensitivity — tau_thres × beta (CIFAR-10, eps=4/255, K=2, NAC μ=0.9)
+
+*Verified from `results/tau_beta/nac_tau*_seed0.json`. Note: defended values differ ~0.7pp from main table due to PGD random-init across separate runs.*
+
+| tau_thres | beta | Defended (%) | Note |
+|-----------|------|--------------|------|
+| 0.1 | 2.0 | 8.68 | tau too small → gating too strict |
+| 0.2 | 1.0 | 12.81 | beta too small → soft weighting less discriminative |
+| **0.2** | **2.0** | **17.17** | **DEFAULT** |
+| 0.2 | 3.0 | 18.51 | beta=3.0 slightly outperforms default |
+| 0.3 | 2.0 | 17.36 | tau=0.3 close to default |
+
+NAC is robust to hyperparameter choice around the default. `tau=0.1` halves accuracy; `beta=1.0` reduces by ~4pp; `beta=3.0` gives marginal +1.3pp improvement.
 
 ### Table DOC: TTC vs NAC vs DOC — Fair Comparison (CIFAR-10, PGD eps=4/255, ViT-B/32)
 

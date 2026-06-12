@@ -1,0 +1,10 @@
+{
+  "arch": "ViT-B/32",
+  "tau": 0.2,
+  "beta": 2.0,
+  "seed": 0,
+  "clean": 85.07,
+  "adv": 0.0,
+  "defended": 17.17,
+  "gain": 17.17
+}
