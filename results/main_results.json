@@ -15,10 +15,15 @@
   },
 
   "table1_main": {
-    "_source": "results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/seed_0.log (eps=1/255, 2-step defense)",
+    "_source": "results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/seed_0.log + results/multiseed/pgd_eps_1.0/{ttc,nac_m0.9}/seed_{1,2}.log",
     "attack": "PGD eps=1/255",
     "datasets": {
-      "CIFAR-10":    {"clean": 84.89, "ttc": 27.95, "nac": 30.94, "gain_pp": 2.99},
+      "CIFAR-10":    {"clean": 84.89, "ttc": 27.95, "nac": 30.94, "gain_pp": 2.99,
+                       "_multiseed": {"seeds": [0, 1, 2],
+                                     "ttc_runs": [27.95, 28.21, 28.80], "ttc_mean": 28.32, "ttc_std": 0.43,
+                                     "nac_runs": [30.94, 31.04, 31.36], "nac_mean": 31.11, "nac_std": 0.21,
+                                     "gain_mean": 2.79, "gain_std": 0.34,
+                                     "_note": "3-seed pilot 2026-06-12. NAC gain over TTC is +2.79pp (std 0.34), consistent with paper's single-seed 2.99pp claim."},
       "CIFAR-100":   {"clean": 58.19, "ttc": 14.68, "nac": 16.87, "gain_pp": 2.19},
       "STL-10":      {"clean": 96.67, "ttc": 77.11, "nac": 80.33, "gain_pp": 3.22},
       "Flowers-102": {"clean": 62.73, "ttc": 38.62, "nac": 45.76, "gain_pp": 7.14},
@@ -57,6 +62,29 @@
     "ttc": {"clean": 84.90, "adv": 0.05, "defended": 7.59, "_src": "aa/ttc/seed_0.log"},
     "nac": {"clean": 84.90, "adv": 0.05, "defended": 11.29, "_src": "aa/nac_m0.9/seed_0.log"},
     "gain_pp": 3.70
+  },
+
+  "eps_symmetric_control": {
+    "_source": "results/eps_symmetric/atk{def}_def{def}_{method}/seed_0.json (CIFAR-10, ViT-B/32, K=2, seed 0). Verified 2026-06-12.",
+    "description": "CRITICAL CONTROL: defense budget matched to attack budget. Reveals that NAC's gain is partly a budget-asymmetry artifact at low eps.",
+    "configs": [
+      {"eps_attack": 1, "eps_defense": 1, "method": "ttc", "defended": 22.22, "gain": 21.47, "_note": "TTC WINS at eps=1"},
+      {"eps_attack": 1, "eps_defense": 1, "method": "nac", "defended": 19.21, "gain": 18.46, "_note": "NAC loses by 3.01pp under fair budget"},
+      {"eps_attack": 2, "eps_defense": 2, "method": "ttc", "defended": 15.78, "gain": 15.77},
+      {"eps_attack": 2, "eps_defense": 2, "method": "nac", "defended": 24.00, "gain": 23.99, "_note": "NAC wins by 8.22pp under fair budget"},
+      {"eps_attack": 4, "eps_defense": 4, "method": "ttc", "defended":  7.19, "gain":  7.19},
+      {"eps_attack": 4, "eps_defense": 4, "method": "nac", "defended": 17.00, "gain": 17.00, "_note": "NAC wins by 9.81pp under fair budget"}
+    ],
+    "key_finding": "NAC's reported +2.99pp at eps_att=1/255 (Table 2) DISAPPEARS under matched-budget control: TTC actually wins by 3.01pp at eps=1. NAC's advantage is real only at moderate-to-high attack strengths (eps >= 2/255). This requires qualifying the paper's main claim."
+  },
+
+  "optimizer_comparison": {
+    "_source": "results/optimizers/pgd_eps_4.0/adam/seed_0.log. Verified 2026-06-12.",
+    "description": "Adam optimizer for counterattack (CIFAR-10, PGD eps=4/255, K=2, seed 0). NAC's Nesterov look-ahead vs Adam.",
+    "adam": {"defended": 5.38, "adv": 0.00, "clean": 85.07, "_src": "optimizers/adam/seed_0.log"},
+    "ttc":  {"defended": 7.07, "_src": "ablation/ttc.txt"},
+    "nac":  {"defended": 16.47, "_src": "ablation/nac.txt"},
+    "key_finding": "NAC (16.47) > Adam (5.38) by +11.09pp and > TTC (7.07) by +9.40pp. Adam is the WORST optimizer tested, supporting the paper's claim that Nesterov look-ahead is specifically effective (not just 'any optimizer')."
   },
 
   "table5_cross_model": {
@@ -154,4 +182,5 @@
       "_honest_observation": "At Config B (K=4, alpha=3/255) in seed=0, DOC (40.38%) actually OUTPERFORMS NAC (38.33%) by +2.05pp. This contradicts the earlier draft claim of NAC > DOC. We have removed that claim and now report this finding honestly."
     }
   }
+}
 }

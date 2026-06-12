@@ -1,0 +1,10 @@
+{
+  "eps_attack": 0.00784313725490196,
+  "eps_defense": 0.00784313725490196,
+  "method": "nac",
+  "seed": 0,
+  "clean": 85.07,
+  "adv": 0.01,
+  "defended": 24.0,
+  "gain": 23.99
+}

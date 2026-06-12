@@ -1,0 +1,10 @@
+{
+  "eps_attack": 0.01568627450980392,
+  "eps_defense": 0.01568627450980392,
+  "method": "ttc",
+  "seed": 0,
+  "clean": 85.07,
+  "adv": 0.0,
+  "defended": 7.19,
+  "gain": 7.19
+}
