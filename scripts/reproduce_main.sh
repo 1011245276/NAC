@@ -11,7 +11,7 @@ set -e
 source "$(dirname "$0")/common.sh"
 
 METHODS=("ttc" "nac")
-DATASETS=("cifar10" "cifar100" "STL10" "flowers102" "DTD" "imagenet100")
+DATASETS=("cifar10" "cifar100" "STL10" "flowers102" "DTD" "ImageNet")
 EPS=1
 SEEDS=(${SEEDS:-0})  # default single seed for time efficiency
 
@@ -24,7 +24,7 @@ echo " Seeds: ${SEEDS[@]}"
 echo " Total runs: $((${#METHODS[@]} * ${#DATASETS[@]} * ${#SEEDS[@]}))"
 echo "============================================"
 
-mkdir -p ./results/main
+mkdir -p ./results/eps1
 for method in "${METHODS[@]}"; do
   for dataset in "${DATASETS[@]}"; do
     for seed in "${SEEDS[@]}"; do
@@ -44,11 +44,11 @@ for method in "${METHODS[@]}"; do
         --counterattack $method \
         --nac_momentum 0.9 \
         --seed $seed \
-        --outdir ./results/main \
-        --num_seeds 1 2>&1 | tee -a ./results/main/${method}_${dataset}_seed${seed}.log
+        --outdir ./results/eps1 \
+        --num_seeds 1 2>&1 | tee -a ./results/eps1/${method}_${dataset}_seed${seed}.log
     done
   done
 done
 
-echo "[$(date '+%H:%M:%S')] Done! Results saved to ./results/main/"
-echo "Aggregate with: python scripts/aggregate_results.py --root ./results/main"
+echo "[$(date '+%H:%M:%S')] Done! Results saved to ./results/eps1/"
+echo "Aggregate with: python scripts/aggregate_results.py --root ./results/eps1"

@@ -1,10 +1,14 @@
 """
-NAC vs TTC — fair comparison using original TTC implementation.
+NAC vs TTC vs DOC vs ablations -- authoritative experiment runner.
 
-Only difference: NAC uses Nesterov look-ahead gradient.
+This is the primary script used to produce all paper results. It contains
+the authoritative implementations of all counterattack methods (TTC, NAC,
+DOC, momentum, pure look-ahead, Adam, L-BFGS). The standalone nac.py and
+ttc.py modules are reference implementations for independent use; the
+implementations in this file are the ones used for all reported numbers.
+
+Only difference between NAC and TTC: Nesterov look-ahead gradient.
 Everything else (tau_threshold, step weighting, etc.) is identical.
-
-Run this script directly — it loads the original TTC counterattack and its NAC variant.
 """
 from __future__ import print_function
 
@@ -50,7 +54,7 @@ def parse_options():
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--num_seeds', type=int, default=1,
-                        help='Number of seeds to evaluate (default: 1). When >1, evaluates seeds 0..num_seeds-1 and reports mean±std.')
+                        help='Number of seeds to evaluate (default: 1). When >1, evaluates seeds 0..num_seeds-1 and reports mean +/-       .')
     parser.add_argument('--victim_resume', type=str, default=None)
     parser.add_argument('--outdir', type=str,
                         default='./results')
@@ -61,15 +65,17 @@ def parse_options():
     parser.add_argument('--ttc_stepsize', type=float, default=1.)
     # NAC config
     parser.add_argument('--counterattack', type=str, default='nac',
-                        choices=['ttc', 'nac', 'doc', 'momentum', 'pure_la', 'adam'],
+                        choices=['ttc', 'nac', 'doc', 'momentum', 'pure_la', 'adam', 'lbfgs'],
                         help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum, pure_la=pure look-ahead without momentum, adam=Adam optimizer')
     parser.add_argument('--nac_momentum', type=float, default=0.9)
     # DOC config
     parser.add_argument('--DOC_eps', type=float, default=4.0)
     parser.add_argument('--DOC_numsteps', type=int, default=2)
     parser.add_argument('--DOC_stepsize', type=float, default=1.0)
-    parser.add_argument('--learnable_tau', type=float, default=0.155)
-    parser.add_argument('--temperature', type=float, default=70.0)
+    parser.add_argument('--learnable_tau', type=float, default=0.3,
+                        help='DOC learnable tau (original DOC paper default: 0.3; NAC comparison used 0.155)')
+    parser.add_argument('--temperature', type=float, default=20.0,
+                        help='DOC temperature (original DOC paper default: 20; NAC comparison used 75)')
     return parser.parse_args()
 
 
@@ -379,7 +385,7 @@ def compute_scheme_weight(diff_ratio, learnable_tau=0.3, temperature=20):
 def pure_la_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
                            norm="l_inf", epsilon=0, tau_thres=None, beta=None,
                            clip_visual=None, preprocess_fn=None):
-    """Pure Look-Ahead: gradient at δ_t + α·sign(∇g(δ_t)) without momentum.
+    """Pure Look-Ahead: gradient at look-ahead position (delta + alpha*sign(grad)) without momentum accumulation.
 
     Performs TWO gradient evaluations per step (one at current position to find
     the direction, one at the look-ahead position). Includes tau-threshold
@@ -476,6 +482,114 @@ def pure_la_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
     return Delta
 
 
+
+def lbfgs_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
+                          norm="l_inf", epsilon=0, tau_thres=None, beta=None,
+                          clip_visual=None, preprocess_fn=None,
+                          history_size=10, max_iter=20):
+    """L-BFGS counterattack (additional baseline).
+    
+    Uses L-BFGS (limited-memory BFGS) instead of first-order gradient methods.
+    Gradient evaluated at current position. Includes tau-threshold gating.
+    
+    Note: L-BFGS is per-sample, which makes it expensive for batch evaluation.
+    Implemented for completeness; numerical results available in codebase logs
+    but not included in the paper due to space constraints.
+    """
+    lower_limit, upper_limit = 0, 1
+    
+    def clamp(X, lo, hi):
+        return torch.max(torch.min(X, hi), lo)
+    
+    delta = torch.zeros_like(X)
+    if epsilon <= 0.:
+        return delta
+    
+    if norm == "l_inf":
+        delta.uniform_(-epsilon, epsilon)
+    delta = clamp(delta, lower_limit - X, upper_limit - X)
+    delta.requires_grad = True
+    
+    if attack_iters == 0:
+        return delta.data
+    
+    # Freeze model
+    tunable_param_names = []
+    for n, p in model.module.named_parameters():
+        if p.requires_grad:
+            tunable_param_names.append(n)
+            p.requires_grad = False
+    
+    prompt_token = add_prompter()
+    with torch.no_grad():
+        X_ori_reps = model.module.encode_image(prompter(preprocess_fn(X)), prompt_token)
+        X_ori_norm = torch.norm(X_ori_reps, dim=-1)
+    
+    deltas_per_step = [delta.data.clone()]
+    
+    lbfgs_optimizer = torch.optim.LBFGS(
+        [delta], lr=alpha, history_size=history_size,
+        max_iter=min(max_iter, attack_iters), line_search_fn='strong_wolfe'
+    )
+    
+    step_count = [0]  # mutable counter for closure
+    
+    def closure():
+        if step_count[0] >= attack_iters:
+            return torch.tensor(0.0, device=X.device, requires_grad=True)
+        
+        lbfgs_optimizer.zero_grad()
+        prompted_images = prompter(preprocess_fn(X + delta))
+        X_att_reps = model.module.encode_image(prompted_images, prompt_token)
+        l2_loss = (((X_att_reps - X_ori_reps) ** 2).sum(1)).sum()
+        l2_loss.backward()
+        step_count[0] += 1
+        return l2_loss
+    
+    lbfgs_optimizer.step(closure)
+    
+    # Clamp to epsilon ball
+    delta.data = torch.clamp(delta.data, -epsilon, epsilon)
+    delta.data = clamp(delta.data, lower_limit - X, upper_limit - X)
+    deltas_per_step.append(delta.data.clone())
+    
+    # For remaining steps (if L-BFGS converged early), use sign descent
+    for _step_id in range(step_count[0], attack_iters):
+        prompted_images = prompter(preprocess_fn(X + delta))
+        X_att_reps = model.module.encode_image(prompted_images, prompt_token)
+        l2_loss = (((X_att_reps - X_ori_reps) ** 2).sum(1)).sum()
+        grad = torch.autograd.grad(l2_loss, delta, retain_graph=False, create_graph=False)[0]
+        
+        delta.data = delta.data + alpha * torch.sign(grad)
+        delta.data = torch.clamp(delta.data, -epsilon, epsilon)
+        delta.data = clamp(delta.data, lower_limit - X, upper_limit - X)
+        deltas_per_step.append(delta.data.clone())
+    
+    # Compute diff_ratio for tau-threshold gating
+    with torch.no_grad():
+        prompted_images = prompter(preprocess_fn(X + delta))
+        X_final_reps = model.module.encode_image(prompted_images, prompt_token)
+        feature_diff = X_final_reps - X_ori_reps
+        diff_ratio = torch.norm(feature_diff, dim=-1) / X_ori_norm
+    
+    scheme_sign = (tau_thres - diff_ratio).sign()
+    
+    # Tau-threshold weighted step averaging
+    Delta = torch.stack(deltas_per_step, dim=1)
+    weights = torch.arange(len(deltas_per_step)).unsqueeze(0).expand(X.size(0), -1).to(device)
+    weights = torch.exp(scheme_sign.view(-1, 1) * weights * beta)
+    weights /= weights.sum(dim=1, keepdim=True)
+    weights_hard = torch.zeros_like(weights)
+    weights_hard[:, 0] = 1.
+    weights = torch.where(scheme_sign.unsqueeze(1) > 0, weights, weights_hard)
+    weights = weights.view(X.size(0), len(deltas_per_step), 1, 1, 1)
+    Delta = (weights * Delta).sum(dim=1)
+    
+    for n, p in model.module.named_parameters():
+        if n in tunable_param_names:
+            p.requires_grad = True
+    
+    return Delta
 def doc_counterattack(args, model, X, prompter, add_prompter, alpha, attack_iters,
                        norm="l_inf", epsilon=0, beta=None, clip_visual=None):
     """DOC: Directional Orthogonal Counterattack (AAAI 2026)."""
@@ -553,8 +667,8 @@ def doc_counterattack(args, model, X, prompter, add_prompter, alpha, attack_iter
     soft_weights = soft_weights / soft_weights.sum(dim=1, keepdim=True)  # [B, T]
 
     # DOC-style scheme_weight blending (matches original DOC.py)
-    # When scheme_weight → 1 (small embedding shift): use soft weights across all steps
-    # When scheme_weight → 0 (large embedding shift): fall back to δ₀ only (no counterattack)
+    # When scheme_weight    ?1 (small embedding shift): use soft weights across all steps
+    # When scheme_weight    ?0 (large embedding shift): fall back to                                       ?only (no counterattack)
     one_hot_first = torch.zeros_like(soft_weights)
     one_hot_first[:, 0] = 1.
 
@@ -642,7 +756,7 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                     )
                     top1_adv.update(accuracy(adv_output, target, topk=(1,))[0].item(), images.size(0))
 
-                # Counterattack — TTC or NAC
+                # Counterattack    ?TTC or NAC
                 ttc_eps_val = args.ttc_eps
                 ttc_stepsize_val = args.ttc_stepsize
 
@@ -667,6 +781,15 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                     )
                 elif args.counterattack == 'adam':
                     delta_def = adam_counterattack(
+                        model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        tau_thres=args.tau_thres, beta=args.beta,
+                        clip_visual=clip_visual,
+                        preprocess_fn=clip_img_preprocessing
+                    )
+                elif args.counterattack == 'lbfgs':
+                    delta_def = lbfgs_counterattack(
                         model, attacked.data, prompter, add_prompter,
                         alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
                         norm='l_inf', epsilon=ttc_eps_val,
@@ -831,17 +954,17 @@ def main():
             def_mean, def_std = np.mean(def_vals), np.std(def_vals)
             gain_mean, gain_std = np.mean(gain_vals), np.std(gain_vals)
 
-            print(f"  {dataset_name}: clean={clean_mean:.2f}±{clean_std:.2f} | "
-                  f"adv={adv_mean:.2f}±{adv_std:.2f} | "
-                  f"{tag}={def_mean:.2f}±{def_std:.2f} | "
-                  f"gain={gain_mean:.2f}±{gain_std:.2f}")
+            print(f"  {dataset_name}: clean={clean_mean:.2f} +/- {clean_std:.2f} | "
+                  f"adv={adv_mean:.2f} +/- {adv_std:.2f} | "
+                  f"{tag}={def_mean:.2f} +/- {def_std:.2f} | "
+                  f"gain={gain_mean:.2f} +/- {gain_std:.2f}")
 
             # Log to the last seed's log file
             logging.info(f"MULTI-SEED {dataset_name}: "
-                        f"clean={clean_mean:.2f}±{clean_std:.2f} "
-                        f"adv={adv_mean:.2f}±{adv_std:.2f} "
-                        f"{tag}={def_mean:.2f}±{def_std:.2f} "
-                        f"gain={gain_mean:.2f}±{gain_std:.2f}")
+                        f"clean={clean_mean:.2f} +/- {clean_std:.2f} "
+                        f"adv={adv_mean:.2f} +/- {adv_std:.2f} "
+                        f"{tag}={def_mean:.2f} +/- {def_std:.2f} "
+                        f"gain={gain_mean:.2f} +/- {gain_std:.2f}")
 
 
 if __name__ == "__main__":

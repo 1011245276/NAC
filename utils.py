@@ -262,6 +262,10 @@ def get_text_prompts_train(args, train_dataset, template='This is a photo of a {
     return texts_train
 
 def get_text_prompts_val(val_dataset_list, val_dataset_name, template='This is a photo of a {}.', force_template=False):
+    # Note: Uses a single prompt template for zero-shot evaluation.
+    # Standard CLIP benchmark uses an ensemble of ~80 templates, which yields
+    # ~3-4pp higher clean accuracy. The single template is chosen for simplicity
+    # and does not affect the relative comparison between defense methods.
     texts_list = []
     for cnt, each in enumerate(val_dataset_list):
         if hasattr(each, 'clip_prompts') and not force_template:

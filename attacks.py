@@ -358,7 +358,7 @@ def attack_pgd(args, prompter, model, model_text, model_image, add_prompter, cri
             d = (d + scaled_g * alpha).view(d.size(0), -1).renorm(p=2, dim=0, maxnorm=epsilon).view_as(d)
         d = clamp(d, lower_limit - x, upper_limit - x)
         delta.data[:, :, :, :] = d
-        # delta.grad.zero_()
+        # delta.grad.zero_()  # not needed: torch.autograd.grad() does not accumulate in .grad
 
     # # Turn on model parameters
     for n,p in model.module.named_parameters():

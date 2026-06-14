@@ -6,7 +6,7 @@ instead of standard PGD. Only two lines differ from TTC:
   1. Gradient computed at look-ahead position (x + delta + mu * velocity)
   2. Nesterov momentum update (velocity = mu * velocity + alpha * sign(grad))
 
-Theoretical convergence: O(1/k^2) vs PGD's O(1/k).
+Classical NAG has O(1/k^2) convergence under convex smooth assumptions; here we only use the look-ahead update as a practical heuristic for the non-convex counterattack landscape.
 """
 import torch
 

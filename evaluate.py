@@ -29,6 +29,7 @@ from nac_fair_experiment import (
     pure_la_counterattack,
     adam_counterattack,
     doc_counterattack,
+    lbfgs_counterattack,
 )
 
 # Standalone TTC (original implementation, with tau gating)
@@ -48,7 +49,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--dataset', default='cifar10')
     p.add_argument('--method', default='nac',
-                   choices=['ttc', 'nac', 'momentum', 'pure_la', 'adam', 'doc'])
+                   choices=['ttc', 'nac', 'momentum', 'pure_la', 'adam', 'doc', 'lbfgs'])
     p.add_argument('--attack_eps', type=int, default=4, help='Attack budget in /255')
     p.add_argument('--root', default='./data')
     p.add_argument('--batch_size', type=int, default=32)
@@ -156,6 +157,15 @@ def main():
             )
         elif args.method == 'adam':
             delta_def = adam_counterattack(
+                model, adv_imgs.data, prompter, add_prompter,
+                alpha=alpha_def, attack_iters=args.defense_steps,
+                norm='l_inf', epsilon=eps_def,
+                tau_thres=0.2, beta=2.0,
+                clip_visual=None,
+                preprocess_fn=clip_img_preprocessing,
+            )
+        elif args.method == 'lbfgs':
+            delta_def = lbfgs_counterattack(
                 model, adv_imgs.data, prompter, add_prompter,
                 alpha=alpha_def, attack_iters=args.defense_steps,
                 norm='l_inf', epsilon=eps_def,

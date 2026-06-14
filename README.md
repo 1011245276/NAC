@@ -55,12 +55,12 @@ Datasets: CIFAR-10, CIFAR-100, STL-10, Flowers-102, ImageNet-100. (DTD excluded:
 
 | Method | Steps | CIFAR-10 | STL-10 |
 |--------|-------|----------|--------|
-| TTC | 2 | 7.07 | 17.32 |
-| NAC | 2 | **16.47** | **34.19** |
-| TTC | 4 | 25.83$^{+}$ | 49.16$^{+}$ |
-| NAC | 4 | **37.05** | **66.34** |
+| TTC | 2 | 6.98 | 17.32 |
+| NAC | 2 | **16.61** | **34.19** |
+| TTC | 4 | 25.37$^{+}$ | 48.29$^{+}$ |
+| NAC | 4 | **37.05** | **66.74** |
 
-NAC-2 outperforms TTC-2 by +9.40pp (CIFAR-10) and +16.87pp (STL-10). At $K=4$, NAC exceeds TTC by +11.22pp (CIFAR-10) and +17.18pp (STL-10), both verified.
+NAC-2 outperforms TTC-2 by +9.63pp (CIFAR-10) and +16.87pp (STL-10). At $K=4$, NAC exceeds TTC by +11.68pp (CIFAR-10) and +18.45pp (STL-10), both verified.
 
 ### Table 4: AutoAttack — CIFAR-10, eps=4/255
 
@@ -92,15 +92,17 @@ $^{*}$RN50 verified 2026-06-12: NAC achieves a marginal 0.01pp (essentially zero
 
 ### Table 7: Ablation — Momentum vs Nesterov (CIFAR-10, eps=4/255, K=2)
 
+*All values verified from `results/ablation/` and `results/ablation_fixed/`.*
+
 | Method | CIFAR-10 | STL-10 |
 |--------|----------|--------|
-| TTC (no momentum) | 7.07 | 17.30 |
-| + Standard momentum | 8.71 | 21.31 |
-| + Pure look-ahead (no momentum) | 7.92 | 19.31 |
-| + Nesterov look-ahead (NAC) | **16.47** | **34.19** |
+| TTC (no momentum) | 6.98 | 17.32 |
+| + Standard momentum | 8.69 | 21.73 |
+| + Pure look-ahead (no momentum) | 9.35 | 23.11 |
+| + Nesterov look-ahead (NAC) | **16.61** | **34.19** |
 
-Standard momentum gives +1.64pp; pure look-ahead gives +0.85pp; NAC gives +9.40pp.
-The Nesterov coupling of momentum and look-ahead—not either component alone—drives NAC's gains (super-additive: 0.85+1.64=2.49 << 9.40pp).
+Standard momentum gives +1.71pp; pure look-ahead gives +2.37pp; NAC gives +9.63pp.
+The Nesterov coupling of momentum and look-ahead—not either component alone—drives NAC's gains (super-additive: 1.71+2.37=4.08 << 9.63pp).
 
 ### Momentum Coefficient (CIFAR-10, eps=4/255, K=2, 10 attack steps)
 
@@ -131,7 +133,7 @@ NAC is robust to hyperparameter choice around the default. `tau=0.1` halves accu
 | Method | Config A (K=2, α=1/255) | Config B (K=4, α=3/255) |
 |--------|------------------------|------------------------|
 | TTC | 7.07 | 35.01 |
-| NAC | **16.47** | 38.33 |
+| NAC | **16.61** | 38.33 |
 | DOC | 4.44 | **40.38** |
 
 **Honest reading:**

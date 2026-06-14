@@ -3,11 +3,12 @@ import torch
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-CIFAR100_MEAN = (0.48145466, 0.4578275, 0.40821073)
-CIFAR100_STD = (0.26862954, 0.26130258, 0.27577711)
+# CLIP model preprocessing normalization (OpenAI CLIP default stats)
+CLIP_MEAN = (0.48145466, 0.4578275, 0.40821073)
+CLIP_STD = (0.26862954, 0.26130258, 0.27577711)
 
-mu = torch.tensor(CIFAR100_MEAN).view(3, 1, 1).to(device)
-std = torch.tensor(CIFAR100_STD).view(3, 1, 1).to(device)
+mu = torch.tensor(CLIP_MEAN).view(3, 1, 1).to(device)
+std = torch.tensor(CLIP_STD).view(3, 1, 1).to(device)
 
 def normalize(X):
     return (X - mu) / std
