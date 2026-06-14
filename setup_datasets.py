@@ -14,7 +14,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
 
 def setup_imagenet100():
-    """Download ImageNet-100 from ModelScope and organize into expected layout.
+    """Download ImageNet-100 via ModelScope (fast in China) or HuggingFace (global fallback).
 
     Expected layout: data/imagenet-100/imagenet_folder/val/<class_folders>/
     """
@@ -23,71 +23,66 @@ def setup_imagenet100():
         print(f"[OK] ImageNet-100 already at: {target}")
         return
 
-    print("[*] Downloading ImageNet-100 from ModelScope ...")
+    # --- Method 1: ModelScope (fast for China users) ---
     try:
         from modelscope.msdatasets import MsDataset
-    except ImportError:
-        print("[!] modelscope not installed. Run: pip install modelscope")
-        sys.exit(1)
-
-    ds = MsDataset.load('tany0699/mini_imagenet100', subset_name='default', split='validation')
-
-    # ModelScope caches to ~/.cache/modelscope/; find the actual files
-    cache_dir = os.path.expanduser("~/.cache/modelscope/hub/datasets/tany0699/mini_imagenet100")
-    if not os.path.exists(cache_dir):
-        # Fallback: try to locate via the dataset object
-        print("[!] Cannot locate ModelScope cache. Trying alternate method...")
-        # Download directly using the dataset's raw data
+        print("[*] Downloading ImageNet-100 from ModelScope ...")
+        ds = MsDataset.load('tany0699/mini_imagenet100', subset_name='default', split='validation')
         os.makedirs(target, exist_ok=True)
-        from torchvision.datasets import ImageFolder
-        print("[*] Extracting to:", target)
-        # Iterate and save
-        import torch
         from PIL import Image
         from tqdm import tqdm
 
-        # Build class index
-        class_names = ds.features['label'].names if hasattr(ds, 'features') else None
-        for i, sample in enumerate(tqdm(ds, desc="ImageNet-100")):
+        class_names = ds.features['label'].names if hasattr(ds, 'features') and ds.features else None
+        for i, sample in enumerate(tqdm(ds, desc="ImageNet-100 (ModelScope)")):
             img = sample['image']
             label = sample['label']
-            if class_names:
-                label_name = class_names[label]
-            else:
-                label_name = str(label)
+            label_name = class_names[label] if class_names else str(label)
             class_dir = os.path.join(target, label_name)
             os.makedirs(class_dir, exist_ok=True)
             if isinstance(img, str):
-                # It's a path
                 shutil.copy(img, os.path.join(class_dir, os.path.basename(img)))
             else:
                 img.save(os.path.join(class_dir, f"{i:05d}.JPEG"))
-        print(f"[OK] ImageNet-100 saved to: {target}")
-        return
 
-    # Copy from ModelScope cache to data/
-    os.makedirs(target, exist_ok=True)
-    # The cache structure varies; try common patterns
-    for root, dirs, files in os.walk(cache_dir):
-        for f in files:
-            if f.lower().endswith(('.jpg', '.jpeg', '.png', '.JPEG')):
-                # Determine class from parent folder name
-                rel = os.path.relpath(root, cache_dir)
-                parts = rel.replace('\\', '/').split('/')
-                # Last meaningful part is the class name
-                class_name = parts[-1] if parts[-1] else parts[-2]
-                class_dir = os.path.join(target, class_name)
-                os.makedirs(class_dir, exist_ok=True)
-                src = os.path.join(root, f)
-                if not os.path.exists(os.path.join(class_dir, f)):
-                    shutil.copy2(src, class_dir)
+        count = sum(1 for d in os.listdir(target) if os.path.isdir(os.path.join(target, d)))
+        if count >= 50:
+            print(f"[OK] ImageNet-100 ready (ModelScope): {count} classes")
+            return
+    except Exception as e:
+        print(f"[!] ModelScope failed: {e}")
 
-    count = sum(1 for _ in os.listdir(target) if os.path.isdir(os.path.join(target, _)))
-    if count >= 50:
-        print(f"[OK] ImageNet-100 ready: {count} classes at {target}")
-    else:
-        print(f"[!] Only {count} class folders found. Expected 100. Check manually.")
-        print(f"    Target: {target}")
+    # --- Method 2: HuggingFace datasets (global) ---
+    try:
+        from datasets import load_dataset
+        print("[*] Downloading ImageNet-100 from HuggingFace (clane9/imagenet-100) ...")
+        ds = load_dataset("clane9/imagenet-100", split="validation")
+        os.makedirs(target, exist_ok=True)
+        from tqdm import tqdm
+
+        # Build class name mapping from dataset features
+        label_names = ds.features['label'].names if hasattr(ds.features['label'], 'names') else None
+        for sample in tqdm(ds, desc="ImageNet-100 (HF)"):
+            img = sample['image']
+            label = sample['label']
+            label_name = label_names[label] if label_names else str(label)
+            class_dir = os.path.join(target, label_name)
+            os.makedirs(class_dir, exist_ok=True)
+            # Use index from enumeration as unique filename
+            idx = sample.get('__index__', 0) if isinstance(sample, dict) else 0
+            img.save(os.path.join(class_dir, f"{idx:05d}.JPEG"))
+
+        count = sum(1 for d in os.listdir(target) if os.path.isdir(os.path.join(target, d)))
+        if count >= 50:
+            print(f"[OK] ImageNet-100 ready (HuggingFace): {count} classes")
+            return
+    except Exception as e:
+        print(f"[!] HuggingFace failed: {e}")
+
+    # --- Both failed: give manual instructions ---
+    print("[!] Automatic ImageNet-100 download failed.")
+    print("    Manual setup: download 100-class ImageNet subset to:")
+    print(f"    {target}")
+    print("    Expected: 100 class subdirectories, each containing JPEG images.")
 
 def setup_auto_datasets():
     """Trigger download of all auto-downloadable datasets."""

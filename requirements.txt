@@ -8,6 +8,7 @@ regex>=2023.0.0
 autoattack>=0.1
 gdown>=5.0.0
 modelscope>=1.10.0
+datasets>=2.14.0
 scikit-learn>=1.0.0
 matplotlib>=3.5.0
 # Note: CLIP is self-contained in replace/ directory; no pip install clip needed

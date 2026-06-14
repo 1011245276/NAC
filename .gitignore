@@ -1,8 +1,12 @@
 __pycache__/
 *.pyc
+.venv/
+.idea/
 data/cifar-10-batches-py/
 data/cifar-100-python/
 data/stl10_binary/
+data/tiny-imagenet-200/
+data/mini_imagenet100/
 results/*.txt
 results/*.log
 results/*/
