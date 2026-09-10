@@ -10,7 +10,7 @@ set -e
 source "$(dirname "$0")/common.sh"
 
 DATASETS=("cifar10" "STL10")
-SEEDS=(0 1 2)
+SEEDS=(${SEEDS:-0 1 2})
 
 echo "============================================"
 echo " NAC: Ablation Study (Table 7)"

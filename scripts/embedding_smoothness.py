@@ -22,7 +22,6 @@ import random
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.cuda.amp import autocast
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -41,7 +40,7 @@ def measure_lipschitz(model, prompter, add_prompter, text_tokens, loader,
             break
         imgs = imgs.cuda()
         x = imgs.clone().detach().requires_grad_(True)
-        with autocast():
+        with torch.amp.autocast('cuda'):
             out, _, _, _ = multiGPU_CLIP(None, None, None, model,
                                         clip_img_preprocessing(x),
                                         text_tokens, prompt_token=None,

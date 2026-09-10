@@ -1,11 +1,11 @@
 #!/bin/bash
 # ============================================================
-# NAC 必要重跑实验 �?修复消融数据完整�?# 预计耗时: ~4h (RTX 4060)
+# NAC 必要重跑实验 �?修复消融数据完整�?# 预计耗时: ~4h (RTX 4060)
 # ============================================================
 set -e
 cd F:/codex/NAC/nac_project
 
-# ---- 1. Standard momentum ablation (当前无有效数�? ----
+# ---- 1. Standard momentum ablation (当前无有效数�? ----
 echo "=== [1/4] Standard momentum ablation ==="
 python nac_fair_experiment.py \
     --counterattack momentum \

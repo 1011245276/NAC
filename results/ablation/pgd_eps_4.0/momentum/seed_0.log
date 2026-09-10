@@ -1,4 +1,7 @@
-2026-06-11 23:57:28,432 - INFO - NAC Fair: method=momentum momentum=0.9 seed=0
-2026-06-11 23:57:28,432 - INFO - Namespace(evaluate=True, batch_size=16, num_workers=2, cache='./cache', test_set=['cifar10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='./data', dataset='tinyImageNet', image_size=224, seed=0, num_seeds=1, victim_resume=None, outdir='./results/ablation', tau_thres=0.2, beta=2.0, ttc_eps=0.01568627450980392, ttc_numsteps=2, ttc_stepsize=0.00392156862745098, counterattack='momentum', nac_momentum=0.9, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.155, temperature=70.0, imagenet_root='./data\\imagenet-100\\imagenet_folder', tinyimagenet_root='./data\\tiny-imagenet-200\\tiny-imagenet-200')
-2026-06-11 23:57:30,705 - INFO - Counterattack: momentum | Attack: pgd
-2026-06-11 23:57:30,705 - INFO - tau_thres=0.2 beta=2.0
+2026-09-10 14:34:32,589 - INFO - NAC Fair: method=momentum momentum=0.9 seed=0
+2026-09-10 14:34:32,589 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=0, cache='./cache', test_set=['cifar10', 'STL10'], test_attack_type='pgd', test_eps=0.01568627450980392, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='./data', dataset='tinyImageNet', image_size=224, seed=0, num_seeds=1, victim_resume=None, outdir='./results/ablation', tau_thres=0.2, beta=2.0, ttc_eps=0.01568627450980392, ttc_numsteps=2, ttc_stepsize=0.00392156862745098, counterattack='momentum', nac_momentum=0.9, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.155, temperature=75.0, imagenet_root='./data\\imagenet-100\\imagenet_folder', tinyimagenet_root='./data\\tiny-imagenet-200\\tiny-imagenet-200')
+2026-09-10 14:34:39,282 - INFO - Counterattack: momentum | Attack: pgd
+2026-09-10 14:34:39,282 - INFO - tau_thres=0.2 beta=2.0
+2026-09-10 14:40:57,320 - INFO - cifar10: clean=85.07 | adv=0.00 | adv+momentum=8.69 | gain=8.69
+2026-09-10 14:46:17,008 - INFO - STL10: clean=96.40 | adv=0.03 | adv+momentum=22.71 | gain=22.69
+2026-09-10 14:46:17,008 - INFO - SUMMARY: avg adv=0.01 | avg def=15.70 | avg gain=15.69

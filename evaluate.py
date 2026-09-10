@@ -40,7 +40,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class SimpleArgs:
     """Minimal args object for functions that need it (DOC)."""
-    def __init__(self, learnable_tau=0.155, temperature=70.0):
+    def __init__(self, learnable_tau=0.155, temperature=75.0):
         self.learnable_tau = learnable_tau
         self.temperature = temperature
 

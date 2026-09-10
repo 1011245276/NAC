@@ -11,7 +11,7 @@ source "$(dirname "$0")/common.sh"
 
 DATASET="cifar10"
 METHODS=("ttc" "nac")
-SEEDS=(0 1 2)
+SEEDS=(${SEEDS:-0 1 2})
 
 echo "============================================"
 echo " NAC: AutoAttack Evaluation (Table 4)"

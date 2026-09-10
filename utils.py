@@ -217,7 +217,7 @@ def load_val_dataset(args, val_dataset_name):
     elif val_dataset_name == 'Country211':
         val_dataset = country211.Country211(args.root, split='test', transform=preprocess224, download=False)
 
-    elif val_dataset_name == 'dtd':
+    elif val_dataset_name.lower() == 'dtd':
         val_dataset = dtd.DTD(args.root, split='test', transform=preprocess224, download=True)
 
     elif val_dataset_name == 'fgvc_aircraft':
@@ -281,7 +281,7 @@ def get_text_prompts_val(val_dataset_list, val_dataset_name, template='This is a
                 class_names = [each.idx_to_class[i] for i in range(len(each.idx_to_class))]
             if val_dataset_name[cnt] in ['ImageNet', 'tinyImageNet']:
                 import os as _uos
-                support_dir = _uos.path.join(_uos.path.dirname(_uos.path.abspath(__file__)), '..', 'support')
+                support_dir = _uos.path.join(_uos.path.dirname(_uos.path.abspath(__file__)), 'support')
                 refined_file = _uos.path.join(support_dir, f"{val_dataset_name[cnt].lower()}_refined_labels.json")
                 try:
                     refined_data = read_json(refined_file)
@@ -335,10 +335,10 @@ def load_resume_file(file:str, gpu:int):
     if os.path.isfile(file):
         print("=> loading checkpoint '{}'".format(file))
         if gpu is None:
-            checkpoint = torch.load(file)
+            checkpoint = torch.load(file, weights_only=False)
         else:
             loc = 'cuda:{}'.format(gpu)
-            checkpoint = torch.load(file, map_location=loc)
+            checkpoint = torch.load(file, map_location=loc, weights_only=False)
         print("=> loaded checkpoint '{}' (epoch {})".format(file, checkpoint['epoch']))
         return checkpoint
     else:

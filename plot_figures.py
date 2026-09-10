@@ -125,7 +125,7 @@ def plot_framework():
 
     # Target
     ax_mid_l.plot(8, 6.5, '*', color=C['green'], markersize=16, zorder=5)
-    ax_mid_l.text(8, 6.1, '$\\delta^*$\n(clean)', ha='center', fontsize=7.5, color=C['green'], fontweight='bold')
+    ax_mid_l.text(8, 6.1, '$\\delta^*$\n(self-anchor)', ha='center', fontsize=7.5, color=C['green'], fontweight='bold')
 
     # TTC formula box
     r = FancyBboxPatch((1, 1), 8, 2.2, boxstyle="round,pad=0.15",
@@ -134,7 +134,7 @@ def plot_framework():
     ax_mid_l.text(5, 2.8, 'TTC Update', ha='center', fontsize=9, fontweight='bold', color=C['ttc'])
     ax_mid_l.text(5, 2.15, '$g = \\nabla\\mathcal{L}(x_{adv} + \\boldsymbol{\\delta_t})$', ha='center', fontsize=8.5, color='#333333')
     ax_mid_l.text(5, 1.65, '$\\delta_{t+1} = \\Pi_\\epsilon(\\delta_t + \\alpha\\cdot\\text{sign}(g))$', ha='center', fontsize=8.5, color='#333333')
-    ax_mid_l.text(5, 1.15, 'Convergence: $O(1/K)$  ·  gradient at current position', ha='center', fontsize=7.5, color=C['orange'])
+    ax_mid_l.text(5, 1.15, 'Slower convergence (small K)  ·  gradient at current position', ha='center', fontsize=7.5, color=C['orange'])
 
     # ---- NAC (center column) ----
     ax_mid_c = fig.add_subplot(gs[1, 1])
@@ -166,7 +166,7 @@ def plot_framework():
 
     # Target
     ax_mid_c.plot(8, 6.5, '*', color=C['green'], markersize=16, zorder=5)
-    ax_mid_c.text(8, 6.1, '$\\delta^*$\n(clean)', ha='center', fontsize=7.5, color=C['green'], fontweight='bold')
+    ax_mid_c.text(8, 6.1, '$\\delta^*$\n(self-anchor)', ha='center', fontsize=7.5, color=C['green'], fontweight='bold')
 
     # NAC formula box
     r = FancyBboxPatch((1, 0.5), 8, 2.7, boxstyle="round,pad=0.15",
@@ -176,7 +176,7 @@ def plot_framework():
     ax_mid_c.text(5, 2.2, '$g = \\nabla\\mathcal{L}(x_{adv} + \\boldsymbol{\\delta_t + \\mu v_t})$   ← look-ahead!', ha='center', fontsize=8.5, color='#333333')
     ax_mid_c.text(5, 1.65, '$v_{t+1} = \\mu v_t + \\alpha\\cdot\\text{sign}(g)$', ha='center', fontsize=8.5, color='#333333')
     ax_mid_c.text(5, 1.1, '$\\delta_{t+1} = \\Pi_\\epsilon(\\delta_t + v_{t+1})$', ha='center', fontsize=8.5, color='#333333')
-    ax_mid_c.text(5, 0.65, 'Convergence: $O(1/K^2)$  ·  gradient at look-ahead position', ha='center', fontsize=7.5, color=C['blue'])
+    ax_mid_c.text(5, 0.65, 'Faster convergence (small K)  ·  gradient at look-ahead position', ha='center', fontsize=7.5, color=C['blue'])
 
     # ---- Comparison bar (right column) ----
     ax_mid_r = fig.add_subplot(gs[1, 2])
@@ -221,7 +221,7 @@ def plot_framework():
                 ha='center', fontsize=9, fontweight='bold', color=C['green'])
 
     # Summary annotation
-    ax_bot.text(12, 3.8, 'NAC: a drop-in 2-line optimizer change — zero extra FLOPs, training-free, model-agnostic',
+    ax_bot.text(12, 3.8, 'NAC: a drop-in 2-line optimizer change — no extra forward/backward passes, training-free, model-agnostic',
                 ha='center', fontsize=9, fontstyle='italic', color=C['gray'])
 
     fig.suptitle('NAC: Nesterov Accelerated Counterattack for Test-Time Defense of Vision-Language Models',

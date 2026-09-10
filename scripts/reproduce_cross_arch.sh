@@ -12,7 +12,7 @@ source "$(dirname "$0")/common.sh"
 DATASET="cifar10"
 ARCHS=("vit_b32" "vit_b16")
 METHODS=("ttc" "nac")
-SEEDS=(0 1 2)
+SEEDS=(${SEEDS:-0 1 2})
 
 echo "============================================"
 echo " NAC: Cross-Architecture (Table 5)"

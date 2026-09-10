@@ -139,7 +139,7 @@ def main():
 
     # Clean target star
     ax.plot(TX+0.6, TY-2.3, '*', color=CLEAN_DARK, markersize=26, zorder=7, markeredgewidth=0.4)
-    T(TX+0.6, TY-3.0, 'e_clean', s=8, c=CLEAN_DARK, b=True)
+    T(TX+0.6, TY-3.0, 'self-anchor\n$f(x_{adv})$', s=8, c=CLEAN_DARK, b=True)
 
     # Current position
     cx, cy = TX-0.5, TY+0.6
@@ -157,7 +157,7 @@ def main():
     # Labels below
     T(TX, TY-R-1.1, 'TTC', s=11, c=TTC_DARK, b=True)
     T(TX, TY-R-1.6, 'gradient at current position', s=8, c=SLATE)
-    T(TX, TY-R-2.0, 'O (1/K)   convergence', s=8, c=SLATE, i=True)
+    T(TX, TY-R-2.0, 'slower convergence (small K)', s=8, c=SLATE, i=True)
 
     # ---- RIGHT: NAC ----
     NX, NY = 18.5, 5.8
@@ -170,7 +170,7 @@ def main():
 
     # Clean target
     ax.plot(NX+0.6, NY-2.3, '*', color=CLEAN_DARK, markersize=26, zorder=7, markeredgewidth=0.4)
-    T(NX+0.6, NY-3.0, 'e_clean', s=8, c=CLEAN_DARK, b=True)
+    T(NX+0.6, NY-3.0, 'self-anchor\n$f(x_{adv})$', s=8, c=CLEAN_DARK, b=True)
 
     # Current position (faint, tiny)
     ax.plot(NX-0.5, NY+0.6, 'o', color=NAC_MID, markersize=7, alpha=0.25, zorder=3)
@@ -197,7 +197,7 @@ def main():
     # Labels below
     T(NX, NY-R-1.1, 'NAC  ( Ours )', s=11, c=NAC_DARK, b=True)
     T(NX, NY-R-1.6, 'gradient at look-ahead position', s=8, c=SLATE)
-    T(NX, NY-R-2.0, 'O (1/K²)   convergence', s=8, c=SLATE, i=True)
+    T(NX, NY-R-2.0, 'faster convergence (small K)', s=8, c=SLATE, i=True)
 
     # ---- CENTER GAP ----
     cx_gap = 12.0
@@ -234,7 +234,7 @@ def main():
       s=8.3, c=INK, ha='center')
 
     # Highlight the difference
-    T(12, box_y+0.25, '←  Only   2   lines   changed,   zero   extra   FLOPs   →', s=7.5, c=SLATE, i=True)
+    T(12, box_y+0.25, '←  Only   2   lines   changed,   no extra forward/backward passes   →', s=7.5, c=SLATE, i=True)
 
     # ================================================================
     # SECTION 4 — Output

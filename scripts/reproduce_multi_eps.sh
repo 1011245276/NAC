@@ -12,7 +12,7 @@ source "$(dirname "$0")/common.sh"
 METHODS=("ttc" "nac")
 DATASETS=("cifar10" "cifar100" "STL10" "flowers102" "DTD" "ImageNet")
 EPSILONS=(1 2 4)
-SEEDS=(0 1 2)
+SEEDS=(${SEEDS:-0 1 2})
 TOTAL_RUNS=$((2 * 6 * 3 * 2 + 2 * 5 * 3))  # 6 datasets (seeds 0-2) + 5 datasets for eps 2,4 (seed 0 only ImageNet)
 echo "============================================"
 echo " NAC: Multi-Epsilon Results (Table 2)"

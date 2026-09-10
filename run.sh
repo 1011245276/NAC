@@ -8,7 +8,7 @@ EPS=${3:-4}
 
 echo "NAC: method=$METHOD dataset=$DATASET eps=$EPS/255"
 
-python nac_fair_experiment.py \
+python.exe nac_fair_experiment.py \
     --batch_size ${BATCH_SIZE:-32} \
     --root ./data \
     --test_attack_type pgd \

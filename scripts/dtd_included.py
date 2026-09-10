@@ -15,7 +15,6 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.cuda.amp import autocast
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -58,7 +57,7 @@ def run_one(arch, dataset, eps, method, seed, root, batch_size, num_workers, out
     t0 = time.time()
     for imgs, target in val_loader:
         imgs = imgs.cuda(); target = target.cuda()
-        with autocast():
+        with torch.amp.autocast('cuda'):
             with torch.no_grad():
                 out = multiGPU_CLIP(None, None, None, model,
                                     clip_img_preprocessing(imgs),

@@ -11,7 +11,7 @@ source "$(dirname "$0")/common.sh"
 
 DATASET="cifar10"
 MU_VALUES=(0 0.1 0.5 0.7 0.9 0.99)
-SEEDS=(0 1 2)
+SEEDS=(${SEEDS:-0 1 2})
 
 echo "============================================"
 echo " NAC: Momentum Coefficient Scan"

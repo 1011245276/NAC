@@ -23,3 +23,4 @@ data/dtd/
 data/flowers-102/
 data/imagenet-100/
 data/imagenet_folder/
+checkpoints/

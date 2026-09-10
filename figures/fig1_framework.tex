@@ -117,10 +117,10 @@
   \fill[ttcLight, opacity=0.55] (\rx, \ry) circle (1.1pt);
 }
 
-% Clean target star
+% Self-anchor: the adversarial image's own embedding (no clean image needed)
 \node[star, star points=5, star point ratio=2.25, fill=cleanDark,
       minimum size=11pt, inner sep=0pt] at (-4.3, -0.1) {};
-\node[font=\sffamily\footnotesize\color{cleanDark}] at (-4.3, -0.45) {$e_{\text{clean}}$};
+\node[font=\sffamily\footnotesize\color{cleanDark}] at (-4.3, -0.45) {$f(x_{\text{adv}})$};
 
 % Current δ_t
 \fill[ttcDark] (-5.5, 3.2) circle (3.2pt);
@@ -138,7 +138,7 @@
 \node[font=\sffamily\scriptsize\color{slate}] at (-5.0, 5.2) {Embedding Space};
 \node[font=\sffamily\bfseries\large\color{ttcDark}] at (-5.0, -1.6) {TTC};
 \node[font=\sffamily\footnotesize\color{slate}] at (-5.0, -2.05) {gradient at current position};
-\node[font=\sffamily\footnotesize\color{slate}] at (-5.0, -2.4) {$O(1/K)$ convergence};
+\node[font=\sffamily\footnotesize\color{slate}] at (-5.0, -2.4) {slower convergence (small $K$)};
 
 % ── CENTER: Key insight ──
 \node[font=\sffamily\bfseries, align=center, color=slate] at (0, 2.8)
@@ -153,10 +153,10 @@
   \fill[nacLight, opacity=0.55] (\rx, \ry) circle (1.1pt);
 }
 
-% Clean target
+% Self-anchor: the adversarial image's own embedding (no clean image needed)
 \node[star, star points=5, star point ratio=2.25, fill=cleanDark,
       minimum size=11pt, inner sep=0pt] at (5.7, -0.1) {};
-\node[font=\sffamily\footnotesize\color{cleanDark}] at (5.7, -0.45) {$e_{\text{clean}}$};
+\node[font=\sffamily\footnotesize\color{cleanDark}] at (5.7, -0.45) {$f(x_{\text{adv}})$};
 
 % Current δ_t (faint)
 \fill[nacMid, opacity=0.25] (4.5, 3.2) circle (2pt);
@@ -183,7 +183,7 @@
 \node[font=\sffamily\scriptsize\color{slate}] at (5.0, 5.2) {Embedding Space};
 \node[font=\sffamily\bfseries\large\color{nacDark}] at (5.0, -1.6) {NAC (Ours)};
 \node[font=\sffamily\footnotesize\color{slate}] at (5.0, -2.05) {gradient at \textbf{look-ahead} position};
-\node[font=\sffamily\footnotesize\color{slate}] at (5.0, -2.4) {$O(1/K^2)$ convergence};
+\node[font=\sffamily\footnotesize\color{slate}] at (5.0, -2.4) {faster convergence (small $K$)};
 
 % ── Code comparison boxes ──
 \node[ttcBox, minimum width=8.5cm, inner sep=8pt, font=\sffamily\scriptsize]
@@ -202,7 +202,7 @@
 };
 
 \node[font=\sffamily\footnotesize\color{slate}] at (0.15, -4.0)
-  {$\longleftarrow$\quad Only 2 lines changed, zero extra FLOPs \quad$\longrightarrow$};
+  {$\longleftarrow$\quad Only 2 lines changed, no extra forward/backward passes \quad$\longrightarrow$};
 
 % ═══════════════════════════════════════════════
 % SECTION 3 — Output

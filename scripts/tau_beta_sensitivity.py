@@ -17,7 +17,6 @@ import argparse
 
 import numpy as np
 import torch
-from torch.cuda.amp import autocast
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -67,7 +66,7 @@ def run_one(arch, tau, beta, seed, root, batch_size, num_workers, outdir):
 
     for images, target in val_loader:
         images = images.cuda(); target = target.cuda()
-        with autocast():
+        with torch.amp.autocast('cuda'):
             with torch.no_grad():
                 out = multiGPU_CLIP(None, None, None, model,
                                     clip_img_preprocessing(images),
@@ -141,9 +140,9 @@ def main():
     json.dump(results, open(out_json, "w"), indent=2)
     print(f"\n[OK] Summary: {out_json}")
     print("Tau/Beta sensitivity (CIFAR-10, PGD eps=4/255, K=2, NAC m=0.9):")
-    print(f"{'tau':>6} {'beta':>6} {'clean':>7} {'adv':>7} {'def':>7} {'gain':>+7}")
+    print(f"{'tau':>6} {'beta':>6} {'clean':>7} {'adv':>7} {'def':>7} {'gain':>7}")
     for r in results:
-        print(f"{r['tau']:>6.2f} {r['beta']:>6.2f} {r['clean']:>7.2f} {r['adv']:>7.2f} {r['defended']:>7.2f} {r['gain']:>+7.2f}")
+        print(f"{r['tau']:>6.2f} {r['beta']:>6.2f} {r['clean']:>7.2f} {r['adv']:>7.2f} {r['defended']:>7.2f} {r['gain']:+7.2f}")
 
 
 if __name__ == "__main__":

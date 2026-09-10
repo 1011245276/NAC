@@ -20,7 +20,6 @@ import time
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.cuda.amp import autocast
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -34,7 +33,7 @@ from attacks import attack_pgd
 
 
 def run_one(arch, eps_atk, eps_def, method, seed, root, batch_size, num_workers):
-    tag = f"atk{int(eps_atk*255)}_def{int(eps_def*255)}_{method}"
+    tag = f"atk{int(eps_atk*255)}_def{int(eps_def*255)}_{method}_bs{batch_size}"
     outdir = f"./results/eps_symmetric/{tag}"
     os.makedirs(outdir, exist_ok=True)
     out_path = os.path.join(outdir, f"seed_{seed}.json")
@@ -74,7 +73,7 @@ def run_one(arch, eps_atk, eps_def, method, seed, root, batch_size, num_workers)
     t0 = time.time()
     for imgs, target in val_loader:
         imgs = imgs.cuda(); target = target.cuda()
-        with autocast():
+        with torch.amp.autocast('cuda'):
             with torch.no_grad():
                 out = multiGPU_CLIP(None, None, None, model,
                                     clip_img_preprocessing(imgs),
@@ -135,7 +134,8 @@ def main():
     ap.add_argument("--arch", default="ViT-B/32")
     ap.add_argument("--root", default="./data")
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--batch_size", type=int, default=32)
+    ap.add_argument("--batch_size", type=int, default=64,
+                    help="matched to Table 1 (bs=64)")
     ap.add_argument("--num_workers", type=int, default=2)
     args = ap.parse_args()
 
@@ -154,9 +154,9 @@ def main():
 
     # Print summary
     print("\n=== Summary (CIFAR-10, ViT-B/32, K=2) ===")
-    print(f"{'eps_att':>8} {'eps_def':>8} {'method':>6} {'def':>7} {'gain':>+7}")
+    print(f"{'eps_att':>8} {'eps_def':>8} {'method':>6} {'def':>7} {'gain':>7}")
     for r in results:
-        print(f"{r['eps_attack']*255:>8.2f} {r['eps_defense']*255:>8.2f} {r['method']:>6} {r['defended']:>7.2f} {r['gain']:>+7.2f}")
+        print(f"{r['eps_attack']*255:>8.2f} {r['eps_defense']*255:>8.2f} {r['method']:>6} {r['defended']:>7.2f} {r['gain']:+7.2f}")
 
 
 if __name__ == "__main__":

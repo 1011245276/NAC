@@ -76,7 +76,8 @@ def main():
     # Markdown summary
     md_path = out.replace('.json', '.md')
     with open(md_path, 'w') as f:
-        f.write(f"# Aggregated Results ({len(next(iter(agg.values())).values().__iter__().__next__())} seeds)\n\n")
+        n_seeds = next(iter(next(iter(out_data.values())).values()))["n_seeds"] if out_data else 0
+        f.write(f"# Aggregated Results ({n_seeds} seeds)\n\n")
         f.write("| Method | Dataset | Clean | Adv | Defended (mean ± std) | Gain |\n")
         f.write("|--------|---------|-------|-----|---------------------|------|\n")
         for method, datasets in agg.items():

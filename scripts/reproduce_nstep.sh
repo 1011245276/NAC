@@ -12,7 +12,7 @@ source "$(dirname "$0")/common.sh"
 DATASETS=("cifar10" "STL10")
 STEPS=(2 4)
 METHODS=("ttc" "nac")
-SEEDS=(0 1 2)
+SEEDS=(${SEEDS:-0 1 2})
 
 echo "============================================"
 echo " NAC: N-Step Scaling (Table 3)"

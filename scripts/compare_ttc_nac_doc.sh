@@ -5,12 +5,12 @@
 # Run from nac_project/ directory.
 #
 # NOTE: DOC uses its own internal parameters (learnable_tau=0.155,
-# temperature=70.0) via nac_fair_experiment.py defaults (matching original DOC.py).
+# temperature=75.0) via nac_fair_experiment.py defaults (matching DOC paper README usage).
 # The --tau_thres flag is passed for TTC/NAC but ignored by DOC.
 #
 # For Config B (K=4, step=3.0, DOC paper defaults), run:
 #   python nac_fair_experiment.py --counterattack doc --ttc_numsteps 4
-#       --ttc_stepsize 3.0 --learnable_tau 0.155 --temperature 70.0 ...
+#       --ttc_stepsize 3.0 --learnable_tau 0.155 --temperature 75.0 ...
 # ============================================================
 set -e
 
@@ -36,6 +36,8 @@ for METHOD in ttc nac doc; do
         --tau_thres 0.2 \
         --beta 2.0 \
         --nac_momentum 0.9 \
+        --learnable_tau 0.155 \
+        --temperature 75.0 \
         --batch_size "$BATCH" \
         --seed "$SEED" \
         --outdir "$OUTDIR"

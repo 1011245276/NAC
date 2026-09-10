@@ -22,7 +22,7 @@ from copy import deepcopy as dcopy
 
 import torch
 import torch.nn.functional as F
-from torch.cuda.amp import GradScaler, autocast
+from torch.cuda.amp import GradScaler
 
 from replace import clip
 from models.prompters import TokenPrompter, NullPrompter
@@ -72,10 +72,10 @@ def parse_options():
     parser.add_argument('--DOC_eps', type=float, default=4.0)
     parser.add_argument('--DOC_numsteps', type=int, default=2)
     parser.add_argument('--DOC_stepsize', type=float, default=1.0)
-    parser.add_argument('--learnable_tau', type=float, default=0.3,
-                        help='DOC learnable tau (original DOC paper default: 0.3; NAC comparison used 0.155)')
-    parser.add_argument('--temperature', type=float, default=20.0,
-                        help='DOC temperature (original DOC paper default: 20; NAC comparison used 75)')
+    parser.add_argument('--learnable_tau', type=float, default=0.155,
+                        help='DOC learnable tau (matches DOC paper README usage)')
+    parser.add_argument('--temperature', type=float, default=75.0,
+                        help='DOC temperature (matches DOC paper README usage)')
     return parser.parse_args()
 
 
@@ -718,7 +718,7 @@ def validate(args, val_dataset_name, model, model_text, model_image,
             images = images.to(device)
             target = target.to(device)
 
-            with autocast():
+            with torch.amp.autocast('cuda'):
                 # Clean accuracy
                 with torch.no_grad():
                     clean_output, _, _, _ = multiGPU_CLIP(
