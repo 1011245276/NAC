@@ -3,7 +3,7 @@
 # NAC 必要重跑实验 �?修复消融数据完整�?# 预计耗时: ~4h (RTX 4060)
 # ============================================================
 set -e
-cd F:/codex/NAC/nac_project
+cd "$(dirname "$0")/.."
 
 # ---- 1. Standard momentum ablation (当前无有效数�? ----
 echo "=== [1/4] Standard momentum ablation ==="

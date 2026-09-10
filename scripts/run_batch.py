@@ -1,14 +1,13 @@
 ﻿import subprocess, sys, os, time
 from datetime import datetime
 
-os.chdir(r"F:\codex\NAC\nac_project")
+os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 BASE = [
     "python", "nac_fair_experiment.py",
     "--test_numsteps", "10",
     "--ttc_eps", "4", "--ttc_numsteps", "2",
-    "--root", "F:/codex/NAC/data",
-    "--imagenet_root", "F:/codex/NAC/data/imagenet-100/imagenet_folder",
+    "--root", "./data",
     "--batch_size", "64",
 ]
 

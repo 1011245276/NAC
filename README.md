@@ -187,6 +187,21 @@ data/
 
 See `data/README.md` for manual download alternatives.
 
+## Checkpoints (Table 6)
+
+Table 6 (AFT superposition) needs the TeCoA and FARE model weights, which are
+**not in this repo** (~1.4 GB, over GitHub's 100 MB file limit). They are
+hosted on a GitHub Release instead:
+
+```bash
+bash scripts/download_checkpoints.sh          # default tag v1.0
+TAG=v1.0 bash scripts/download_checkpoints.sh # custom tag
+```
+
+This fetches `checkpoints/fare_vit_b32.pth` and `checkpoints/tecoa_vit_b32.pth`.
+Without them, `reproduce_aft.sh` skips Table 6 gracefully; all other tables run
+regardless.
+
 ## Quick Start
 
 ```bash
@@ -209,7 +224,7 @@ bash run.sh nac cifar10 4
 | `scripts/reproduce_cross_arch.sh` | Table 5: Cross-architecture | 4 | `bash scripts/reproduce_cross_arch.sh` |
 | `scripts/reproduce_ablation.sh` | Table 7: Ablation | 4 | `bash scripts/reproduce_ablation.sh` |
 | `scripts/reproduce_mu_scan.sh` | Momentum coefficient | 6 | `bash scripts/reproduce_mu_scan.sh` |
-| `scripts/reproduce_aft.sh` | Table 6: AFT (needs weights) | 4 | `bash scripts/reproduce_aft.sh` |
+| `scripts/reproduce_aft.sh` | Table 6: AFT (download weights first) | 4 | `bash scripts/reproduce_aft.sh` |
 | `scripts/compare_ttc_nac_doc.sh` | Table DOC: TTC vs NAC vs DOC | 6 | `bash scripts/compare_ttc_nac_doc.sh` |
 
 After running, aggregate all results into one table (auto-scans every `results/*/pgd_eps_*/<method>/seed_*.log`, computes mean ± std across seeds, and writes `results/aggregated_all.json` + `results/aggregated_all.md`):
@@ -227,7 +242,7 @@ SEEDS="0 1 2" bash scripts/reproduce_main.sh
 
 Results are saved to `results/<experiment>/` after each script completes.
 
-**Note:** AutoAttack requires `pip install autoattack`. AFT superposition (Table 6) requires TeCoA/FARE model checkpoints — the script will skip gracefully if unavailable.
+**Note:** AutoAttack requires `pip install autoattack`. AFT superposition (Table 6) requires the TeCoA/FARE model checkpoints — download them first with `bash scripts/download_checkpoints.sh` (hosted on GitHub Releases; see below), otherwise `reproduce_aft.sh` skips gracefully.
 
 ## System Requirements
 
