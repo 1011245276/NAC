@@ -703,15 +703,12 @@
     "_note": "Standard Polyak momentum at eps_att=1/255 (asymmetric budget eps_def=4/255). Compare with Table 1: TTC=27.95/77.11, NAC=30.94/80.33."
   },
   "data_hygiene_2026_10": {
-    "action": "Quarantined 2026-10-10 to results/_quarantine_20261010/ (relative paths preserved; none deleted):",
-    "quarantined": [
-      "compare/pgd_eps_4.0/doc/seed_1.log (header says counterattack='ttc_original', mismatches doc dir label)",
-      "mu_scan/pgd_eps_4.0/nac_m0.0/seed_0.log (three heterogeneous runs appended in one file, 4 SUMMARY blocks; unusable)",
-      "final/.../DOC_eps_4.0_beta_2.0_numsteps_2_stepsize_1_seed_0.log (empty, 0 result lines)",
-      "final/.../DOC_eps_4.0_beta_2.0_numsteps_4_stepsize_1_seed_0.log (empty, 0 result lines)",
-      "imagenet_eps1/pgd_eps_1.0/ttc/seed_0.log (empty, 0 result lines)",
-      "multiseed_all/pgd_eps_1.0/ttc/seed_2_err.log (empty error sidecar)"
+    "action": "Deleted 2026-10-10 (user-authorized; all files were committed to git history before delete, so recoverable via git checkout):",
+    "deleted": [
+      "results/eps1/{ttc,nac}_*_seed{0,1,2}.log (24 flat logs; superseded by results/eps1/pgd_eps_1.0/, zero .tex references)",
+      "results/_quarantine_20261010/ (6 dirty logs, none backed any paper number)",
+      "results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/_archive/ (4 dead logs, def~1%)"
     ],
-    "_note": "None of the quarantined files backed any number in the paper. eps1 flat logs (ttc_*_seed*.log, nac_*_seed*.log) were superseded as pilot sources by results/eps1/pgd_eps_1.0/ re-runs but are NOT quarantined (preserved for provenance; see multiseed_nac_eps1 CIFAR-10 correction)."
+    "_note": "Retained: results/multiseed_all|_dtd|_imagenet/ (support the other 5 datasets of the supplementary pilot table) and results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/seed_{0,1,2}.log (Table 1 + pilot evidence)."
   }
 }
