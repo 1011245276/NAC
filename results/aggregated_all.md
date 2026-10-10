@@ -5,16 +5,14 @@
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
-| momentum | K=2 atk=10 bs=32 momentum | STL10 | 3 | 96.40 | 0.05 | 21.54 ± 0.37 | +21.49 |
-| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | STL10 | 3 | 96.40 | 0.05 | 34.38 ± 0.43 | +34.33 |
-| pure_la | K=2 atk=10 bs=32 pure_la | STL10 | 1 | 96.67 | 0.00 | 22.68 | +22.68 |
-| pure_la | K=2 atk=10 bs=32 pure_la | cifar10 | 1 | 84.89 | 0.00 | 9.64 | +9.64 |
-| pure_la | K=2 atk=10 bs=64 pure_la | STL10 | 1 | 96.67 | 0.00 | 23.11 | +23.11 |
-| pure_la | K=2 atk=10 bs=64 pure_la | cifar10 | 1 | 84.89 | 0.00 | 9.35 | +9.35 |
-| pure_la | K=4 atk=10 bs=32 pure_la | cifar10 | 1 | 84.89 | 0.00 | 14.54 | +14.54 |
-| pure_la | K=4 atk=10 bs=64 pure_la | STL10 | 1 | 96.67 | 0.00 | 32.89 | +32.89 |
-| pure_la | K=4 atk=10 bs=64 pure_la | cifar10 | 1 | 84.89 | 0.00 | 14.53 | +14.53 |
-| ttc | K=2 atk=10 bs=32 ttc | STL10 | 3 | 96.40 | 0.05 | 17.35 ± 0.03 | +17.30 |
+| momentum | K=2 atk=10 bs=64 momentum | STL10 | 3 | 96.40 | 0.03 | 21.99 ± 0.73 | +21.96 |
+| momentum | K=2 atk=10 bs=64 momentum | cifar10 | 3 | 85.07 | 0.00 | 8.81 ± 0.19 | +8.81 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | STL10 | 3 | 96.40 | 0.03 | 34.89 ± 0.55 | +34.86 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar10 | 3 | 85.07 | 0.00 | 17.15 ± 0.50 | +17.15 |
+| pure_la | K=2 atk=10 bs=64 pure_la | STL10 | 3 | 96.40 | 0.03 | 20.06 ± 0.48 | +20.03 |
+| pure_la | K=2 atk=10 bs=64 pure_la | cifar10 | 3 | 85.07 | 0.00 | 7.93 ± 0.20 | +7.93 |
+| ttc | K=2 atk=10 bs=64 ttc | STL10 | 3 | 96.40 | 0.03 | 17.65 ± 0.84 | +17.62 |
+| ttc | K=2 atk=10 bs=64 ttc | cifar10 | 3 | 85.07 | 0.00 | 7.10 ± 0.19 | +7.10 |
 
 ## ablation_fixed
 
@@ -23,12 +21,25 @@
 | momentum | K=2 atk=10 bs=32 momentum | STL10 | 1 | 96.40 | 0.01 | 21.73 | +21.72 |
 | momentum | K=2 atk=10 bs=32 momentum | cifar10 | 1 | 85.07 | 0.00 | 8.69 | +8.69 |
 
+## ablation_la_k4
+
+| Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
+|--------|--------|---------|-------|-------|-----|----------|------|
+| pure_la | K=4 atk=10 bs=64 pure_la | STL10 | 1 | 96.40 | 0.03 | 32.20 | +32.17 |
+
 ## aft
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
 | nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | cifar10 | 3 | 74.42 | 0.01 | 3.41 ± 0.04 | +3.40 |
 | ttc | K=2 atk=10 bs=32 ttc | cifar10 | 3 | 74.42 | 0.01 | 0.99 ± 0.06 | +0.98 |
+
+## aft_stl
+
+| Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
+|--------|--------|---------|-------|-------|-----|----------|------|
+| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | STL10 | 1 | 91.72 | 1.91 | 24.29 | +22.38 |
+| ttc | K=2 atk=10 bs=32 ttc | STL10 | 1 | 91.72 | 1.91 | 14.28 | +12.37 |
 
 ## compare
 
@@ -58,14 +69,10 @@
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
-| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | STL10 | 1 | 97.71 | 0.00 | 41.02 | +41.02 |
-| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | cifar10 | 1 | 87.24 | 0.00 | 14.66 | +14.66 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | STL10 | 1 | 92.79 | 0.01 | 0.29 | +0.28 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar10 | 1 | 65.58 | 0.00 | 0.00 | +0.00 |
-| ttc | K=2 atk=10 bs=32 ttc | STL10 | 1 | 97.71 | 0.00 | 24.64 | +24.64 |
-| ttc | K=2 atk=10 bs=32 ttc | cifar10 | 1 | 87.24 | 0.00 | 8.51 | +8.51 |
-| ttc | K=2 atk=10 bs=64 ttc | STL10 | 1 | 92.79 | 0.01 | 0.23 | +0.22 |
-| ttc | K=2 atk=10 bs=64 ttc | cifar10 | 1 | 65.58 | 0.00 | 0.00 | +0.00 |
+| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | STL10 | 1 | 97.64 | 0.00 | 40.49 | +40.49 |
+| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | cifar10 | 1 | 87.61 | 0.00 | 13.27 | +13.27 |
+| ttc | K=2 atk=10 bs=32 ttc | STL10 | 1 | 97.64 | 0.00 | 24.06 | +24.06 |
+| ttc | K=2 atk=10 bs=32 ttc | cifar10 | 1 | 87.61 | 0.00 | 7.70 | +7.70 |
 
 ## doc_test
 
@@ -77,40 +84,48 @@
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
-| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | ImageNet | 1 | 66.61 | 2.34 | 49.65 | +47.31 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | DTD | 1 | 40.53 | 2.87 | 31.01 | +28.14 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | STL10 | 1 | 96.40 | 11.45 | 79.71 | +68.26 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar10 | 1 | 85.07 | 0.77 | 31.27 | +30.50 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar100 | 1 | 57.16 | 0.19 | 16.86 | +16.67 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | flowers102 | 1 | 65.41 | 1.19 | 45.83 | +44.64 |
 | nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | ImageNet | 2 | 1.06 | 0.01 | 1.00 ± 0.03 | +0.99 |
-| ttc | K=2 atk=10 bs=32 ttc | ImageNet | 1 | 66.61 | 2.34 | 45.17 | +42.83 |
+| ttc | K=2 atk=10 bs=64 ttc | DTD | 1 | 40.53 | 2.87 | 28.14 | +25.27 |
+| ttc | K=2 atk=10 bs=64 ttc | STL10 | 1 | 96.40 | 11.45 | 77.01 | +65.56 |
+| ttc | K=2 atk=10 bs=64 ttc | cifar10 | 1 | 85.07 | 0.77 | 28.17 | +27.40 |
+| ttc | K=2 atk=10 bs=64 ttc | cifar100 | 1 | 57.16 | 0.19 | 14.48 | +14.29 |
+| ttc | K=2 atk=10 bs=64 ttc | flowers102 | 1 | 65.41 | 1.19 | 38.90 | +37.71 |
 | ttc | K=2 atk=10 bs=32 ttc | ImageNet | 2 | 1.06 | 0.01 | 0.80 ± 0.02 | +0.79 |
 
 ## eps2
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | STL10 | 1 | 96.67 | 0.42 | 73.76 | +73.34 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar10 | 1 | 84.89 | 0.00 | 39.16 | +39.16 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar100 | 1 | 58.19 | 0.00 | 18.14 | +18.14 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | dtd | 1 | 42.71 | 0.05 | 18.88 | +18.83 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | flowers102 | 1 | 62.73 | 0.00 | 26.88 | +26.88 |
-| ttc | K=2 atk=10 bs=64 ttc | STL10 | 1 | 96.67 | 0.42 | 61.64 | +61.22 |
-| ttc | K=2 atk=10 bs=64 ttc | cifar10 | 1 | 84.89 | 0.00 | 29.17 | +29.17 |
-| ttc | K=2 atk=10 bs=64 ttc | cifar100 | 1 | 58.19 | 0.00 | 12.42 | +12.42 |
-| ttc | K=2 atk=10 bs=64 ttc | dtd | 1 | 42.71 | 0.05 | 13.24 | +13.19 |
-| ttc | K=2 atk=10 bs=64 ttc | flowers102 | 1 | 62.73 | 0.00 | 15.89 | +15.89 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | DTD | 1 | 40.53 | 0.32 | 19.04 | +18.72 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | STL10 | 1 | 96.40 | 0.65 | 73.69 | +73.04 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar10 | 1 | 85.07 | 0.00 | 39.53 | +39.53 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar100 | 1 | 57.16 | 0.00 | 17.77 | +17.77 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | flowers102 | 1 | 65.41 | 0.00 | 26.07 | +26.07 |
+| ttc | K=2 atk=10 bs=64 ttc | DTD | 1 | 40.53 | 0.32 | 13.99 | +13.67 |
+| ttc | K=2 atk=10 bs=64 ttc | STL10 | 1 | 96.40 | 0.65 | 61.24 | +60.59 |
+| ttc | K=2 atk=10 bs=64 ttc | cifar10 | 1 | 85.07 | 0.00 | 29.12 | +29.12 |
+| ttc | K=2 atk=10 bs=64 ttc | cifar100 | 1 | 57.16 | 0.00 | 12.06 | +12.06 |
+| ttc | K=2 atk=10 bs=64 ttc | flowers102 | 1 | 65.41 | 0.00 | 14.64 | +14.64 |
 
 ## eps4
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | STL10 | 1 | 96.67 | 0.01 | 34.58 | +34.57 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar10 | 1 | 84.89 | 0.00 | 16.61 | +16.61 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar100 | 1 | 58.19 | 0.00 | 5.66 | +5.66 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | dtd | 1 | 42.71 | 0.05 | 4.79 | +4.74 |
-| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | flowers102 | 1 | 62.73 | 0.00 | 2.76 | +2.76 |
-| ttc | K=2 atk=10 bs=64 ttc | STL10 | 1 | 96.67 | 0.01 | 17.84 | +17.83 |
-| ttc | K=2 atk=10 bs=64 ttc | cifar10 | 1 | 84.89 | 0.00 | 6.98 | +6.98 |
-| ttc | K=2 atk=10 bs=64 ttc | cifar100 | 1 | 58.19 | 0.00 | 2.02 | +2.02 |
-| ttc | K=2 atk=10 bs=64 ttc | dtd | 1 | 42.71 | 0.05 | 2.82 | +2.77 |
-| ttc | K=2 atk=10 bs=64 ttc | flowers102 | 1 | 62.73 | 0.00 | 0.67 | +0.67 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | DTD | 1 | 40.53 | 0.11 | 5.16 | +5.05 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | STL10 | 1 | 96.40 | 0.06 | 34.17 | +34.11 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar10 | 1 | 85.07 | 0.00 | 16.77 | +16.77 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | cifar100 | 1 | 57.16 | 0.00 | 5.58 | +5.58 |
+| nac_m0.9 | K=2 atk=10 bs=64 nac m=0.9 | flowers102 | 1 | 65.41 | 0.00 | 2.63 | +2.63 |
+| ttc | K=2 atk=10 bs=64 ttc | DTD | 1 | 40.53 | 0.11 | 2.23 | +2.12 |
+| ttc | K=2 atk=10 bs=64 ttc | STL10 | 1 | 96.40 | 0.06 | 17.52 | +17.46 |
+| ttc | K=2 atk=10 bs=64 ttc | cifar10 | 1 | 85.07 | 0.00 | 7.02 | +7.02 |
+| ttc | K=2 atk=10 bs=64 ttc | cifar100 | 1 | 57.16 | 0.00 | 1.95 | +1.95 |
+| ttc | K=2 atk=10 bs=64 ttc | flowers102 | 1 | 65.41 | 0.00 | 0.83 | +0.83 |
 
 ## final
 
@@ -118,14 +133,12 @@
 |--------|--------|---------|-------|-------|-----|----------|------|
 | nac_m0.9 | K=4 atk=10 bs=32 nac m=0.9 | STL10 | 1 | 96.67 | 11.12 | 73.70 | +62.58 |
 | nac_m0.9 | K=4 atk=10 bs=32 nac m=0.9 | cifar10 | 1 | 84.89 | 0.82 | 27.39 | +26.57 |
-| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | STL10 | 1 | 96.67 | 0.00 | 34.30 | +34.30 |
-| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | cifar10 | 1 | 84.89 | 0.00 | 16.47 | +16.47 |
-| nac_m0.9 | K=4 atk=10 bs=32 nac m=0.9 | STL10 | 1 | 96.67 | 0.00 | 66.74 | +66.74 |
-| nac_m0.9 | K=4 atk=10 bs=32 nac m=0.9 | cifar10 | 1 | 84.89 | 0.00 | 37.05 | +37.05 |
+| nac_m0.9 | K=4 atk=10 bs=32 nac m=0.9 | STL10 | 1 | 96.40 | 0.01 | 66.01 | +66.00 |
+| nac_m0.9 | K=4 atk=10 bs=32 nac m=0.9 | cifar10 | 1 | 85.07 | 0.00 | 37.70 | +37.70 |
 | ttc | K=4 atk=10 bs=32 ttc | STL10 | 1 | 96.67 | 11.12 | 73.66 | +62.54 |
 | ttc | K=4 atk=10 bs=32 ttc | cifar10 | 1 | 84.89 | 0.82 | 27.20 | +26.38 |
-| ttc | K=4 atk=10 bs=64 ttc | STL10 | 1 | 96.67 | 0.00 | 48.29 | +48.29 |
-| ttc | K=4 atk=10 bs=64 ttc | cifar10 | 1 | 84.89 | 0.00 | 25.37 | +25.37 |
+| ttc | K=4 atk=10 bs=32 ttc | STL10 | 1 | 96.40 | 0.01 | 48.62 | +48.61 |
+| ttc | K=4 atk=10 bs=32 ttc | cifar10 | 1 | 85.07 | 0.00 | 26.21 | +26.21 |
 
 ## imagenet
 
@@ -138,10 +151,10 @@
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
-| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | ImageNet | 1 | 67.82 | 2.32 | 51.40 | +49.08 |
+| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | ImageNet | 1 | 66.61 | 2.34 | 49.65 | +47.31 |
 | nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | ImageNet | 1 | 67.82 | 0.09 | 36.07 | +35.98 |
 | nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | ImageNet | 1 | 67.82 | 0.02 | 8.09 | +8.07 |
-| ttc | K=2 atk=10 bs=32 ttc | ImageNet | 1 | 67.82 | 2.32 | 46.79 | +44.47 |
+| ttc | K=2 atk=10 bs=32 ttc | ImageNet | 1 | 66.61 | 2.34 | 45.17 | +42.83 |
 | ttc | K=2 atk=10 bs=32 ttc | ImageNet | 1 | 67.82 | 0.09 | 25.64 | +25.55 |
 | ttc | K=2 atk=10 bs=32 ttc | ImageNet | 1 | 67.82 | 0.02 | 3.25 | +3.23 |
 
@@ -233,13 +246,33 @@
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
-| adam | K=2 atk=10 bs=32 adam | cifar10 | 1 | 85.07 | 0.00 | 5.38 | +5.38 |
+| adagrad | K=2 atk=10 bs=32 adagrad | cifar10 | 3 | 85.07 | 0.00 | 6.60 ± 0.14 | +6.60 |
+| adam | K=2 atk=10 bs=32 adam | cifar10 | 3 | 85.07 | 0.00 | 5.53 ± 0.20 | +5.53 |
+| rmsprop | K=2 atk=10 bs=32 rmsprop | cifar10 | 3 | 85.07 | 0.00 | 31.45 ± 0.07 | +31.45 |
+
+## optimizers_stepsize
+
+| Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
+|--------|--------|---------|-------|-------|-----|----------|------|
+| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | cifar10 | 3 | 85.07 | 0.00 | 33.98 ± 0.13 | +33.98 |
+| rmsprop | K=4 atk=10 bs=32 rmsprop | cifar10 | 3 | 85.07 | 0.00 | 37.50 ± 0.55 | +37.50 |
+| rmsprop_bc | K=2 atk=10 bs=32 rmsprop_bc | cifar10 | 3 | 85.07 | 0.00 | 8.65 ± 0.21 | +8.65 |
+| ttc | K=2 atk=10 bs=32 ttc | cifar10 | 3 | 85.07 | 0.00 | 22.65 ± 0.23 | +22.65 |
+
+## rerun_docB
+
+| Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
+|--------|--------|---------|-------|-------|-----|----------|------|
+| doc | K=4 atk=10 bs=32 doc | cifar10 | 3 | 85.07 | 0.00 | 37.45 ± 0.42 | +37.45 |
+| nac_m0.9 | K=4 atk=10 bs=32 nac m=0.9 | cifar10 | 3 | 85.07 | 0.00 | 40.01 ± 0.17 | +40.01 |
+| ttc | K=4 atk=10 bs=32 ttc | cifar10 | 3 | 85.07 | 0.00 | 34.59 ± 0.27 | +34.59 |
 
 ## rn50
 
 | Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
 |--------|--------|---------|-------|-------|-----|----------|------|
 | nac_m0.9 | K=2 atk=10 bs=16 nac m=0.9 | cifar10 | 1 | 67.81 | 0.00 | 0.01 | +0.01 |
+| ttc | K=2 atk=10 bs=16 ttc | cifar10 | 1 | 67.81 | 0.00 | 0.01 | +0.01 |
 
 ## seed1
 
@@ -291,3 +324,10 @@
 |--------|--------|---------|-------|-------|-----|----------|------|
 | nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | SUN397 | 1 | 70.80 | 0.00 | 5.40 | +5.40 |
 | ttc | K=2 atk=10 bs=32 ttc | SUN397 | 1 | 70.80 | 0.00 | 2.20 | +2.20 |
+
+## verify_fresh
+
+| Method | Config | Dataset | Seeds | Clean | Adv | Defended | Gain |
+|--------|--------|---------|-------|-------|-----|----------|------|
+| nac_m0.9 | K=2 atk=10 bs=32 nac m=0.9 | cifar10 | 1 | 85.07 | 0.00 | 17.17 | +17.17 |
+| ttc | K=2 atk=10 bs=32 ttc | cifar10 | 1 | 85.07 | 0.00 | 7.05 | +7.05 |

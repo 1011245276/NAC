@@ -1,0 +1,7 @@
+﻿# Effect of the counterattack on CLEAN images (no adversarial perturbation)
+# Script: scripts/clean_defense_eval.py  (eps_def=4/255, K=2, bs=64, seed 0)
+# Run: 2026-09-10; raw console output preserved verbatim below.
+cifar10: clean=85.06 | clean+TTC=81.30 | delta=-3.76
+cifar10: clean=85.06 | clean+NAC=81.36 | delta=-3.70
+STL10: clean=96.40 | clean+TTC=95.96 | delta=-0.44
+STL10: clean=96.40 | clean+NAC=95.88 | delta=-0.53

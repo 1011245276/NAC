@@ -1,0 +1,70 @@
+================================================================================
+最终独立复现验收 —— 预登记协议（本文件写于任何 fresh run 开始之前）
+登记时间：2026-09-13 22:32
+================================================================================
+
+一、固定实验条件（不得更改）
+  model                = CLIP ViT-B/32
+  dataset              = CIFAR-10 test set (10000 张)
+  attack               = PGD (Linf)
+  attack epsilon       = 4/255
+  attack steps         = 10
+  attack step size     = 1/255
+  counterattack eps    = 4/255
+  counterattack steps  = 2
+  counterattack step   = 1/255
+  tau                  = 0.2
+  beta                 = 2.0
+  NAC momentum         = 0.9
+  seed                 = 0
+  batch_size           = 32
+
+二、完整 PowerShell 命令（Baseline 与 Ours 分别独立重跑，顺序执行）
+
+# ① Baseline（官方 TTC）
+python nac_fair_experiment.py --batch_size 32 --num_workers 2 --test_set cifar10 `
+  --test_attack_type pgd --test_eps 4 --test_numsteps 10 --test_stepsize 1 `
+  --ttc_eps 4 --ttc_numsteps 2 --ttc_stepsize 1 --tau_thres 0.2 --beta 2.0 `
+  --nac_momentum 0.9 --counterattack ttc --seed 0 `
+  --outdir ./results/independent_verify
+
+# ② Ours（NAC）：同命令仅改 --counterattack nac
+python nac_fair_experiment.py --batch_size 32 --num_workers 2 --test_set cifar10 `
+  --test_attack_type pgd --test_eps 4 --test_numsteps 10 --test_stepsize 1 `
+  --ttc_eps 4 --ttc_numsteps 2 --ttc_stepsize 1 --tau_thres 0.2 --beta 2.0 `
+  --nac_momentum 0.9 --counterattack nac --seed 0 `
+  --outdir ./results/independent_verify
+
+  产物路径（由脚本自动生成）：
+  results/independent_verify/pgd_eps_4.0/ttc/seed_0.log
+  results/independent_verify/pgd_eps_4.0/nac_m0.9/seed_0.log
+
+三、禁止事项
+  - 不修改算法代码（nac_fair_experiment.py、func.py、test_time_counterattack.py 等）
+  - 不修改模型、不修改论文数字、不修改已有日志
+  - 不手工填写任何 accuracy
+  - 不从历史结果（verify_fresh、compare、eps4 等）复制任何数值
+  - 不根据预期结果调整任何参数
+  - JSON/CSV 仅由脚本从本次 fresh 日志自动解析生成
+
+四、论文参考值（在运行前登记，含来源；fresh run 数值不得反向修改它们）
+  [P1] 同协议单种子（bs=32, seed 0）——与本次 fresh run 协议完全一致：
+       TTC = 7.05 %   来源：论文正文 Discussion（NAC_paper_sivp_8page.tex L268），
+                      对应日志 results/compare/pgd_eps_4.0/ttc/seed_0.log（2026-09-04）
+       NAC = 17.17 %  来源：同上（L268），results/compare/pgd_eps_4.0/nac_m0.9/seed_0.log
+  [P2] 三种子均值（bs=64, seeds 0-2）——论文消融表（Table tab:ablation）口径，作次要参考：
+       TTC = 7.10 ± 0.19 %   NAC = 17.15 ± 0.50 %（CIFAR-10, K=2）
+
+五、判定标准（预登记，结果出来后不得更改阈值）
+  以 [P1] 为主对照（协议逐项一致），|fresh - 论文| 的绝对差值：
+    Δ ≤ 0.2  pp  → 完全复现（A 档；PGD 随机初始化同种子下历史表现为逐位一致）
+    Δ ≤ 1.0  pp  → 基本复现（B 档；独立采样的历史波动 0.1–1.0 pp）
+    Δ >  1.0 pp  → 明显不一致（C 档）
+  无法完成（OOM/崩溃）→ D 档，如实说明原因，不用旧结果顶替。
+  综合结论：两方法均为 A → 结论 A；有 B 无 C → 结论 B；任一 C → 结论 C。
+
+六、GPU 基线（运行前实测，见 gpu_info_baseline.txt）
+  NVIDIA GeForce RTX 4060 Laptop GPU, driver 560.94, 8188 MiB
+  基线已用 4184 MiB（桌面应用占用），41% 利用率 —— 显存紧张已知情，
+  采取顺序执行降低峰值；若 OOM 如实报告为 D 并说明，不隐瞒。
+================================================================================

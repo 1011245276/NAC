@@ -1,0 +1,3 @@
+method,seed,clean_acc,adv_acc,defended_acc,gain,paper_value_P1,abs_diff_pp,verdict
+ttc,0,85.07,0.0,7.05,7.05,7.05,0.0,A
+nac_m0.9,0,85.07,0.0,17.17,17.17,17.17,0.0,A

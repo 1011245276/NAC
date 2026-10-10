@@ -1,0 +1,5 @@
+﻿# Latency benchmark: TTC-2 vs NAC-2 counterattack, CIFAR-10, CLIP ViT-B/32
+# Script: scripts/benchmark_latency.py  (bs=32, K=2, 10 warmup + 60 timed batches, seed 0, RTX 4060 Laptop)
+# Run: 2026-09-10 (see job log); raw console output preserved verbatim below.
+TTC-K2: 10.39 +/- 0.12 ms/image (peak GPU mem 2943 MiB, 60 batches x 32)
+NAC-K2: 10.47 +/- 0.15 ms/image (peak GPU mem 2980 MiB, 60 batches x 32)

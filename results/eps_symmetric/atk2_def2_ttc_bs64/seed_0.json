@@ -1,0 +1,12 @@
+{
+  "arch": "ViT-B/32",
+  "eps_attack": 0.00784313725490196,
+  "eps_defense": 0.00784313725490196,
+  "method": "ttc",
+  "seed": 0,
+  "clean": 85.07,
+  "adv": 0.0,
+  "defended": 16.02,
+  "gain": 16.02,
+  "elapsed_s": 332.0756356716156
+}

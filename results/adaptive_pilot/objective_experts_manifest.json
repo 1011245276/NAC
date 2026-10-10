@@ -1,0 +1,9 @@
+{
+  "K": 4,
+  "optimizer": "plain-PGD",
+  "eps": "4/255",
+  "objA_repel_own": 25.94,
+  "objB_clean_attract": 53.23,
+  "objC_proto_attract": 64.63,
+  "objD_confidence": 0.02
+}

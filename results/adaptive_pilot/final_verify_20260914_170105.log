@@ -1,0 +1,21 @@
+﻿Files already downloaded and verified
+[fv] seed=0 batch 5/313 el=1.8min eta=109.1min
+[fv] seed=0 batch 10/313 el=3.2min eta=97.4min
+[fv] seed=0 batch 15/313 el=4.7min eta=94.1min
+[fv] seed=0 batch 20/313 el=6.1min eta=90.0min
+[fv] seed=0 batch 25/313 el=7.7min eta=88.3min
+python : Traceback (most recent call last):
+At line:15 char:3028
++ ... dd_HHmmss"; python scripts\final_mechanism_verify.py --seeds 0 1 2 *> ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "F:\codex\NAC\nac_project\scripts\final_mechanism_verify.py", line 298, in <module>
+    main()
+  File "F:\codex\NAC\nac_project\scripts\final_mechanism_verify.py", line 269, in main
+    _save(outs, traj, meta, run_log, partial=True)
+  File "F:\codex\NAC\nac_project\scripts\final_mechanism_verify.py", line 282, in _save
+    data[tag + '__' + k] = np.concatenate(v[k])
+                           ^^^^^^^^^^^^^^^^^^^^
+ValueError: zero-dimensional arrays cannot be concatenated

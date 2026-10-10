@@ -1,0 +1,47 @@
+﻿Files already downloaded and verified
+[ttc_depth] batches=313 K_list=[1, 2, 3, 4] eps=4/255
+[ttc_depth] batch 10/313 elapsed=1.2min eta=36.9min
+[ttc_depth] batch 20/313 elapsed=1.8min eta=26.9min
+[ttc_depth] batch 30/313 elapsed=2.5min eta=23.1min
+[ttc_depth] batch 40/313 elapsed=3.1min eta=21.0min
+[ttc_depth] batch 50/313 elapsed=3.7min eta=19.4min
+[ttc_depth] batch 60/313 elapsed=4.3min eta=18.2min
+[ttc_depth] batch 70/313 elapsed=4.9min eta=17.1min
+[ttc_depth] batch 80/313 elapsed=5.5min eta=16.2min
+[ttc_depth] batch 90/313 elapsed=6.2min eta=15.3min
+[ttc_depth] batch 100/313 elapsed=6.8min eta=14.5min
+[ttc_depth] batch 110/313 elapsed=7.4min eta=13.7min
+[ttc_depth] batch 120/313 elapsed=8.0min eta=12.9min
+[ttc_depth] batch 130/313 elapsed=8.6min eta=12.2min
+[ttc_depth] batch 140/313 elapsed=9.3min eta=11.4min
+[ttc_depth] batch 150/313 elapsed=9.9min eta=10.7min
+[ttc_depth] batch 160/313 elapsed=10.5min eta=10.0min
+[ttc_depth] batch 170/313 elapsed=11.1min eta=9.3min
+[ttc_depth] batch 180/313 elapsed=11.7min eta=8.7min
+[ttc_depth] batch 190/313 elapsed=12.3min eta=8.0min
+[ttc_depth] batch 200/313 elapsed=12.9min eta=7.3min
+[ttc_depth] batch 210/313 elapsed=13.6min eta=6.7min
+[ttc_depth] batch 220/313 elapsed=14.2min eta=6.0min
+[ttc_depth] batch 230/313 elapsed=14.8min eta=5.3min
+[ttc_depth] batch 240/313 elapsed=15.4min eta=4.7min
+[ttc_depth] batch 250/313 elapsed=16.0min eta=4.0min
+[ttc_depth] batch 260/313 elapsed=16.6min eta=3.4min
+[ttc_depth] batch 270/313 elapsed=17.3min eta=2.7min
+[ttc_depth] batch 280/313 elapsed=17.9min eta=2.1min
+[ttc_depth] batch 290/313 elapsed=18.5min eta=1.5min
+[ttc_depth] batch 300/313 elapsed=19.1min eta=0.8min
+[ttc_depth] batch 310/313 elapsed=19.7min eta=0.2min
+[ttc_depth] batch 313/313 elapsed=19.9min eta=0.0min
+python : Traceback (most recent call last):
+At line:15 char:3028
++ ... dd_HHmmss"; python scripts\ttc_depth_cells.py *> "results\adaptive_pi ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "F:\codex\NAC\nac_project\scripts\ttc_depth_cells.py", line 143, in <module>
+    main()
+  File "F:\codex\NAC\nac_project\scripts\ttc_depth_cells.py", line 128, in main
+    data['ttc_K%d_eps2__correct' % K] = np.concatenate(store[K]['correct'])
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: need at least one array to concatenate

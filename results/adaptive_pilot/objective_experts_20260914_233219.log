@@ -1,0 +1,47 @@
+﻿Files already downloaded and verified
+[objexp] batch 10/313 el=1.3min  A24.38 B49.38 C60.0 D0.0
+[objexp] batch 20/313 el=1.9min  A27.19 B52.81 C62.5 D0.0
+[objexp] final acc {'A': 26.0, 'B': 52.0, 'C': 62.5, 'D': 0.0}
+[objexp] batch 30/313 el=2.6min  A25.62 B51.35 C64.06 D0.0
+[objexp] batch 40/313 el=3.3min  A27.11 B51.64 C63.05 D0.0
+[objexp] batch 50/313 el=4.0min  A26.5 B52.94 C62.69 D0.0
+[objexp] final acc {'A': 26.5, 'B': 52.94, 'C': 62.69, 'D': 0.0}
+[objexp] batch 60/313 el=4.7min  A27.45 B53.75 C63.65 D0.0
+[objexp] batch 70/313 el=5.4min  A27.19 B53.66 C63.08 D0.0
+[objexp] final acc {'A': 27.29, 'B': 53.46, 'C': 63.0, 'D': 0.0}
+[objexp] batch 80/313 el=6.1min  A27.34 B52.89 C63.2 D0.0
+[objexp] batch 90/313 el=6.8min  A26.67 B52.67 C63.16 D0.0
+[objexp] batch 100/313 el=7.5min  A26.62 B52.69 C63.12 D0.0
+[objexp] final acc {'A': 26.62, 'B': 52.69, 'C': 63.12, 'D': 0.0}
+[objexp] batch 110/313 el=8.1min  A26.56 B52.95 C63.55 D0.0
+[objexp] batch 120/313 el=8.8min  A26.61 B53.05 C63.57 D0.0
+[objexp] final acc {'A': 26.7, 'B': 53.17, 'C': 63.85, 'D': 0.0}
+[objexp] batch 130/313 el=9.5min  A26.59 B53.32 C63.73 D0.0
+[objexp] batch 140/313 el=10.2min  A26.67 B53.39 C63.75 D0.0
+[objexp] batch 150/313 el=10.9min  A26.44 B52.83 C63.67 D0.0
+[objexp] final acc {'A': 26.44, 'B': 52.83, 'C': 63.67, 'D': 0.0}
+[objexp] batch 160/313 el=11.6min  A26.58 B53.07 C63.96 D0.02
+[objexp] batch 170/313 el=12.3min  A26.47 B53.03 C64.03 D0.02
+[objexp] final acc {'A': 26.3, 'B': 53.11, 'C': 64.07, 'D': 0.02}
+[objexp] batch 180/313 el=12.9min  A26.25 B53.02 C64.06 D0.02
+[objexp] batch 190/313 el=13.6min  A26.22 B52.89 C64.24 D0.02
+[objexp] batch 200/313 el=14.3min  A25.97 B53.02 C64.38 D0.02
+[objexp] final acc {'A': 25.97, 'B': 53.02, 'C': 64.38, 'D': 0.02}
+[objexp] batch 210/313 el=15.0min  A25.62 B52.9 C64.33 D0.01
+[objexp] batch 220/313 el=15.7min  A25.57 B52.63 C64.35 D0.01
+[objexp] final acc {'A': 25.51, 'B': 52.65, 'C': 64.38, 'D': 0.01}
+[objexp] batch 230/313 el=16.4min  A25.69 B52.83 C64.52 D0.03
+[objexp] batch 240/313 el=17.1min  A25.72 B52.6 C64.48 D0.03
+[objexp] batch 250/313 el=17.8min  A25.8 B52.69 C64.56 D0.03
+[objexp] final acc {'A': 25.8, 'B': 52.69, 'C': 64.56, 'D': 0.03}
+[objexp] batch 260/313 el=18.5min  A25.83 B52.76 C64.62 D0.02
+[objexp] batch 270/313 el=19.2min  A25.93 B52.79 C64.58 D0.02
+[objexp] final acc {'A': 26.01, 'B': 52.92, 'C': 64.58, 'D': 0.02}
+[objexp] batch 280/313 el=19.8min  A26.0 B52.92 C64.55 D0.02
+[objexp] batch 290/313 el=20.5min  A25.88 B53.06 C64.55 D0.02
+[objexp] batch 300/313 el=21.2min  A25.82 B53.09 C64.5 D0.02
+[objexp] final acc {'A': 25.82, 'B': 53.09, 'C': 64.5, 'D': 0.02}
+[objexp] batch 310/313 el=21.9min  A25.97 B53.21 C64.54 D0.02
+[objexp] batch 313/313 el=22.0min  A25.94 B53.23 C64.63 D0.02
+[objexp] final acc {'A': 25.94, 'B': 53.23, 'C': 64.63, 'D': 0.02}
+[objexp] final acc {'A': 25.94, 'B': 53.23, 'C': 64.63, 'D': 0.02}

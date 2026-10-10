@@ -1,0 +1,16 @@
+[12:23:29] arch=ViT-B/32 K=4 mu=0.9 eps_def=0.01569 alpha=0.00392 max_batches=16
+[12:23:55]   batch 4/16 | ttc_autocorr=0.0230 | predictiveness_gain=-0.0475
+[12:24:15]   batch 8/16 | ttc_autocorr=0.0271 | predictiveness_gain=-0.0473
+[12:24:37]   batch 12/16 | ttc_autocorr=0.0279 | predictiveness_gain=-0.0494
+[12:24:59]   batch 16/16 | ttc_autocorr=0.0274 | predictiveness_gain=-0.0513
+[12:24:59] --- cifar10 summary (n=1024) ---
+[12:24:59]   TTC gradient autocorrelation cos(g_t, g_t+1)      : 0.0274
+[12:24:59]   NAC current-grad autocorrelation                  : 0.1688
+[12:24:59]   NAC look-ahead grad -> next-grad cosine           : 0.1175
+[12:24:59]   PREDICTIVENESS GAIN (look-ahead - current)        : -0.0513
+[12:24:59]   TTC step-alignment with landing gradient          : 0.0461
+[12:24:59]   NAC step-alignment with landing gradient          : 0.1051
+[12:24:59]   STEP ALIGNMENT GAIN (NAC - TTC)                   : +0.0590
+[12:24:59]   Look-ahead pixel distance mean |mu*v|/alpha       : 1.09 (p90 2.04)
+[12:24:59]   Random-anchor control autocorrelation             : -0.0476
+[12:24:59] saved: ./results/mechanism_diagnostic\gradient_alignment.json

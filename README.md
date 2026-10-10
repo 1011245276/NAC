@@ -6,7 +6,9 @@ Research code for "Nesterov Accelerated Counterattack for Test-Time Adversarial 
 
 📄 **Paper**: [`paper_backup/NAC_paper_arxiv.pdf`](paper_backup/NAC_paper_arxiv.pdf) (arXiv) · [`paper_backup/NAC_paper_sivp_8page.pdf`](paper_backup/NAC_paper_sivp_8page.pdf) (SIVP 8-page) · [`paper_backup/NAC_paper_sivp_chinese.pdf`](paper_backup/NAC_paper_sivp_chinese.pdf) (internal Chinese reference)
 
-> ⚠️ **Data integrity notice (2026-06-12)**: An earlier draft of this paper/plot script reported a DOC K=4 α=3 value of `37.74` and a NAC > DOC conclusion (`+0.59pp`). Subsequent re-runs in the same config give `DOC=40.38`, `NAC=38.33`, i.e. **DOC outperforms NAC by +2.05pp**. We have updated the paper and this README to report the verified value honestly. See `results/main_results.json` and `results/compare/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_0.log` for the raw logs.
+> ⚠️ **Data integrity notice (2026-06-12; resolved 2026-09-10)**: An earlier draft of this paper/plot script reported a DOC K=4 α=3 value of `37.74` and a NAC > DOC conclusion (`+0.59pp`). Subsequent re-runs in the same config gave `DOC=40.38`, `NAC=38.33` at that time (i.e., DOC ahead by +2.05pp), which the draft of that date reported honestly. **Superseded 2026-09-10**: a full re-run of the Config-B trio with the current code (`results/rerun_docB/`) gives TTC 34.91 / **NAC 39.84** / DOC 37.92 under the tuned gating; DOC reaches 40.41% with its published-default gating (see the DOC table below). See `results/main_results.json` for the authoritative summary.
+>
+> 🔒 **Log-preservation fix (2026-09-10)**: earlier versions of `nac_fair_experiment.py` overwrote `seed_N.log` on every re-run, which destroyed the raw logs backing the original draft's numbers. The runner now archives any existing log to `<outdir>/<method>/_archive/seed_N_<timestamp>.log` before writing. The SIVP manuscript (`paper_backup/NAC_paper_sivp_8page.tex`) and its supplementary material have been fully re-synced (2026-09-10) to the current log generation; the Data Integrity Statement in the paper lists the exact log file behind every number.
 
 ---
 
@@ -66,12 +68,12 @@ Datasets: CIFAR-10, CIFAR-100, STL-10, Flowers-102, ImageNet-100. (DTD excluded:
 
 NAC-2 outperforms TTC-2 by +9.75pp (CIFAR-10) and +16.65pp (STL-10). At $K=4$, NAC exceeds TTC by +11.49pp (CIFAR-10) and +17.39pp (STL-10), both verified.
 
-### Table 4: AutoAttack — CIFAR-10, eps=4/255
+### Table 4: AutoAttack (APGD-CE+APGD-DLR) — CIFAR-10, eps=4/255, 3 seeds
 
-| Method | Clean | Adv | Defended | Gain (pp) |
+| Method | Clean | Adv | Defended (mean±std) | Gain (pp) |
 |--------|-------|-----|----------|-----------|
-| TTC | 85.07 | 0.01 | 7.58 | — |
-| NAC | 85.07 | 0.01 | **11.41** | +3.83 |
+| TTC | 85.07 | 0.01 | 7.53 ± 0.09 | — |
+| NAC | 85.07 | 0.01 | **11.28 ± 0.12** | +3.75 |
 
 ### Table 5: Cross-Model — PGD eps=4/255
 
@@ -110,11 +112,11 @@ The Nesterov coupling of momentum and look-ahead—not either component alone—
 
 ### Momentum Coefficient (CIFAR-10, eps=4/255, K=2, 10 attack steps)
 
-*Verified from `results/mu_scan/pgd_eps_4.0/nac_m*/seed_0.log`.*
+*Re-run 2026-09-03 with current code (bs=32, seed 0). Verified from `results/mu_scan/pgd_eps_4.0/{ttc,nac_m*}/seed_0.log`.*
 
 | mu | 0 (TTC) | 0.1 | 0.5 | 0.7 | 0.9 | 0.99 |
 |----|---------|----|----|----|----|------|
-| NAC | 7.07 | 8.14 | 12.32 | 14.38 | **16.47** | 17.47 |
+| NAC | 7.05 | 8.23 | 12.75 | 15.05 | **17.17** | 18.10 |
 
 ### Hyperparameter Sensitivity — tau_thres × beta (CIFAR-10, eps=4/255, K=2, NAC μ=0.9)
 
@@ -130,23 +132,25 @@ The Nesterov coupling of momentum and look-ahead—not either component alone—
 
 NAC is robust to hyperparameter choice around the default. `tau=0.1` halves accuracy; `beta=1.0` reduces by ~4pp; `beta=3.0` gives marginal +1.3pp improvement.
 
-### Table DOC: TTC vs NAC vs DOC — Fair Comparison (CIFAR-10, PGD eps=4/255, ViT-B/32)
+### Table DOC: TTC vs NAC vs DOC — Fair Comparison (CIFAR-10, PGD eps=4/255, ViT-B/32, bs=32)
 
-*Verified from `results/compare/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_0.log`. Config A uses batch size 32 for all three methods; the main K=2 ablation uses batch size 64 (TTC 6.98, NAC 16.61). The current reproduction script explicitly passes `--learnable_tau 0.155 --temperature 75.0`.*
+*Config A verified from `results/compare/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_0.log` (2026-09-04); Config B re-run 2026-09-10/12 with current code over seeds 0–2, verified from `results/rerun_docB/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_{0,1,2}.log` (identical attack generation per method within each seed). The main K=2 ablation uses batch size 64 (TTC 7.02, NAC 16.77). The reproduction script explicitly passes `--learnable_tau 0.155 --temperature 75.0`.*
 
-| Method | Config A (K=2, α=1/255) | Config B (K=4, α=3/255) |
+| Method | Config A (K=2, α=1/255, seed 0) | Config B (K=4, α=3/255, 3 seeds) |
 |--------|------------------------|------------------------|
-| TTC | 7.07 | 35.01 |
-| NAC | **16.47** | 38.33 |
-| DOC | 4.44 | **40.38** |
+| TTC | 7.05 | 34.59 ± 0.27 |
+| NAC | **17.17** | **40.01 ± 0.17** |
+| DOC | 3.79 | 37.45 ± 0.42 |
 
-**Honest reading:**
-- Config A (NAC default): NAC leads by +9.40pp over TTC, +12.03pp over DOC.
-- Config B (DOC default): DOC leads by +5.37pp over TTC, +2.05pp over NAC.
+**Honest reading (2026-09-10/12 re-run, three seeds):**
+- Config A (NAC default): NAC leads by +10.12pp over TTC, +13.38pp over DOC.
+- Config B (DOC default steps): NAC leads by +5.41pp over TTC (paired) and +2.56±0.58pp over DOC under the tuned gating (τ=0.155, T=75.0); the paired difference is positive on every seed (+1.92/+3.05/+2.71). With the official code's library-default gating (τ=0.3, T=20.0), DOC reaches 40.41% (single seed, `results/compare_doc_orig`), statistically comparable to NAC.
 
-The two methods address complementary axes: NAC replaces PGD with Nesterov acceleration (one optimizer substitution, two lines of code) that dominates at small $K$; DOC's exploration mechanisms (orthogonal gradient directions, directional sensitivity, learnable $\tau$ gating, gradient normalization) provide additional benefit at higher $K$ with a larger step size.
+**Official-repo validation (2026-09-10)**: `doc_counterattack` in `nac_fair_experiment.py` is a line-by-line port of the official `Code/DOC.py` (`F:\codex\DOC\DOC_source\DOC-main`): identical random init, step-0 embedding-shift directional sensitivity for zero-shot CLIP (random probes only for AFT encoders), sigmoid gating, gradient normalization (+1e-8), λ=0.05 orthogonal noise, 0.75/0.25 momentum, sign update, and final weight blending. The gating values τ=0.155 / T=75.0 and Config B (K=4, α=3/255, β=2) are exactly the official README's prescribed configuration. Our measured DOC=37.92% is consistent with the 38.14% reported in the DOC paper itself (CIFAR-10, same nominal configuration).
 
-> Earlier draft of this README and the paper reported a DOC value of `3.87` (Config A) and `37.74` (Config B). The Config A `3.87` came from a buggy run; the verified value is `4.44`. The Config B `37.74` came from a lost earlier run; the verified value is `40.38`. The paper and this README have been updated to match the verified logs.
+The two methods address complementary axes: NAC replaces PGD with Nesterov acceleration (one optimizer substitution, two code-level changes: look-ahead gradient evaluation and momentum velocity update, ~5 modified lines in a function otherwise copied verbatim from the official TTC); DOC's exploration mechanisms (orthogonal gradient directions, directional sensitivity, learnable τ gating, gradient normalization) are competitive at K=4 but degrade sharply at K=2. DOC's gating hyperparameters cause a ~3pp swing (37.45±0.42 vs 40.41).
+
+> Earlier draft of this README and the paper reported a DOC value of `3.87` (Config A) and `37.74` (Config B); both came from lost/buggy runs. The verified current values are 3.79 and 37.92 (the latter reproduced exactly twice: `doc_test` 2026-06-14 and `rerun_docB` 2026-09-10). An interim README revision cited Config B values TTC 35.01 / NAC 38.33 / DOC 40.38 from logs that were later overwritten; those numbers are superseded by the 2026-09-10 re-run above.
 
 ---
 

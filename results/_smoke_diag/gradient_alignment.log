@@ -1,0 +1,9 @@
+[12:19:18] arch=ViT-B/32 K=4 mu=0.9 eps_def=0.01569 alpha=0.00392 max_batches=2
+[12:19:34] --- cifar10 summary (n=128) ---
+[12:19:34]   TTC gradient autocorrelation cos(g_t, g_t+1)      : 0.0282
+[12:19:34]   NAC current-grad autocorrelation                  : 0.1642
+[12:19:34]   NAC look-ahead grad -> next-grad cosine           : 0.1176
+[12:19:34]   PREDICTIVENESS GAIN (look-ahead - current)        : -0.0466
+[12:19:34]   Look-ahead distance ||mu*v|| / alpha (pure_la~1)  : 503.93
+[12:19:34]   Random-anchor control autocorrelation             : -0.0464
+[12:19:34] saved: ./results/_smoke_diag\gradient_alignment.json

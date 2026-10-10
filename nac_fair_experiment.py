@@ -54,7 +54,7 @@ def parse_options():
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--num_seeds', type=int, default=1,
-                        help='Number of seeds to evaluate (default: 1). When >1, evaluates seeds 0..num_seeds-1 and reports mean +/-       .')
+                        help='Number of seeds to evaluate (default: 1). When >1, evaluates seeds 0..num_seeds-1 and reports mean +/- std.')
     parser.add_argument('--victim_resume', type=str, default=None)
     parser.add_argument('--outdir', type=str,
                         default='./results')
@@ -65,9 +65,31 @@ def parse_options():
     parser.add_argument('--ttc_stepsize', type=float, default=1.)
     # NAC config
     parser.add_argument('--counterattack', type=str, default='nac',
-                        choices=['ttc', 'nac', 'doc', 'momentum', 'pure_la', 'adam', 'lbfgs'],
-                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum, pure_la=pure look-ahead without momentum, adam=Adam optimizer')
+                        choices=['ttc', 'nac', 'doc', 'momentum', 'pure_la', 'adam', 'lbfgs', 'adagrad', 'rmsprop', 'rmsprop_bc'],
+                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum, pure_la=pure look-ahead without momentum, adam=Adam optimizer, adagrad/rmsprop=adaptive solver-study baselines, rmsprop_bc=bias-corrected RMSProp (effective step ~= alpha, controls for RMSProp uncorrected early-step amplification)')
     parser.add_argument('--nac_momentum', type=float, default=0.9)
+    parser.add_argument('--nac_clamp_lookahead', action='store_true', default=False,
+                        help='EXPERIMENTAL CONTROL (default off = current published behaviour). '
+                             'When off, the Nesterov look-ahead point X + delta + mu*velocity is fed '
+                             'to the encoder WITHOUT clamping. Because velocity accumulates as '
+                             'alpha*sign(g) with factor mu, |v| saturates at alpha/(1-mu) = 10/255 for '
+                             'mu=0.9, alpha=1/255, so the look-ahead point can sit up to '
+                             '4/255 + 9/255 = 13/255 from X -- i.e. 3.25x the defence budget eps_def '
+                             '-- and, unlike delta, it is not constrained to the valid image range '
+                             '[0,1] either. When on, the look-ahead point is projected back into the '
+                             'eps-ball and clamped to [0,1] first, so the gradient is evaluated inside '
+                             'the feasible set. Use this flag to run the ablation that shows how much '
+                             'of NAC\'s gain comes from evaluating the gradient outside the budget.')
+    parser.add_argument('--deterministic_batch_seed', action='store_true', default=False,
+                        help='EXPERIMENTAL CONTROL (default off = current published behaviour). '
+                             'When off, the random counterattack start delta is drawn from the single '
+                             'per-run RNG stream, so the number of RNG draws consumed by earlier '
+                             'batches depends on batch_size -- meaning batch_size silently changes '
+                             'every sample\'s delta_0. (Observed effect is small: TTC K=2 eps=4 is '
+                             '7.02 at bs=64 vs 7.05 at bs=32.) When on, each batch is re-seeded from '
+                             '(run seed, global index of the batch\'s first sample), which makes both '
+                             'the attack and the counterattack reproducible given a sample, '
+                             'independently of batch_size and batch order.')
     # DOC config
     parser.add_argument('--DOC_eps', type=float, default=4.0)
     parser.add_argument('--DOC_numsteps', type=int, default=2)
@@ -89,13 +111,21 @@ def compute_tau(clip_visual, images, n):
 def nac_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
                        norm="l_inf", epsilon=0, visual_model_orig=None,
                        tau_thres=None, beta=None, clip_visual=None,
-                       nac_momentum=0.9):
+                       nac_momentum=0.9, clamp_lookahead=False):
     """
     NAC: Nesterov Accelerated version of TTC counterattack.
     Same framework as original TTC, only gradient computation differs.
     NOTE: This is a self-contained implementation optimized for the experiment
     framework. The standalone nac.py module provides an equivalent implementation
     with a slightly different interface for independent use.
+
+    clamp_lookahead=False reproduces the published behaviour, in which the
+    look-ahead point X + delta + mu*velocity is NOT constrained (see the
+    --nac_clamp_lookahead help text: it can reach 3.25x eps_def and leave [0,1]).
+    clamp_lookahead=True projects the look-ahead point into the eps-ball and
+    clamps it to the valid image range before encoding, which is the ablation
+    that isolates how much of the gain comes from out-of-budget gradient
+    evaluation. Existing results were all produced with the default (False).
     """
     lower_limit, upper_limit = 0, 1
 
@@ -148,6 +178,16 @@ def nac_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
 
         # === NAC CHANGE: compute gradient at look-ahead position ===
         look_ahead = X + delta + nac_momentum * velocity
+        if clamp_lookahead:
+            # Ablation control. The published behaviour feeds the raw look-ahead
+            # point above, which can sit up to (epsilon + mu*|v|) from X and can
+            # leave [0,1]. Here we instead clamp the *offset* exactly the way TTC
+            # clamps delta (two-stage: eps-ball, then valid image range), so the
+            # gradient is evaluated strictly inside the feasible set.
+            la_offset = delta + nac_momentum * velocity
+            la_offset = torch.clamp(la_offset, min=-epsilon, max=epsilon)
+            look_ahead = X + la_offset
+            look_ahead = clamp(look_ahead, lower_limit, upper_limit)
         prompted_images = prompter(clip_img_preprocessing(look_ahead))
         X_att_reps = model.module.encode_image(prompted_images, prompt_token)
 
@@ -363,6 +403,139 @@ def adam_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
         if n in tunable_param_names:
             p.requires_grad = True
     return Delta
+
+
+def _adaptive_optimizer_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
+                                      norm="l_inf", epsilon=0, tau_thres=None, beta=None,
+                                      clip_visual=None, preprocess_fn=None, optimizer="adagrad"):
+    """Shared skeleton for AdaGrad / RMSProp counterattacks (solver-study baselines).
+
+    Gradient at current position, element-wise adaptive scaling (no sign update),
+    same tau-threshold gating and step weighting as TTC/NAC/Adam.
+    """
+    lower_limit, upper_limit = 0, 1
+
+    def clamp(X, lo, hi):
+        return torch.max(torch.min(X, hi), lo)
+
+    delta = torch.zeros_like(X)
+    if epsilon <= 0.:
+        return delta
+    if norm == "l_inf":
+        delta.uniform_(-epsilon, epsilon)
+    delta = clamp(delta, lower_limit - X, upper_limit - X)
+    delta.requires_grad = True
+    if attack_iters == 0:
+        return delta
+
+    tunable_param_names = []
+    for n, p in model.module.named_parameters():
+        if p.requires_grad:
+            tunable_param_names.append(n)
+            p.requires_grad = False
+
+    prompt_token = add_prompter()
+    with torch.no_grad():
+        X_prep = preprocess_fn(X) if preprocess_fn else X
+        X_ori_reps = model.module.encode_image(prompter(X_prep), prompt_token)
+        X_ori_norm = torch.norm(X_ori_reps, dim=-1)
+
+    deltas_per_step = [delta.data.clone()]
+    v = torch.zeros_like(delta)  # squared-gradient accumulator
+    decay = 0.9  # RMSProp decay (ignored by AdaGrad)
+
+    for _step_id in range(attack_iters):
+        X_prep = preprocess_fn(X + delta) if preprocess_fn else (X + delta)
+        prompted_images = prompter(X_prep)
+        X_att_reps = model.module.encode_image(prompted_images, prompt_token)
+
+        if _step_id == 0:
+            feature_diff = X_att_reps - X_ori_reps
+            diff_ratio = torch.norm(feature_diff, dim=-1) / X_ori_norm
+
+        scheme_sign = (tau_thres - diff_ratio).sign()
+        l2_loss = (((X_att_reps - X_ori_reps) ** 2).sum(1)).sum()
+        grad = torch.autograd.grad(l2_loss, delta)[0]
+
+        if optimizer == "adagrad":
+            v = v + grad ** 2
+            update = alpha * grad / (torch.sqrt(v) + 1e-8)
+        elif optimizer == "rmsprop":
+            v = decay * v + (1 - decay) * (grad ** 2)
+            update = alpha * grad / (torch.sqrt(v) + 1e-8)
+        elif optimizer == "rmsprop_bc":
+            # Bias-corrected RMSProp: v_hat removes the v=0 initialization bias,
+            # so the effective per-step magnitude is ~alpha (like TTC's sign step)
+            # instead of the ~alpha/sqrt(1-decay) amplification of plain RMSProp.
+            # This isolates adaptive DIRECTION from early-step amplification.
+            v = decay * v + (1 - decay) * (grad ** 2)
+            v_hat = v / (1 - decay ** (_step_id + 1))
+            update = alpha * grad / (torch.sqrt(v_hat) + 1e-8)
+        else:
+            raise ValueError(optimizer)
+
+        d = delta + update
+        if norm == "l_inf":
+            d = torch.clamp(d, min=-epsilon, max=epsilon)
+        d = clamp(d, lower_limit - X, upper_limit - X)
+        delta.data = d
+        deltas_per_step.append(delta.data.clone())
+
+    # Tau-threshold weighted step averaging (same as TTC/NAC)
+    Delta = torch.stack(deltas_per_step, dim=1)
+    weights = torch.arange(attack_iters + 1).unsqueeze(0).expand(X.size(0), -1).to(device)
+    weights = torch.exp(scheme_sign.view(-1, 1) * weights * beta)
+    weights /= weights.sum(dim=1, keepdim=True)
+    weights_hard = torch.zeros_like(weights)
+    weights_hard[:, 0] = 1.
+    weights = torch.where(scheme_sign.unsqueeze(1) > 0, weights, weights_hard)
+    weights = weights.view(X.size(0), attack_iters + 1, 1, 1, 1)
+    Delta = (weights * Delta).sum(dim=1)
+
+    for n, p in model.module.named_parameters():
+        if n in tunable_param_names:
+            p.requires_grad = True
+    return Delta
+
+
+def adagrad_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
+                          norm="l_inf", epsilon=0, tau_thres=None, beta=None,
+                          clip_visual=None, preprocess_fn=None):
+    """AdaGrad counterattack (solver-study baseline). Gradient at current position."""
+    return _adaptive_optimizer_counterattack(model, X, prompter, add_prompter, alpha,
+                                             attack_iters, norm=norm, epsilon=epsilon,
+                                             tau_thres=tau_thres, beta=beta,
+                                             clip_visual=clip_visual,
+                                             preprocess_fn=preprocess_fn, optimizer="adagrad")
+
+
+def rmsprop_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
+                          norm="l_inf", epsilon=0, tau_thres=None, beta=None,
+                          clip_visual=None, preprocess_fn=None):
+    """RMSProp counterattack (solver-study baseline). Gradient at current position."""
+    return _adaptive_optimizer_counterattack(model, X, prompter, add_prompter, alpha,
+                                             attack_iters, norm=norm, epsilon=epsilon,
+                                             tau_thres=tau_thres, beta=beta,
+                                             clip_visual=clip_visual,
+                                             preprocess_fn=preprocess_fn, optimizer="rmsprop")
+
+
+def rmsprop_bc_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
+                             norm="l_inf", epsilon=0, tau_thres=None, beta=None,
+                             clip_visual=None, preprocess_fn=None):
+    """Bias-corrected RMSProp counterattack (fairness control for the solver study).
+
+    Plain RMSProp initialized with v=0 takes early steps of ~alpha/sqrt(1-decay)
+    (~3.2x alpha at step 1 with decay=0.9), saturating the defense epsilon-ball
+    that TTC/NAC leave half-unused at K=2. The bias correction restores the
+    effective step to ~alpha, matching TTC's displacement, so any remaining
+    difference is attributable to the adaptive direction, not step size.
+    """
+    return _adaptive_optimizer_counterattack(model, X, prompter, add_prompter, alpha,
+                                             attack_iters, norm=norm, epsilon=epsilon,
+                                             tau_thres=tau_thres, beta=beta,
+                                             clip_visual=clip_visual,
+                                             preprocess_fn=preprocess_fn, optimizer="rmsprop_bc")
 
 
 # ========== DOC Counterattack ==========
@@ -714,7 +887,23 @@ def validate(args, val_dataset_name, model, model_text, model_image,
 
         text_tokens = clip.tokenize(texts).to(device)
 
+        # Global index of the first sample in the current batch. Used only when
+        # --deterministic_batch_seed is set, to make both the attack and the
+        # counterattack reproducible per sample regardless of batch_size.
+        sample_offset = 0
+
         for images, target in tqdm(val_loader, desc=f"  [{dataset_name}/{tag}]"):
+            if getattr(args, 'deterministic_batch_seed', False):
+                # Re-seed from (run seed, global index of this batch's first sample).
+                # See the --deterministic_batch_seed help text: without this, the
+                # single per-run RNG stream makes every sample's delta_0 depend on
+                # batch_size. Must happen before attack generation so that the
+                # adversarial examples are also batch-size independent.
+                _run_seed = int(getattr(args, 'current_seed', args.seed))
+                torch.manual_seed(_run_seed * 1000003 + sample_offset)
+                if torch.cuda.is_available():
+                    torch.cuda.manual_seed_all(_run_seed * 1000003 + sample_offset)
+
             images = images.to(device)
             target = target.to(device)
 
@@ -797,6 +986,35 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         clip_visual=clip_visual,
                         preprocess_fn=clip_img_preprocessing
                     )
+                elif args.counterattack == 'adagrad':
+                    delta_def = adagrad_counterattack(
+                        model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        tau_thres=args.tau_thres, beta=args.beta,
+                        clip_visual=clip_visual,
+                        preprocess_fn=clip_img_preprocessing
+                    )
+                elif args.counterattack == 'rmsprop':
+                    delta_def = rmsprop_counterattack(
+                        model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        tau_thres=args.tau_thres,
+                        beta=args.beta,
+                        clip_visual=clip_visual,
+                        preprocess_fn=clip_img_preprocessing
+                    )
+                elif args.counterattack == 'rmsprop_bc':
+                    delta_def = rmsprop_bc_counterattack(
+                        model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        tau_thres=args.tau_thres,
+                        beta=args.beta,
+                        clip_visual=clip_visual,
+                        preprocess_fn=clip_img_preprocessing
+                    )
                 elif args.counterattack == 'doc':
                     delta_def = doc_counterattack(
                         args, model, attacked.data, prompter, add_prompter,
@@ -812,7 +1030,8 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         visual_model_orig=visual_model_orig,
                         tau_thres=args.tau_thres, beta=args.beta,
                         clip_visual=clip_visual,
-                        nac_momentum=args.nac_momentum
+                        nac_momentum=args.nac_momentum,
+                        clamp_lookahead=getattr(args, 'nac_clamp_lookahead', False)
                     )
                 else:
                     delta_def = ttc_counterattack(
@@ -831,6 +1050,10 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         text_tokens, prompt_token=None, dataset_name=dataset_name
                     )
                     top1_def.update(accuracy(def_output, target, topk=(1,))[0].item(), images.size(0))
+
+            # Advance the global sample index (only meaningful for
+            # --deterministic_batch_seed, but harmless otherwise).
+            sample_offset += images.size(0)
 
         torch.cuda.empty_cache()
 
@@ -894,13 +1117,26 @@ def main():
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-        log_filename = f"seed_{seed}.log"
-        log_filename = os.path.join(outdir, log_filename)
+        # Record the seed actually in use for this run so that
+        # --deterministic_batch_seed can key off it (args.seed stays at the base).
+        args.current_seed = seed
+
+        log_filename = os.path.join(outdir, f"seed_{seed}.log")
+        # Never overwrite a previous log: archive it with a timestamp first.
+        # (Overwriting destroyed the raw logs backing earlier drafts of the paper.)
+        if os.path.exists(log_filename):
+            archive_dir = os.path.join(outdir, "_archive")
+            os.makedirs(archive_dir, exist_ok=True)
+            archived = os.path.join(
+                archive_dir,
+                "seed_{}_{}.log".format(seed, time.strftime("%Y%m%d_%H%M%S")),
+            )
+            os.replace(log_filename, archived)
         logging.basicConfig(
             filename=log_filename,
             level=logging.INFO,
             format="%(asctime)s - %(levelname)s - %(message)s",
-            filemode='w'  # overwrite per seed, don't append
+            filemode='w'
         )
         logging.info(f"NAC Fair: method={args.counterattack} momentum={args.nac_momentum} seed={seed}")
         logging.info(args)

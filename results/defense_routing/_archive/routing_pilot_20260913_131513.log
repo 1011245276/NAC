@@ -1,0 +1,18 @@
+[12:25:21] routing pilot: arch=ViT-B/32 tiers K=0/2/4 mu=0.9 tau=0.2 beta=2.0 max_batches=60
+[12:29:06] records: n=3840 (calibration=1920, eval=1920)
+[12:29:06] AUROC(attacked vs clean | shift0, calibration) = 0.0000
+[12:29:06] AUROC(attacked vs clean | shift1, calibration) = 0.3899
+[12:29:06] router signal = shift1 (low_is_attack=True)
+[12:29:06] baseline no_defense: clean=85.16 adv=0.00
+[12:29:06] baseline always_K2: clean=81.98 adv=16.77
+[12:29:06] baseline always_K4: clean=81.98 adv=39.48
+[12:29:06] oracle router: clean=85.16 adv=39.48
+[12:29:06] best thresholds (calibration): t1=0.68635 t2=0.84905 clean=80.57 adv=26.51 avg_cost=2.62
+[12:29:06] ROUTED (eval): clean acc=82.60 (avg steps=2.40) | adv acc=28.75 (avg steps=2.88)
+[12:29:06]   tier fractions clean: {'0': 0.103125, '2': 0.5932291666666667, '4': 0.30364583333333334}
+[12:29:06]   tier fractions adv  : {'0': 0.0890625, '2': 0.3828125, '4': 0.528125}
+[12:29:06] rho=0.0: no_defense: acc=85.16 steps=0.00 | always_K2: acc=81.98 steps=2.00 | always_K4: acc=81.98 steps=4.00 | router: acc=82.60 steps=2.40 | oracle: acc=85.16 steps=0.00
+[12:29:06] rho=0.25: no_defense: acc=63.87 steps=0.00 | always_K2: acc=65.68 steps=2.00 | always_K4: acc=71.35 steps=4.00 | router: acc=69.14 steps=2.52 | oracle: acc=73.74 steps=1.00
+[12:29:06] rho=0.5: no_defense: acc=42.58 steps=0.00 | always_K2: acc=49.38 steps=2.00 | always_K4: acc=60.73 steps=4.00 | router: acc=55.68 steps=2.64 | oracle: acc=62.32 steps=2.00
+[12:29:06] rho=1.0: no_defense: acc=0.00 steps=0.00 | always_K2: acc=16.77 steps=2.00 | always_K4: acc=39.48 steps=4.00 | router: acc=28.75 steps=2.88 | oracle: acc=39.48 steps=4.00
+[12:29:06] saved: ./results/defense_routing\routing_pilot.json

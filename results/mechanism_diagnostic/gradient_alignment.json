@@ -1,0 +1,47 @@
+{
+  "config": {
+    "arch": "vit_b32",
+    "test_set": [
+      "cifar10"
+    ],
+    "root": "./data",
+    "dataset": "tinyImageNet",
+    "image_size": 224,
+    "batch_size": 64,
+    "num_workers": 0,
+    "seed": 0,
+    "test_attack_type": "pgd",
+    "test_eps": 0.01568627450980392,
+    "test_numsteps": 10,
+    "test_stepsize": 0.00392156862745098,
+    "ttc_eps": 0.01568627450980392,
+    "ttc_stepsize": 0.00392156862745098,
+    "ttc_numsteps": 4,
+    "nac_momentum": 0.9,
+    "max_batches": 16,
+    "victim_resume": null,
+    "method": "null_patch",
+    "prompt_size": 30,
+    "add_prompt_size": 0,
+    "name": "",
+    "cache": "./cache",
+    "imagenet_root": "./data/imagenet-100/imagenet_folder",
+    "tinyimagenet_root": "./data/tiny-imagenet-200/tiny-imagenet-200",
+    "outdir": "./results/mechanism_diagnostic"
+  },
+  "datasets": {
+    "cifar10": {
+      "n_samples": 1024,
+      "ttc_gradient_autocorrelation": 0.027430161833763123,
+      "nac_current_gradient_autocorrelation": 0.16880783438682556,
+      "nac_lookahead_gradient_predictiveness": 0.11751320958137512,
+      "predictiveness_gain_look_minus_cur": -0.05129462480545044,
+      "ttc_step_alignment_with_landing_gradient": 0.04610789194703102,
+      "nac_step_alignment_with_landing_gradient": 0.10514046251773834,
+      "step_alignment_gain_nac_minus_ttc": 0.05903257057070732,
+      "lookahead_pixel_distance_mean_over_alpha": 1.0896579027175903,
+      "lookahead_pixel_distance_p90_over_alpha": 2.036024808883667,
+      "random_anchor_autocorrelation_control": -0.047574061900377274
+    }
+  }
+}

@@ -11,7 +11,9 @@ mu = torch.tensor(CLIP_MEAN).view(3, 1, 1).to(device)
 std = torch.tensor(CLIP_STD).view(3, 1, 1).to(device)
 
 def normalize(X):
-    return (X - mu) / std
+    # .to(X.device) is a no-op when devices already match (all GPU runs);
+    # it only matters for CPU tensors on a CUDA-visible machine.
+    return (X - mu.to(X.device)) / std.to(X.device)
 def clip_img_preprocessing(X):
     img_size = 224
     X = torch.nn.functional.interpolate(X, size=(img_size, img_size), mode='bicubic')
@@ -19,7 +21,7 @@ def clip_img_preprocessing(X):
     return X
 
 def rev_normalize(X):
-    return X * std + mu
+    return X * std.to(X.device) + mu.to(X.device)
 def reverse_clip_img_preprocessing(X):
     X = rev_normalize(X)
     return X

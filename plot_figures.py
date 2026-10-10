@@ -10,6 +10,7 @@ import matplotlib.patches as mpatches
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Arc, Circle, Wedge
 import numpy as np
 import os
+import json
 
 SAVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figures')
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -184,11 +185,11 @@ def plot_framework():
     ax_mid_r.set_title('CIFAR-10 ($\\epsilon$=4/255)', fontsize=11, fontweight='bold', color=C['gray'], pad=8, family='sans-serif')
 
     # Small performance comparison
-    # K=2: VERIFIED from logs (cifar10)
-    # TTC-2: 7.07, NAC-2: 16.47
-    # K=4: Reported in paper Table 3, not yet independently re-verified in this codebase.
-    methods = ['TTC-2', 'NAC-2', 'TTC-4*', 'NAC-4*']
-    values = [7.07, 16.47, 25.37, 37.05]
+    # All values VERIFIED from current logs (bs=32, seed 0, 2026-09 generation):
+    # TTC-2 / NAC-2: results/mu_scan/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log
+    # TTC-4 / NAC-4: results/final/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log
+    methods = ['TTC-2', 'NAC-2', 'TTC-4', 'NAC-4']
+    values = [7.05, 17.17, 26.21, 37.70]
     colors = [C['ttc'], C['blue'], C['ttc'], C['blue']]
     y_pos = [8.5, 7.3, 6.1, 4.9]
 
@@ -200,7 +201,7 @@ def plot_framework():
         ax_mid_r.text(0.8, y_pos[i], m, ha='right', va='center', fontsize=9, fontweight='bold', color='#555555')
 
     ax_mid_r.text(5, 8.8, 'Robust Accuracy', ha='center', fontsize=9, fontweight='bold', color=C['gray'])
-    ax_mid_r.text(5, 3.5, 'K=2: NAC-2 (16.47%) > TTC-2 (7.07%) by +9.40pp', ha='center', fontsize=9, fontweight='bold', color=C['blue'])
+    ax_mid_r.text(5, 3.5, 'K=2: NAC-2 (17.17%) > TTC-2 (7.05%) by +10.12pp', ha='center', fontsize=9, fontweight='bold', color=C['blue'])
 
     # ---- Row 3: Output ----
     ax_bot = fig.add_subplot(gs[2, :])
@@ -217,7 +218,7 @@ def plot_framework():
 
     # Final output
     draw_box(ax_bot, 12, 0.8, 5.5, 0.8, '', fc='#E8F5E9', ec=C['green'], style='round')
-    ax_bot.text(12, 0.8, 'CLIP Zero-Shot Classification   |   NAC gains +3.8~7.5 pp over TTC',
+    ax_bot.text(12, 0.8, 'CLIP Zero-Shot Classification   |   NAC gains +2.4~6.9 pp over TTC',
                 ha='center', fontsize=9, fontweight='bold', color=C['green'])
 
     # Summary annotation
@@ -230,52 +231,72 @@ def plot_framework():
 
 
 # ================================================================
-# Figure 2: Ablation — cleaner bar chart
+# Figure 2: Ablation — four-level mechanism ablation bar chart
 # ================================================================
-# Ablation (CIFAR-10, STL-10, PGD eps=4/255, K=2) — VERIFIED from logs
-# Note: STL-10 NAC value is 34.19 (from results/ablation/pgd_eps_4.0/nac_m0.9/seed_0.log);
-#       an earlier draft used 34.76 from a now-lost run. Updated to match log.
+# Values are parsed at runtime from results/aggregated_all.json (section
+# "ablation"), i.e. the 3-seed (seeds 0-2) mean/std produced by
+# scripts/aggregate_all.py from results/ablation/pgd_eps_4.0/*/seed_{0,1,2}.log.
+# PGD eps=4/255, K=2, batch size 64.
 def plot_ablation():
-    fig, ax = plt.subplots(figsize=(8, 5))
-    datasets = ['CIFAR-10', 'STL-10']
-    ttc = [7.07, 17.30]   # results/ablation/pgd_eps_4.0/ttc/seed_0.log (K=2, R3=0.0/0.0/adv)
-    mom = [8.71, 21.31]   # Note: 8.71/21.31 are from a separate run; the visible log file
-                          # "ablation/momentum/seed_0.log" actually contains ttc results (8.46/21.20)
-                          # from a mislabeled run. The 8.71/21.31 values are the paper-reported values.
-    nac = [16.47, 34.19]  # results/ablation/pgd_eps_4.0/nac_m0.9/seed_0.log
+    agg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'results', 'aggregated_all.json')
+    with open(agg_path, encoding='utf-8') as f:
+        agg = json.load(f)['ablation']
 
+    def val(method, dataset):
+        e = agg[method][dataset]
+        return e['defended_mean'], e['defended_std']
+
+    datasets = ['cifar10', 'STL10']
+    methods = [('ttc', 'TTC (no momentum)', C['ttc']),
+               ('momentum', '+ Standard Momentum', C['orange']),
+               ('pure_la', '+ Pure Look-Ahead', C['purple']),
+               ('nac_m0.9', '+ Nesterov Coupling (NAC)', C['blue'])]
+
+    fig, ax = plt.subplots(figsize=(8.5, 5))
     x = np.arange(len(datasets))
-    w = 0.22
-    gap = 0.04
+    w = 0.19
+    gap = 0.015
 
-    b1 = ax.bar(x - w - gap, ttc, w, color=C['ttc'], edgecolor='white', lw=0.5, label='TTC (no momentum)')
-    b2 = ax.bar(x, mom, w, color=C['orange'], edgecolor='white', lw=0.5, label='+ Standard Momentum')
-    b3 = ax.bar(x + w + gap, nac, w, color=C['blue'], edgecolor='white', lw=0.5, label='+ Nesterov Look-Ahead (NAC)')
+    for j, (key, label, color) in enumerate(methods):
+        means = [val(key, ds)[0] for ds in datasets]
+        stds = [val(key, ds)[1] for ds in datasets]
+        pos = x + (j - 1.5) * (w + gap)
+        bars = ax.bar(pos, means, w, yerr=stds, capsize=3, color=color,
+                      edgecolor='white', lw=0.5, label=label,
+                      error_kw=dict(lw=1.0, capthick=1.0))
+        for p, m in zip(pos, means):
+            ax.text(p, m + 1.1, f'{m:.2f}', ha='center', fontsize=8.5,
+                    fontweight='bold', color='#333333')
 
-    for bars, offset in [(b1, -w-gap), (b2, 0), (b3, w+gap)]:
-        for i, bar in enumerate(bars):
-            h = bar.get_height()
-            ax.text(x[i] + offset, h + 0.5, f'{h:.1f}', ha='center', fontsize=9.5, fontweight='bold', color='#333333')
-
-    # Highlight NAC gain
-    ax.annotate('', xy=(x[0]+w+gap, nac[0]), xytext=(x[0]-w-gap, ttc[0]),
-                arrowprops=dict(arrowstyle='<->', color=C['blue'], lw=2), zorder=10)
-    ax.text(x[0], (ttc[0]+nac[0])/2 + 1.2, f'+{nac[0]-ttc[0]:.1f} pp', ha='center', fontsize=10,
+    # Super-additivity bracket on CIFAR-10 (dataset 0)
+    ttc0 = val('ttc', 'cifar10')[0]
+    nac0 = val('nac_m0.9', 'cifar10')[0]
+    mom_gain = val('momentum', 'cifar10')[0] - ttc0
+    la_gain = val('pure_la', 'cifar10')[0] - ttc0
+    nac_gain = nac0 - ttc0
+    ax.annotate('', xy=(x[0] + 1.5*(w+gap), nac0), xytext=(x[0] - 1.5*(w+gap), ttc0),
+                arrowprops=dict(arrowstyle='<->', color=C['blue'], lw=1.8), zorder=10)
+    ax.text(x[0], (ttc0 + nac0)/2 + 1.0, f'+{nac_gain:.2f} pp', ha='center', fontsize=10,
             fontweight='bold', color=C['blue'])
 
     ax.set_ylabel('Robust Accuracy (%)', fontsize=12, family='sans-serif')
     ax.set_xticks(x)
-    ax.set_xticklabels(datasets, fontsize=12, family='sans-serif')
-    ax.set_title('Ablation: Look-Ahead vs Standard Momentum', fontsize=13, fontweight='bold', pad=12, family='sans-serif')
-    ax.legend(fontsize=9.5, loc='upper left', framealpha=0.9, edgecolor='#DDDDDD')
-    ax.set_ylim(0, 42)
+    ax.set_xticklabels(['CIFAR-10', 'STL-10'], fontsize=12, family='sans-serif')
+    ax.set_title('Mechanism Ablation (3 seeds, mean$\\pm$std, $\\epsilon$=4/255, K=2)',
+                 fontsize=13, fontweight='bold', pad=12, family='sans-serif')
+    ax.legend(fontsize=9, loc='upper left', framealpha=0.9, edgecolor='#DDDDDD')
+    ax.set_ylim(0, 44)
     ax.grid(axis='y', alpha=0.25, lw=0.5)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.tick_params(labelsize=11)
 
-    # Annotation explaining the key finding
-    ax.text(0.98, 0.15, 'Nesterov look-ahead ≠ momentum\nLook-ahead contributes +7.8 pp\nbeyond standard momentum',
+    # Super-additivity annotation
+    ax.text(0.98, 0.30,
+            f'Nesterov coupling is super-additive:\n'
+            f'momentum +{mom_gain:.2f} pp, look-ahead +{la_gain:.2f} pp\n'
+            f'sum {mom_gain+la_gain:.2f} pp $\\ll$ NAC +{nac_gain:.2f} pp',
             transform=ax.transAxes, fontsize=8.5, ha='right', va='bottom',
             bbox=dict(boxstyle='round,pad=0.4', facecolor='#E3F2FD', edgecolor=C['blue'], alpha=0.8))
 
@@ -286,18 +307,18 @@ def plot_ablation():
 # Figure 3: Momentum Coefficient — cleaner line chart
 # ================================================================
 # Momentum coefficient (mu) — VERIFIED from results/mu_scan/pgd_eps_4.0/nac_m*/seed_0.log
-# (CIFAR-10, PGD eps=4/255, K=2, 10 attack steps, seed=0)
+# (CIFAR-10, PGD eps=4/255, K=2, 10 attack steps, seed=0, bs=32, re-run 2026-09-03)
 def plot_mu():
     fig, ax = plt.subplots(figsize=(8, 5))
     mu = [0, 0.1, 0.5, 0.7, 0.9, 0.99]
-    acc = [7.07, 8.14, 12.32, 14.38, 16.47, 17.47]
+    acc = [7.05, 8.23, 12.75, 15.05, 17.17, 18.10]
 
     ax.plot(mu, acc, 'o-', color=C['blue'], lw=2.8, markersize=10,
             markerfacecolor='white', markeredgewidth=2.5, markeredgecolor=C['blue'])
-    ax.fill_between(mu, [7.07]*len(mu), acc, alpha=0.08, color=C['blue'])
-    ax.axhline(y=7.07, color=C['ttc'], lw=1.2, ls='--', alpha=0.6)
+    ax.fill_between(mu, [7.05]*len(mu), acc, alpha=0.08, color=C['blue'])
+    ax.axhline(y=7.05, color=C['ttc'], lw=1.2, ls='--', alpha=0.6)
 
-    ax.text(0.85, 7.07, 'TTC ($\\mu$=0): 7.07%', fontsize=8.5, color=C['ttc'], va='bottom', ha='right')
+    ax.text(0.85, 7.05, 'TTC ($\\mu$=0): 7.05%', fontsize=8.5, color=C['ttc'], va='bottom', ha='right')
 
     # Labels with better positioning
     offsets = [(0, 1.2), (0.1, 1.2), (0.5, 1.2), (0.7, -1.5), (0.9, -1.5), (0.99, -1.5)]
@@ -316,8 +337,8 @@ def plot_mu():
     ax.set_ylim(4, 24)
 
     # Best mu annotation
-    ax.annotate(f'$\\mu$=0.99: best (17.47%)\nbut $\\mu$=0.9 adopted\n(following Nesterov 1983)',
-                xy=(0.99, 17.47), xytext=(0.65, 22.5),
+    ax.annotate(f'$\\mu$=0.99: best (18.10%)\nbut $\\mu$=0.9 adopted\n(following Nesterov 1983)',
+                xy=(0.99, 18.10), xytext=(0.62, 22.5),
                 fontsize=8.5, color=C['blue'],
                 arrowprops=dict(arrowstyle='->', color=C['blue'], lw=1.2),
                 bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#DDDDDD', alpha=0.8))
@@ -408,9 +429,10 @@ def plot_pca():
 # ================================================================
 def plot_radar():
     datasets = ['CIFAR-10', 'CIFAR-100', 'STL-10', 'Flowers-102', 'DTD', 'ImageNet-100']
-    ttc_vals = [27.95, 14.68, 77.11, 38.62, 26.54, 46.79]
-    nac_vals = [30.94, 16.87, 80.33, 45.76, 29.68, 51.40]
-    gains = [2.99, 2.19, 3.22, 7.14, 3.14, 4.61]
+    # VERIFIED from results/eps1/pgd_eps_1.0 (bs=64) + results/imagenet_full/pgd_eps_1.0 (bs=32), seed 0
+    ttc_vals = [28.17, 14.48, 77.01, 38.90, 28.14, 45.17]
+    nac_vals = [31.27, 16.86, 79.71, 45.83, 31.01, 49.65]
+    gains = [3.10, 2.38, 2.70, 6.93, 2.87, 4.48]
 
     N = len(datasets)
     angles = np.linspace(0, 2*np.pi, N, endpoint=False).tolist()
@@ -448,9 +470,11 @@ def plot_radar():
 # ================================================================
 def plot_eps_trend():
     epsilons = ['1/255', '2/255', '4/255']
-    ttc_vals = [41.03, 28.95, 6.15]
-    nac_vals = [45.06, 38.80, 13.54]
-    gains = [4.03, 9.85, 7.39]
+    # VERIFIED: eps1 = results/eps1 (bs=64) + results/imagenet_full (bs=32);
+    # eps2/eps4 ImageNet from results/multi_eps (bs=32). 5-dataset average, seed 0.
+    ttc_vals = [40.75, 28.49, 6.17]
+    nac_vals = [44.66, 38.46, 13.42]
+    gains = [3.91, 9.97, 7.25]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.5))
 
@@ -489,30 +513,32 @@ def plot_eps_trend():
 # ================================================================
 # Figure 7: DOC comparison bars (Table DOC → grouped bar)
 # ================================================================
-# DOC comparison (CIFAR-10, PGD eps=4/255) — VERIFIED from results/compare/pgd_eps_4.0/*/seed_0.log
-# Config A (NAC default: K=2, alpha=1/255): TTC=7.07, NAC=16.47, DOC=4.44
-# Config B (DOC default: K=4, alpha=3/255): TTC=35.01, NAC=38.33, DOC=40.38
-# NOTE: At Config B, DOC outperforms NAC by +2.05pp in seed=0 run.
-# This is reported honestly in the updated paper; earlier draft's claim of NAC > DOC was
-# based on a lost earlier DOC run (37.74) that no longer reproduces.
+# DOC comparison (CIFAR-10, PGD eps=4/255, bs=32) — VERIFIED from current logs:
+# Config A (K=2, alpha=1/255): results/compare/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_0.log (2026-09-04)
+#   TTC=7.05, NAC=17.17, DOC=3.79
+# Config B (K=4, alpha=3/255): results/rerun_docB/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_{0,1,2}.log
+#   (3 seeds, 2026-09-10/12): TTC=34.59±0.27, NAC=40.01±0.17, DOC=37.45±0.42
+# DOC with published-default gating (tau=0.3, T=20): 40.41 (results/compare_doc_orig, 2026-06-14, single seed).
 def plot_doc_bars():
     methods = ['TTC', 'NAC (ours)', 'DOC']
-    config_a = [7.07, 16.47, 4.44]
-    config_b = [35.01, 38.33, 40.38]
+    config_a = [7.05, 17.17, 3.79]
+    config_b = [34.59, 40.01, 37.45]
+    config_b_err = [0.27, 0.17, 0.42]
 
     fig, ax = plt.subplots(figsize=(6, 5))
     x = np.arange(len(methods))
     w = 0.35
     bars_a = ax.bar(x - w/2, config_a, w, color=['#999999', C['blue'], '#DDDDDD'],
-                     edgecolor='white', linewidth=0.8, label='Config A\n(K=2, α=1/255)')
-    bars_b = ax.bar(x + w/2, config_b, w, color=[C['ttc'], C['blue'], C['orange']],
-                     edgecolor='white', linewidth=0.8, alpha=0.85, label='Config B\n(K=4, α=3/255)')
+                     edgecolor='white', linewidth=0.8, label='Config A\n(K=2, α=1/255, seed 0)')
+    bars_b = ax.bar(x + w/2, config_b, w, yerr=config_b_err, capsize=3,
+                     color=[C['ttc'], C['blue'], C['orange']],
+                     edgecolor='white', linewidth=0.8, alpha=0.85, label='Config B\n(K=4, α=3/255, 3 seeds)')
 
     for b in bars_a:
         ax.text(b.get_x()+b.get_width()/2, b.get_height()+0.8, f'{b.get_height():.1f}',
                 ha='center', fontsize=9, fontweight='bold')
-    for b in bars_b:
-        ax.text(b.get_x()+b.get_width()/2, b.get_height()+0.8, f'{b.get_height():.1f}',
+    for b, e in zip(bars_b, config_b_err):
+        ax.text(b.get_x()+b.get_width()/2, b.get_height()+e+0.8, f'{b.get_height():.1f}',
                 ha='center', fontsize=9, fontweight='bold')
 
     ax.set_xticks(x)

@@ -6,6 +6,11 @@ instead of standard PGD. Only two lines differ from TTC:
   1. Gradient computed at look-ahead position (x + delta + mu * velocity)
   2. Nesterov momentum update (velocity = mu * velocity + alpha * sign(grad))
 
+NOTE: This standalone module is a reference implementation for independent
+use. The AUTHORITATIVE implementation used for all reported paper numbers is
+`nac_counterattack` in `nac_fair_experiment.py` (slightly different tau
+computation and preprocessing). Do not mix numbers produced by the two.
+
 Classical NAG has O(1/k^2) convergence under convex smooth assumptions; here we only use the look-ahead update as a practical heuristic for the non-convex counterattack landscape.
 """
 import torch

@@ -1,0 +1,39 @@
+﻿Files already downloaded and verified
+[ttc_depth] batches=313 K_list=[1, 2, 3, 4] eps=4/255
+[ttc_depth] batch 10/313 elapsed=1.2min eta=37.1min
+[ttc_depth] batch 20/313 elapsed=1.8min eta=26.9min
+[ttc_depth] batch 30/313 elapsed=2.4min eta=23.1min
+[ttc_depth] batch 40/313 elapsed=3.1min eta=20.9min
+[ttc_depth] batch 50/313 elapsed=3.7min eta=19.3min
+[ttc_depth] batch 60/313 elapsed=4.3min eta=18.0min
+[ttc_depth] batch 70/313 elapsed=4.9min eta=17.0min
+[ttc_depth] batch 80/313 elapsed=5.5min eta=16.1min
+[ttc_depth] batch 90/313 elapsed=6.1min eta=15.2min
+[ttc_depth] batch 100/313 elapsed=6.7min eta=14.4min
+[ttc_depth] batch 110/313 elapsed=7.4min eta=13.6min
+[ttc_depth] batch 120/313 elapsed=8.0min eta=12.9min
+[ttc_depth] batch 130/313 elapsed=8.6min eta=12.1min
+[ttc_depth] batch 140/313 elapsed=9.2min eta=11.4min
+[ttc_depth] batch 150/313 elapsed=9.9min eta=10.7min
+[ttc_depth] batch 160/313 elapsed=10.5min eta=10.0min
+[ttc_depth] batch 170/313 elapsed=11.1min eta=9.3min
+[ttc_depth] batch 180/313 elapsed=11.7min eta=8.6min
+[ttc_depth] batch 190/313 elapsed=12.3min eta=8.0min
+[ttc_depth] batch 200/313 elapsed=13.0min eta=7.3min
+[ttc_depth] batch 210/313 elapsed=13.6min eta=6.7min
+[ttc_depth] batch 220/313 elapsed=14.2min eta=6.0min
+[ttc_depth] batch 230/313 elapsed=14.8min eta=5.3min
+[ttc_depth] batch 240/313 elapsed=15.4min eta=4.7min
+[ttc_depth] batch 250/313 elapsed=16.1min eta=4.0min
+[ttc_depth] batch 260/313 elapsed=16.7min eta=3.4min
+[ttc_depth] batch 270/313 elapsed=17.3min eta=2.8min
+[ttc_depth] batch 280/313 elapsed=17.9min eta=2.1min
+[ttc_depth] batch 290/313 elapsed=18.5min eta=1.5min
+[ttc_depth] batch 300/313 elapsed=19.1min eta=0.8min
+[ttc_depth] batch 310/313 elapsed=19.7min eta=0.2min
+[ttc_depth] batch 313/313 elapsed=19.9min eta=0.0min
+[ttc_depth] TTC K=1 eps=4/255 acc: 0.26%
+[ttc_depth] TTC K=2 eps=4/255 acc: 7.16%
+[ttc_depth] TTC K=3 eps=4/255 acc: 20.07%
+[ttc_depth] TTC K=4 eps=4/255 acc: 25.97%
+[ttc_depth] ALL DONE

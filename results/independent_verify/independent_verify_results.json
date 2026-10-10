@@ -1,0 +1,48 @@
+{
+  "generated_by": "scripts/collect_independent_verify.py (auto-parsed, no hand-copied numbers)",
+  "protocol": "results/independent_verify/00_PROTOCOL_preregistered.txt",
+  "tolerance_pp": {
+    "A": 0.2,
+    "B": 1.0,
+    "C": ">1.0"
+  },
+  "results": [
+    {
+      "method": "ttc",
+      "seed": 0,
+      "clean_acc": 85.07,
+      "adv_acc": 0.0,
+      "defended_acc": 7.05,
+      "gain": 7.05,
+      "paper_value_P1": 7.05,
+      "abs_diff_pp": 0.0,
+      "verdict": "A",
+      "paper_3seed_mean_P2": 7.1,
+      "paper_3seed_std_P2": 0.19,
+      "paper_source": "NAC_paper_sivp_8page.tex L268 (Discussion), same protocol bs=32 seed0; log results/compare/pgd_eps_4.0/ttc/seed_0.log 2026-09-04",
+      "log_path": "F:\\codex\\NAC\\nac_project\\results\\independent_verify\\pgd_eps_4.0\\ttc\\seed_0.log",
+      "run_start": "2026-09-13 22:35:02",
+      "run_end": "2026-09-13 22:46:47",
+      "config_check_issues": []
+    },
+    {
+      "method": "nac_m0.9",
+      "seed": 0,
+      "clean_acc": 85.07,
+      "adv_acc": 0.0,
+      "defended_acc": 17.17,
+      "gain": 17.17,
+      "paper_value_P1": 17.17,
+      "abs_diff_pp": 0.0,
+      "verdict": "A",
+      "paper_3seed_mean_P2": 17.15,
+      "paper_3seed_std_P2": 0.5,
+      "paper_source": "NAC_paper_sivp_8page.tex L268 (Discussion), same protocol bs=32 seed0; log results/compare/pgd_eps_4.0/nac_m0.9/seed_0.log 2026-09-04",
+      "log_path": "F:\\codex\\NAC\\nac_project\\results\\independent_verify\\pgd_eps_4.0\\nac_m0.9\\seed_0.log",
+      "run_start": "2026-09-13 22:47:06",
+      "run_end": "2026-09-13 22:59:40",
+      "config_check_issues": []
+    }
+  ],
+  "collection_problems": []
+}

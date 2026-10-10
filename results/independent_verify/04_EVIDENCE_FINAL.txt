@@ -1,0 +1,83 @@
+================================================================================
+最终独立复现验收 —— 原始证据清单（全部为 2026-09-13 22:34–23:10 实际生成）
+================================================================================
+
+[1] 完整 PowerShell 命令（逐字，两条 run 顺序独立执行）
+--------------------------------------------------------------------------------
+Baseline (TTC):
+python nac_fair_experiment.py --batch_size 32 --num_workers 2 --test_set cifar10 --test_attack_type pgd --test_eps 4 --test_numsteps 10 --test_stepsize 1 --ttc_eps 4 --ttc_numsteps 2 --ttc_stepsize 1 --tau_thres 0.2 --beta 2.0 --nac_momentum 0.9 --counterattack ttc --seed 0 --outdir ./results/independent_verify
+  （执行目录 f:\codex\NAC\nac_project，2026-09-13 22:34:38 启动）
+
+Ours (NAC):
+python nac_fair_experiment.py --batch_size 32 --num_workers 2 --test_set cifar10 --test_attack_type pgd --test_eps 4 --test_numsteps 10 --test_stepsize 1 --ttc_eps 4 --ttc_numsteps 2 --ttc_stepsize 1 --tau_thres 0.2 --beta 2.0 --nac_momentum 0.9 --counterattack nac --seed 0 --outdir ./results/independent_verify
+  （执行目录 f:\codex\NAC\nac_project，2026-09-13 22:46:49 启动）
+
+[2] 完整终端输出（未截断，Tee 留存）
+--------------------------------------------------------------------------------
+f:\codex\NAC\nac_project\results\independent_verify\console_ttc_full.txt  (25179 字节，324 行，含最终结果行)
+f:\codex\NAC\nac_project\results\independent_verify\console_nac_full.txt  (26763 字节，324 行，含最终结果行)
+
+[3] 新生成的实验 log（本次 fresh run 唯一数据源）
+--------------------------------------------------------------------------------
+f:\codex\NAC\nac_project\results\independent_verify\pgd_eps_4.0\ttc\seed_0.log
+f:\codex\NAC\nac_project\results\independent_verify\pgd_eps_4.0\nac_m0.9\seed_0.log
+日志内结果行（逐字）：
+  TTC: 2026-09-13 22:46:47,561 - INFO - cifar10: clean=85.07 | adv=0.00 | adv+ttc=7.05 | gain=7.05
+  NAC: 2026-09-13 22:59:40,630 - INFO - cifar10: clean=85.07 | adv=0.00 | adv+nac_m0.9=17.17 | gain=17.17
+
+[4] 自动生成的结果文件（脚本解析，无手抄数字）
+--------------------------------------------------------------------------------
+f:\codex\NAC\nac_project\results\independent_verify\independent_verify_results.json
+f:\codex\NAC\nac_project\results\independent_verify\independent_verify_results.csv
+生成脚本：f:\codex\NAC\nac_project\scripts\collect_independent_verify.py
+  （内含 Namespace 配置逐项核验，本次两条 run 全部 14 项固定条件 PASS）
+
+[5] 开始时间
+--------------------------------------------------------------------------------
+TTC run: 2026-09-13 22:34:38（_timeline.txt；日志首条时间戳 22:35:02）
+NAC run: 2026-09-13 22:46:49（_timeline.txt；日志首条时间戳 22:47:06）
+
+[6] 结束时间
+--------------------------------------------------------------------------------
+TTC run: 2026-09-13 22:46:49（exit 0，日志末条时间戳 22:46:47）
+NAC run: 2026-09-13 22:59:42（exit 0，日志末条时间戳 22:59:40）
+时间线原始记录：f:\codex\NAC\nac_project\results\independent_verify\_timeline.txt
+
+[7] GPU 型号
+--------------------------------------------------------------------------------
+NVIDIA GeForce RTX 4060 Laptop GPU（8188 MiB 总显存，driver 560.94，WDDM 模式）
+基线快照：f:\codex\NAC\nac_project\results\independent_verify\gpu_info_baseline.txt
+（运行前基线：桌面应用已占用 4184–4593 MiB）
+
+[8] GPU 最大显存占用（监控每 5 秒采样，414 个样本覆盖全部运行窗口）
+--------------------------------------------------------------------------------
+监控日志：f:\codex\NAC\nac_project\results\independent_verify\gpu_memory_monitor.log
+TTC 窗口 (22:34:38–22:46:49) 全卡峰值：7340 MiB @ 22:37:29
+  —— 含桌面应用基线，实验自身增量 ≈ 7340 − 4593 ≈ 2747 MiB
+NAC 窗口 (22:46:49–22:59:42) 全卡峰值：3243 MiB
+  —— 该时段桌面应用大量释放显存，全卡总量仍 ≥3243 MiB（实验占用 ~3.0 GB 为主体）
+与历史 benchmark 峰值 2943–2980 MiB/run 一致（结果文件 results/benchmark/）
+
+[9]–[12] 核心指标（CIFAR-10 test，10000 张，PGD-10 ε=4/255）
+--------------------------------------------------------------------------------
+方法        [9]clean   [10]adv   [11]defended   [12]gain
+TTC (bsl)    85.07      0.00       7.05          7.05
+NAC (ours)   85.07      0.00       17.17         17.17
+
+[一致性对比]（论文值已在运行前预登记于 00_PROTOCOL_preregistered.txt [P1]）
+--------------------------------------------------------------------------------
+方法      论文值   fresh run   绝对差值    判定
+TTC        7.05      7.05       0.00 pp     PASS（≤0.2）
+NAC       17.17     17.17       0.00 pp     PASS（≤0.2）
+论文参考来源：NAC_paper_sivp_8page.tex L268（同协议 bs=32 seed 0），
+原始日志 results/compare/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log（2026-09-04）
+
+================================================================================
+最终结论：A. 完全复现
+================================================================================
+依据：
+  1. 两条 fresh run 与论文同协议参考值偏差均为 0.00 pp（同种子确定性复现）；
+  2. collect 脚本 14 项固定条件 Namespace 逐项核验全部 PASS（协议无漂移）；
+  3. 全程未改动任何算法/模型/论文数字/历史日志，结果目录运行前不存在（全新）；
+  4. 所有数值由脚本从本次新日志自动解析（JSON/CSV），无手抄、无复制旧结果。
+================================================================================

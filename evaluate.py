@@ -79,6 +79,10 @@ def main():
     model = torch.nn.DataParallel(model).eval()
 
     # Load dataset
+    # NOTE: this quick tool uses the template 'a photo of a {}.' (force_template=True),
+    # whereas nac_fair_experiment.py uses 'This is a photo of a {}.' / dataset clip_prompts.
+    # Clean accuracies from the two scripts are therefore NOT directly comparable;
+    # use nac_fair_experiment.py for all reported numbers.
     ds, loader = load_val_dataset(args, args.dataset)
     texts = get_text_prompts_val([ds], [args.dataset],
                                  template='a photo of a {}.', force_template=True)[0]

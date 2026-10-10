@@ -1,0 +1,30 @@
+{
+  "done": true,
+  "n_batches_done": 313,
+  "K_list": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "eps_list": [
+    0.00392156862745098,
+    0.00784313725490196,
+    0.01568627450980392
+  ],
+  "grid": [
+    "nac_K1_eps0",
+    "nac_K2_eps0",
+    "nac_K3_eps0",
+    "nac_K4_eps0",
+    "nac_K1_eps1",
+    "nac_K2_eps1",
+    "nac_K3_eps1",
+    "nac_K4_eps1",
+    "nac_K1_eps2",
+    "nac_K2_eps2",
+    "nac_K3_eps2",
+    "nac_K4_eps2",
+    "ttc_K2_eps2"
+  ]
+}

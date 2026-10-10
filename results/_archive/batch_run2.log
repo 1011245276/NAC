@@ -1,0 +1,45 @@
+BATCH START: 2026-06-13 11:06:09.156790
+13 experiments
+
+
+[1/13] DTD eps=1 NAC seed 0  11:06:09
+  -> OK  1.5min
+
+[2/13] DTD eps=1 NAC seed 1  11:07:41
+  -> OK  1.8min
+
+[3/13] DTD eps=1 NAC seed 2  11:09:31
+  -> OK  1.5min
+
+[4/13] DTD eps=1 TTC seed 0  11:11:04
+  -> OK  1.8min
+
+[5/13] DTD eps=1 TTC seed 1  11:12:51
+  -> OK  1.7min
+
+[6/13] DTD eps=1 TTC seed 2  11:14:35
+  -> OK  1.7min
+
+[7/13] ImageNet eps=1 NAC seed 0  11:16:18
+  -> OK  6.9min
+
+[8/13] ImageNet eps=1 NAC seed 1  11:23:14
+  -> OK  6.8min
+
+[9/13] ImageNet eps=1 NAC seed 2  11:30:01
+  -> OK  6.7min
+
+[10/13] ImageNet eps=1 TTC seed 0  11:36:44
+  -> OK  6.8min
+
+[11/13] ImageNet eps=1 TTC seed 1  11:43:34
+  -> OK  6.4min
+
+[12/13] ImageNet eps=1 TTC seed 2  11:49:56
+  -> OK  6.3min
+
+[13/13] Momentum eps=1 C10+STL10 seed 0  11:56:15
+  -> OK  8.7min
+
+DONE: 2026-06-13 12:04:56.257893
+Failures: 0/13

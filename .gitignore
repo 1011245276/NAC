@@ -7,9 +7,6 @@ data/cifar-100-python/
 data/stl10_binary/
 data/tiny-imagenet-200/
 data/mini_imagenet100/
-results/*.txt
-results/*.log
-results/*/
 *.aux
 *.log
 *.out
@@ -24,3 +21,38 @@ data/flowers-102/
 data/imagenet-100/
 data/imagenet_folder/
 checkpoints/
+
+# ===========================================================================
+# results/  --  EVIDENCE TREE, DELIBERATELY TRACKED.  Do not blanket-ignore.
+#
+# History / why this block exists:
+#   Until 2026-10 this file contained
+#       results/*.txt
+#       results/*.log
+#       results/*/
+#   The third rule ignored every subdirectory, so ALL experiment logs were kept
+#   out of the repository.  A spot check of 43 log paths cited by the SIVP
+#   manuscript's Data Integrity Statement found 29 of them absent from a fresh
+#   clone -- including the matched-budget control JSONs, the three-seed
+#   ablation and AutoAttack logs, the rerun_docB DOC comparison, and the
+#   latency / clean-image benchmarks.  The manuscript states that "the exact
+#   log file backing every number is listed", so those rules directly
+#   contradicted the paper.
+#
+# Policy: every *.log and *.txt under results/ is evidence and is tracked.
+#         Only large, regenerable binary intermediates are excluded.
+#         The negations must come after the global "*.log" rule above.
+# ===========================================================================
+!results/**/*.log
+!results/**/*.txt
+
+# Large regenerable binary intermediates.  These are per-sample dump tensors
+# holding the raw arrays behind the pilot figures; they are re-created by
+# scripts/adaptive_signal_pilot.py, scripts/final_mechanism_verify.py,
+# scripts/geometry_extract.py, scripts/objective_experts.py and
+# scripts/fpt_signal_extract.py.  The scalar conclusions drawn from them are
+# recorded in the adjacent *_manifest.json / *.md files, which ARE tracked.
+results/**/*.npz
+results/**/*.npy
+results/**/*.pt
+results/**/*.pth
