@@ -1,0 +1,9 @@
+2026-10-11 13:18:38,471 - INFO - NAC Fair: method=ttc momentum=0.9 seed=0
+2026-10-11 13:18:38,472 - INFO - Namespace(evaluate=True, batch_size=64, num_workers=0, cache='./cache', test_set=['cifar100', 'STL10', 'flowers102', 'DTD'], test_attack_type='pgd', test_eps=0.00392156862745098, test_numsteps=10, test_stepsize=0.00392156862745098, model='clip', arch='vit_b32', method='null_patch', name='', prompt_size=30, add_prompt_size=0, root='./data', dataset='tinyImageNet', image_size=224, seed=0, num_seeds=1, victim_resume=None, outdir='./results/pilot_rerun', tau_thres=0.2, beta=2.0, ttc_eps=0.01568627450980392, ttc_numsteps=2, ttc_stepsize=0.00392156862745098, counterattack='ttc', nac_momentum=0.9, nac_clamp_lookahead=False, deterministic_batch_seed=False, DOC_eps=4.0, DOC_numsteps=2, DOC_stepsize=1.0, learnable_tau=0.155, temperature=75.0, imagenet_root='./data\\imagenet-100\\imagenet_folder', tinyimagenet_root='./data\\tiny-imagenet-200\\tiny-imagenet-200', current_seed=0)
+2026-10-11 13:18:40,916 - INFO - Counterattack: ttc | Attack: pgd
+2026-10-11 13:18:40,916 - INFO - tau_thres=0.2 beta=2.0
+2026-10-11 13:26:43,792 - INFO - cifar100: clean=57.16 | adv=0.23 | adv+ttc=14.15 | gain=13.92
+2026-10-11 13:31:13,371 - INFO - STL10: clean=96.40 | adv=11.01 | adv+ttc=76.67 | gain=65.66
+2026-10-11 13:36:54,358 - INFO - flowers102: clean=65.41 | adv=1.06 | adv+ttc=38.75 | gain=37.70
+2026-10-11 13:38:18,085 - INFO - DTD: clean=40.53 | adv=2.87 | adv+ttc=26.86 | gain=23.99
+2026-10-11 13:38:18,095 - INFO - SUMMARY: avg adv=3.79 | avg def=39.11 | avg gain=35.32
