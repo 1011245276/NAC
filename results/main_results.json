@@ -22,7 +22,7 @@
         "clean": 85.07,
         "ttc": 28.17,
         "nac": 31.27,
-        "gain_pp": 3.10,
+        "gain_pp": 3.1,
         "_multiseed": {
           "seeds": [
             0,
@@ -60,14 +60,14 @@
         "gain_pp": 2.38
       },
       "STL-10": {
-        "clean": 96.40,
+        "clean": 96.4,
         "ttc": 77.01,
         "nac": 79.71,
-        "gain_pp": 2.70
+        "gain_pp": 2.7
       },
       "Flowers-102": {
         "clean": 65.41,
-        "ttc": 38.90,
+        "ttc": 38.9,
         "nac": 45.83,
         "gain_pp": 6.93
       },
@@ -131,7 +131,7 @@
       "_src": "results/final/pgd_eps_4.0/ttc/seed_0.log"
     },
     "nac_4": {
-      "cifar10": 37.70,
+      "cifar10": 37.7,
       "stl10": 66.01,
       "_src": "results/final/pgd_eps_4.0/nac_m0.9/seed_0.log"
     },
@@ -143,14 +143,22 @@
     "ttc": {
       "clean": 85.07,
       "adv": 0.01,
-      "defended_runs": [7.43, 7.54, 7.61],
+      "defended_runs": [
+        7.43,
+        7.54,
+        7.61
+      ],
       "defended_mean": 7.53,
       "defended_std": 0.09
     },
     "nac": {
       "clean": 85.07,
       "adv": 0.01,
-      "defended_runs": [11.32, 11.14, 11.38],
+      "defended_runs": [
+        11.32,
+        11.14,
+        11.38
+      ],
       "defended_mean": 11.28,
       "defended_std": 0.12
     },
@@ -217,40 +225,64 @@
       "defended": 5.38,
       "adv": 0.0,
       "clean": 85.07,
-      "defended_runs": [5.38, 5.44, 5.76],
+      "defended_runs": [
+        5.38,
+        5.44,
+        5.76
+      ],
       "defended_mean": 5.53,
-      "defended_std": 0.20,
+      "defended_std": 0.2,
       "_src": "results/optimizers/pgd_eps_4.0/adam/seed_{0,1,2}.log"
     },
     "adagrad": {
-      "defended_runs": [6.75, 6.48, 6.58],
-      "defended_mean": 6.60,
+      "defended_runs": [
+        6.75,
+        6.48,
+        6.58
+      ],
+      "defended_mean": 6.6,
       "defended_std": 0.14,
       "_src": "results/optimizers/pgd_eps_4.0/adagrad/seed_{0,1,2}.log"
     },
     "rmsprop_bias_uncorrected": {
-      "defended_runs": [31.39, 31.42, 31.53],
+      "defended_runs": [
+        31.39,
+        31.42,
+        31.53
+      ],
       "defended_mean": 31.45,
       "defended_std": 0.07,
       "_src": "results/optimizers/pgd_eps_4.0/rmsprop/seed_{0,1,2}.log",
       "_note": "EXCEEDS NAC (17.15) by +14.30pp at identical K, alpha, eps, bs and seeds. Its effective per-coordinate step is inflated because RMSProp's second-moment estimate is not bias-corrected, so this row is NOT a like-for-like comparison. See rmsprop_bias_corrected."
     },
     "rmsprop_bias_corrected": {
-      "defended_runs": [8.65, 8.44, 8.85],
+      "defended_runs": [
+        8.65,
+        8.44,
+        8.85
+      ],
       "defended_mean": 8.65,
       "defended_std": 0.21,
       "_src": "results/optimizers_stepsize/pgd_eps_4.0/rmsprop_bc/seed_{0,1,2}.log",
       "_note": "Bias-corrected control (effective step ~= alpha). Isolates the inflated-step artefact: 31.45 -> 8.65."
     },
     "ttc": {
-      "defended_runs": [7.05, 6.75, 6.84],
+      "defended_runs": [
+        7.05,
+        6.75,
+        6.84
+      ],
       "defended_mean": 6.88,
       "defended_std": 0.15,
       "_src": "results/mu_scan/pgd_eps_4.0/ttc/seed_{0,1,2}.log",
       "_note": "bs=32 generation, to match the optimizers/ runs. The bs=64 ablation generation gives 7.10 +/- 0.19."
     },
     "nac": {
-      "defended_runs": [17.17, 17.34, 16.93],
+      "defended_runs": [
+        17.17,
+        17.34,
+        16.93
+      ],
       "defended_mean": 17.15,
       "defended_std": 0.21,
       "_src": "results/mu_scan/pgd_eps_4.0/nac_m0.9/seed_{0,1,2}.log",
@@ -259,13 +291,21 @@
     "stepsize_control_alpha2": {
       "_purpose": "Controls the step-size confound: at K=2 with alpha=1/255 the counterattack can only travel 2/255 inside a 4/255 budget, i.e. the baseline never reaches the constraint boundary. This block doubles alpha.",
       "ttc": {
-        "defended_runs": [22.53, 22.92, 22.50],
+        "defended_runs": [
+          22.53,
+          22.92,
+          22.5
+        ],
         "defended_mean": 22.65,
         "defended_std": 0.23,
         "_src": "results/optimizers_stepsize/pgd_eps_4.0/ttc/seed_{0,1,2}.log"
       },
       "nac": {
-        "defended_runs": [34.10, 33.84, 34.00],
+        "defended_runs": [
+          34.1,
+          33.84,
+          34.0
+        ],
         "defended_mean": 33.98,
         "defended_std": 0.13,
         "_src": "results/optimizers_stepsize/pgd_eps_4.0/nac_m0.9/seed_{0,1,2}.log"
@@ -274,13 +314,17 @@
     },
     "K4_control": {
       "rmsprop": {
-        "defended_runs": [38.10, 37.03, 37.37],
-        "defended_mean": 37.50,
+        "defended_runs": [
+          38.1,
+          37.03,
+          37.37
+        ],
+        "defended_mean": 37.5,
         "defended_std": 0.55,
         "_src": "results/optimizers_stepsize/pgd_eps_4.0/rmsprop/seed_{0,1,2}.log"
       },
       "nac_K4_seed0": {
-        "defended": 37.70,
+        "defended": 37.7,
         "_src": "results/final/pgd_eps_4.0/nac_m0.9/seed_0.log"
       },
       "_note": "At K=4 a generic adaptive optimizer reaches 37.50 +/- 0.55 vs NAC's 37.70 (seed 0) -- statistically indistinguishable. NAC's optimizer claim is therefore confined to the small-K regime; it must not be stated as 'NAC is the best optimizer tested'."
@@ -296,13 +340,13 @@
       "nac": 16.77
     },
     "ViT-B/32_stl10": {
-      "clean": 96.40,
+      "clean": 96.4,
       "ttc": 17.52,
       "nac": 34.17
     },
     "ViT-B/16_cifar10": {
       "clean": 87.61,
-      "ttc": 7.70,
+      "ttc": 7.7,
       "nac": 13.27,
       "_src": "cross_model/nac_m0.9/seed_0.log ViT-B/16 section"
     },
@@ -377,9 +421,16 @@
       "T": 75.0,
       "defended": 37.45,
       "std": 0.42,
-      "per_seed": [37.92, 37.13, 37.29],
+      "per_seed": [
+        37.92,
+        37.13,
+        37.29
+      ],
       "verified": true,
-      "_src": ["results/doc_test/pgd_eps_4.0/doc/seed_0.log", "results/rerun_docB/pgd_eps_4.0/doc/seed_{0,1,2}.log"],
+      "_src": [
+        "results/doc_test/pgd_eps_4.0/doc/seed_0.log",
+        "results/rerun_docB/pgd_eps_4.0/doc/seed_{0,1,2}.log"
+      ],
       "_note": "Seed-0 config reproduced 37.92 in two independent runs (2026-06-14 and 2026-09-10). Three-seed mean 37.45±0.42 added 2026-09-12. An earlier draft cited 40.38 from a now-overwritten log; superseded."
     }
   },
@@ -513,7 +564,7 @@
         27.34,
         27.71
       ],
-      "ttc_mean": 27.30,
+      "ttc_mean": 27.3,
       "ttc_std": 0.43,
       "gain_mean": 2.55,
       "_src": "results/pilot_rerun/pgd_eps_1.0/{ttc,nac_m0.9}/seed_{0,1,2}.log",
@@ -547,14 +598,23 @@
         "standard_momentum": "8.81+/-0.19",
         "pure_lookahead_K2": "7.93+/-0.20",
         "NAC_nesterov_K2": "17.15+/-0.50",
-        "gains_vs_ttc": {"momentum": 1.71, "pure_la": 0.83, "NAC": 10.05, "sum_components": 2.54}
+        "gains_vs_ttc": {
+          "momentum": 1.71,
+          "pure_la": 0.83,
+          "NAC": 10.05,
+          "sum_components": 2.54
+        }
       },
       "STL-10": {
         "TTC_no_momentum": "17.65+/-0.84",
         "standard_momentum": "21.99+/-0.73",
         "pure_lookahead_K2": "20.06+/-0.48",
         "NAC_nesterov_K2": "34.89+/-0.55",
-        "gains_vs_ttc": {"momentum": 4.34, "pure_la": 2.41, "NAC": 17.24}
+        "gains_vs_ttc": {
+          "momentum": 4.34,
+          "pure_la": 2.41,
+          "NAC": 17.24
+        }
       },
       "_note": "This three-seed block is the caliber used by the paper's tab:ablation (+1.71/+0.83/+10.05pp). The seed_0 single-run block below is a different caliber (+1.67/+0.99/+9.75pp, sum 2.66); never mix the two in one sentence."
     },
@@ -578,7 +638,7 @@
       "0.5": 12.75,
       "0.7": 15.05,
       "0.9": 17.17,
-      "0.99": 18.10
+      "0.99": 18.1
     },
     "_multiseed_means": {
       "0.1": "8.10+/-0.15",
@@ -649,18 +709,30 @@
       "TTC": {
         "defended": 34.59,
         "std": 0.27,
-        "per_seed": [34.91, 34.43, 34.44]
+        "per_seed": [
+          34.91,
+          34.43,
+          34.44
+        ]
       },
       "NAC": {
         "defended": 40.01,
         "std": 0.17,
-        "per_seed": [39.84, 40.18, 40.00],
+        "per_seed": [
+          39.84,
+          40.18,
+          40.0
+        ],
         "mu": 0.9
       },
       "DOC": {
         "defended": 37.45,
         "std": 0.42,
-        "per_seed": [37.92, 37.13, 37.29],
+        "per_seed": [
+          37.92,
+          37.13,
+          37.29
+        ],
         "tau": 0.155,
         "temp": 75.0
       },
@@ -672,11 +744,11 @@
     "description": "Zero-shot accuracy on CLEAN images before/after the counterattack.",
     "cifar10": {
       "clean": 85.06,
-      "clean_ttc": 81.30,
+      "clean_ttc": 81.3,
       "clean_nac": 81.36
     },
     "stl10": {
-      "clean": 96.40,
+      "clean": 96.4,
       "clean_ttc": 95.96,
       "clean_nac": 95.88
     }
@@ -715,5 +787,23 @@
       "results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/_archive/ (4 dead logs, def~1%)"
     ],
     "_note": "Retained: results/multiseed_all|_dtd|_imagenet/ (support the other 5 datasets of the supplementary pilot table) and results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/seed_{0,1,2}.log (Table 1 + pilot evidence)."
+  },
+  "clamp_lookahead_control": {
+    "_source": "results/clamp_lookahead/pgd_eps_4.0/nac_m0.9/seed_0.log (K=4) and _archive/seed_0_20261012_174712.log (K=2, archived when the K=4 run reused the same outdir; distinguishable by ttc_numsteps in the Namespace line). Both re-run 2026-10-12 after fixing a scalar-clamp bug in the clamp_lookahead branch (never exercised before).",
+    "description": "CIFAR-10, ViT-B/32, PGD eps_att=4/255, alpha=1/255, bs=32, seed 0. Control: look-ahead point projected into the eps-ball and clamped to [0,1] before encoding (--nac_clamp_lookahead), isolating how much of NAC gain comes from out-of-budget gradient evaluation.",
+    "K2": {
+      "nac_default": 17.59,
+      "nac_clamped": 15.23,
+      "ttc": 7.16,
+      "gain_retained_frac": 0.77
+    },
+    "K4": {
+      "nac_default": 37.52,
+      "nac_clamped": 36.44,
+      "ttc": 26.0,
+      "gain_retained_frac": 0.91
+    },
+    "conclusion": "Most of the gain is retained with the look-ahead point strictly inside the feasible set: acceleration, not out-of-budget information, is the primary mechanism; out-of-budget evaluation is a secondary amplifier. Closes the fairness gap flagged in the code (excursion up to 3.25x eps_def).",
+    "_note": "Single seed (0), same code generation as final_verify (nac_counterattack body unchanged; clamp branch default-off does not affect the default-path numbers). References: arxiv L456, 8page L266, single_preview L266, chinese L266."
   }
 }

@@ -65,8 +65,8 @@ def parse_options():
     parser.add_argument('--ttc_stepsize', type=float, default=1.)
     # NAC config
     parser.add_argument('--counterattack', type=str, default='nac',
-                        choices=['ttc', 'nac', 'doc', 'momentum', 'pure_la', 'adam', 'lbfgs', 'adagrad', 'rmsprop', 'rmsprop_bc'],
-                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, momentum=standard momentum, pure_la=pure look-ahead without momentum, adam=Adam optimizer, adagrad/rmsprop=adaptive solver-study baselines, rmsprop_bc=bias-corrected RMSProp (effective step ~= alpha, controls for RMSProp uncorrected early-step amplification)')
+                        choices=['ttc', 'nac', 'doc', 'nac_doc', 'nac_doc_norm', 'nac_doc_orth', 'nac_doc_gate', 'momentum', 'pure_la', 'adam', 'lbfgs', 'adagrad', 'rmsprop', 'rmsprop_bc'],
+                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, nac_doc=NAC+DOC combined, nac_doc_norm/orth/gate=component ablations, momentum=standard momentum, pure_la=pure look-ahead without momentum, adam=Adam optimizer, adagrad/rmsprop=adaptive solver-study baselines, rmsprop_bc=bias-corrected RMSProp')
     parser.add_argument('--nac_momentum', type=float, default=0.9)
     parser.add_argument('--nac_clamp_lookahead', action='store_true', default=False,
                         help='EXPERIMENTAL CONTROL (default off = current published behaviour). '
@@ -187,7 +187,10 @@ def nac_counterattack(model, X, prompter, add_prompter, alpha, attack_iters,
             la_offset = delta + nac_momentum * velocity
             la_offset = torch.clamp(la_offset, min=-epsilon, max=epsilon)
             look_ahead = X + la_offset
-            look_ahead = clamp(look_ahead, lower_limit, upper_limit)
+            # NOTE: use torch.clamp with scalars, NOT the custom clamp() helper --
+            # the helper's torch.min(X, upper) misparses a Python-scalar upper as a
+            # dim reduction (returns a named tuple, crashes torch.max).
+            look_ahead = torch.clamp(look_ahead, min=float(lower_limit), max=float(upper_limit))
         prompted_images = prompter(clip_img_preprocessing(look_ahead))
         X_att_reps = model.module.encode_image(prompted_images, prompt_token)
 
@@ -857,6 +860,125 @@ def doc_counterattack(args, model, X, prompter, add_prompter, alpha, attack_iter
     return Delta
 
 
+def nac_doc_counterattack(args, model, X, prompter, add_prompter,
+                          alpha, attack_iters, norm="l_inf", epsilon=0,
+                          beta=None, clip_visual=None, nac_momentum=0.9,
+                          doc_norm=True, doc_orth=True, doc_gate=True):
+    """NAC+DOC: Nesterov look-ahead + DOC gradient processing + DOC soft gating.
+
+    Combines:
+      NAC: gradient at look-ahead position (X + delta + mu * velocity)
+           Nesterov velocity update: v = mu*v + alpha*sign(modified_grad)
+      DOC components (individually togglable for ablation):
+        doc_norm:  gradient normalization (default True)
+        doc_orth:  orthogonal noise injection (default True, weight 0.05)
+        doc_gate:  learnable tau soft gating (default True)
+
+    Component ablation configs:
+      nac_doc_full:  doc_norm=True,  doc_orth=True,  doc_gate=True
+      nac_doc_norm:  doc_norm=True,  doc_orth=False, doc_gate=False
+      nac_doc_orth:  doc_norm=False, doc_orth=True,  doc_gate=False
+      nac_doc_gate:  doc_norm=False, doc_orth=False, doc_gate=True
+    """
+    lower_limit, upper_limit = 0, 1
+    def clamp(X, lo, hi):
+        return torch.max(torch.min(X, hi), lo)
+
+    delta = torch.zeros_like(X)
+    if epsilon <= 0.:
+        return delta
+    delta.uniform_(-epsilon, epsilon)
+    delta = clamp(delta, lower_limit - X, upper_limit - X)
+    delta.requires_grad = True
+    if attack_iters == 0:
+        return delta.data
+
+    diff_ratio = compute_tau_directional(clip_visual, X, eps=epsilon, trials=5) if clip_visual is not None else None
+
+    tunable_param_names = []
+    for n, p in model.module.named_parameters():
+        if p.requires_grad:
+            tunable_param_names.append(n)
+            p.requires_grad = False
+
+    prompt_token = add_prompter()
+    with torch.no_grad():
+        X_ori_reps = model.module.encode_image(prompter(clip_img_preprocessing(X)), prompt_token)
+        X_ori_norm = torch.norm(X_ori_reps, dim=-1)
+
+    deltas_per_step = [delta.data.clone()]
+    velocity = torch.zeros_like(delta)  # NAC velocity
+    learnable_tau = args.learnable_tau
+    temperature = args.temperature
+
+    for step_id in range(attack_iters):
+        # === NAC: look-ahead position ===
+        look_ahead = X + delta + nac_momentum * velocity
+        prompted_images = prompter(clip_img_preprocessing(look_ahead))
+        X_att_reps = model.module.encode_image(prompted_images, prompt_token)
+
+        if step_id == 0 and diff_ratio is None:
+            feature_diff = X_att_reps - X_ori_reps
+            diff_ratio = torch.norm(feature_diff, dim=-1) / X_ori_norm
+
+        # === DOC: learnable tau soft gating ===
+        scheme_weight = compute_scheme_weight(diff_ratio, learnable_tau, temperature)
+        scheme_weight = scheme_weight.clamp(min=0., max=1.)
+
+        # === DOC: gradient normalization + orthogonal noise ===
+        l2_loss = (((X_att_reps - X_ori_reps) ** 2).sum(1)).sum()
+        grad = torch.autograd.grad(l2_loss, delta, retain_graph=False, create_graph=False)[0]
+
+        if doc_norm:
+            grad_norm = torch.norm(grad.view(grad.size(0), -1), dim=1).view(-1, 1, 1, 1)
+            grad = grad / (grad_norm + 1e-8)
+
+        if doc_orth:
+            orth_noise = torch.randn_like(grad)
+            inner = (grad * orth_noise).view(grad.size(0), -1).sum(dim=1).view(-1, 1, 1, 1)
+            orth_noise = orth_noise - inner * grad
+            orth_noise = orth_noise / (torch.norm(orth_noise.view(orth_noise.size(0), -1), dim=1).view(-1, 1, 1, 1) + 1e-8)
+            grad = grad + 0.05 * orth_noise
+
+        # === NAC: Nesterov velocity update (NOT DOC's Polyak momentum) ===
+        velocity = nac_momentum * velocity + alpha * torch.sign(grad)
+        d = delta.data + velocity
+
+        if norm == "l_inf":
+            d = torch.clamp(d, min=-epsilon, max=epsilon)
+        d = clamp(d, lower_limit - X, upper_limit - X)
+        delta.data = d
+        deltas_per_step.append(delta.data.clone())
+
+    # === Weighted step averaging ===
+    Delta = torch.stack(deltas_per_step, dim=1)
+    raw_weights = torch.arange(attack_iters + 1).float().unsqueeze(0).expand(X.size(0), -1).to(X.device)
+
+    if doc_gate:
+        # DOC: soft weighting with learnable tau scheme_weight
+        soft_weights = torch.exp(raw_weights * beta)
+        soft_weights = soft_weights / soft_weights.sum(dim=1, keepdim=True)
+        one_hot_first = torch.zeros_like(soft_weights)
+        one_hot_first[:, 0] = 1.
+        weights = scheme_weight.unsqueeze(1) * soft_weights + (1 - scheme_weight).unsqueeze(1) * one_hot_first
+    else:
+        # TTC-style hard scheme_sign weighting
+        scheme_sign = (args.tau_thres - diff_ratio).sign() if diff_ratio is not None else torch.ones(X.size(0), device=X.device)
+        weights = torch.exp(scheme_sign.view(-1, 1) * raw_weights * beta)
+        weights = weights / weights.sum(dim=1, keepdim=True)
+        weights_hard = torch.zeros_like(weights)
+        weights_hard[:, 0] = 1.
+        weights = torch.where(scheme_sign.unsqueeze(1) > 0, weights, weights_hard)
+
+    weights = weights.view(X.size(0), attack_iters + 1, 1, 1, 1)
+    Delta = (weights * Delta).sum(dim=1)
+
+    for n, p in model.module.named_parameters():
+        if n in tunable_param_names:
+            p.requires_grad = True
+    return Delta
+
+
 def validate(args, val_dataset_name, model, model_text, model_image,
              prompter, add_prompter, criterion, visual_model_orig=None, clip_visual=None):
     tag = f"{args.counterattack}" + (f"_m{args.nac_momentum}" if args.counterattack == 'nac' else "")
@@ -1022,6 +1144,41 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         norm='l_inf', epsilon=ttc_eps_val,
                         beta=args.beta, clip_visual=clip_visual
                     )
+                elif args.counterattack == 'nac_doc':
+                    delta_def = nac_doc_counterattack(
+                        args, model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        beta=args.beta, clip_visual=clip_visual,
+                        nac_momentum=args.nac_momentum
+                    )
+                elif args.counterattack == 'nac_doc_norm':
+                    delta_def = nac_doc_counterattack(
+                        args, model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        beta=args.beta, clip_visual=clip_visual,
+                        nac_momentum=args.nac_momentum,
+                        doc_norm=True, doc_orth=False, doc_gate=False
+                    )
+                elif args.counterattack == 'nac_doc_orth':
+                    delta_def = nac_doc_counterattack(
+                        args, model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        beta=args.beta, clip_visual=clip_visual,
+                        nac_momentum=args.nac_momentum,
+                        doc_norm=False, doc_orth=True, doc_gate=False
+                    )
+                elif args.counterattack == 'nac_doc_gate':
+                    delta_def = nac_doc_counterattack(
+                        args, model, attacked.data, prompter, add_prompter,
+                        alpha=ttc_stepsize_val, attack_iters=args.ttc_numsteps,
+                        norm='l_inf', epsilon=ttc_eps_val,
+                        beta=args.beta, clip_visual=clip_visual,
+                        nac_momentum=args.nac_momentum,
+                        doc_norm=False, doc_orth=False, doc_gate=True
+                    )
                 elif args.counterattack == 'nac':
                     delta_def = nac_counterattack(
                         model, attacked.data, prompter, add_prompter,
@@ -1084,7 +1241,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 def main():
     args = parse_options()
 
-    tag = f"{args.counterattack}" + (f"_m{args.nac_momentum}" if args.counterattack == 'nac' else "")
+    tag = f"{args.counterattack}" + (f"_m{args.nac_momentum}" if args.counterattack in ('nac', 'nac_doc') else "")
     outdir = os.path.join(args.outdir, f"{args.test_attack_type}_eps_{args.test_eps}", tag)
     os.makedirs(outdir, exist_ok=True)
 
