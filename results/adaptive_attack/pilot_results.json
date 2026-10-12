@@ -1,0 +1,23 @@
+{
+  "config": "CIFAR-10, eps_att=4/255, PGD-10 step=1/255, K=2, alpha=1/255, eps_def=4/255, bs=32, seed=0, first-order defense-aware adaptive PGD",
+  "results": {
+    "ttc": {
+      "adv": 0.15,
+      "defended": 0.92,
+      "gain": 0.77,
+      "elapsed_min": 29.7
+    },
+    "nac": {
+      "adv": 0.39,
+      "defended": 2.52,
+      "gain": 2.13,
+      "elapsed_min": 29.2
+    },
+    "doc": {
+      "adv": 0.1,
+      "defended": 0.59,
+      "gain": 0.49,
+      "elapsed_min": 29.3
+    }
+  }
+}

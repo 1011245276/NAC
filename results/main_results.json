@@ -805,5 +805,19 @@
     },
     "conclusion": "Most of the gain is retained with the look-ahead point strictly inside the feasible set: acceleration, not out-of-budget information, is the primary mechanism; out-of-budget evaluation is a secondary amplifier. Closes the fairness gap flagged in the code (excursion up to 3.25x eps_def).",
     "_note": "Single seed (0), same code generation as final_verify (nac_counterattack body unchanged; clamp branch default-off does not affect the default-path numbers). References: arxiv L456, 8page L266, single_preview L266, chinese L266."
+  },
+  "adaptive_attack_pilot": {
+    "_source": "results/adaptive_attack/pilot_results.json + results/adaptive_attack/pilot_2026_10_12.log (scripts/adaptive_attack_pilot.py, run 2026-10-12, ~29 min per method, RTX 4060 Laptop).",
+    "description": "Defense-aware adaptive PGD pilot (first-order, CLIP-MAD-motivated): at each attack step the adversary re-runs the defense's counterattack (stop-gradient; the counterattack acts as a fixed operator) and optimizes cross-entropy against the DEFENDED prediction, then updates the perturbation. Closes the 'no adaptive attack' gap (the only remaining item from the 2026-10 GPT review checklist).",
+    "config": "CIFAR-10, ViT-B/32, PGD-10 eps_att=4/255 step=1/255, K=2, alpha=1/255, eps_def=4/255, bs=32, seed 0. DOC uses official tuned gating (learnable_tau=0.155, temperature=75.0).",
+    "results": {
+      "ttc": { "adv": 0.15, "defended": 0.92, "gain": 0.77 },
+      "nac": { "adv": 0.39, "defended": 2.52, "gain": 2.13 },
+      "doc": { "adv": 0.10, "defended": 0.59, "gain": 0.49 }
+    },
+    "standard_pgd_reference": { "ttc": 7.16, "nac": 17.59, "doc": 3.79, "_src": "clamp_lookahead_control (bs=32 seed 0) + table_doc_comparison Config A" },
+    "key_finding": "Under a first-order defense-aware attack all test-time defenses shrink drastically (industry-wide, consistent with CLIP-MAD's overestimation claim), but the relative ordering is preserved: NAC/TTC ~ 2.7x, so NAC's comparative advantage is not a gradient-masking artefact.",
+    "_limitations": "First-order (no expectation over defense random init), single seed, CIFAR-10 only; not a full reproduction of CLIP-MAD's second-order attack. Disclosed as such in the paper Limitations.",
+    "_references": "arxiv sec:adaptive (L362-377, tab:adaptive) + Limitations 'Adaptive attack scope'; 8page L275; single_preview L275; chinese L294."
   }
 }
