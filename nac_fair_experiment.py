@@ -30,6 +30,15 @@ from utils import *
 from attacks import *
 from func import clip_img_preprocessing, multiGPU_CLIP, multiGPU_CLIP_image_logits
 
+# Faithful port of the official MAC multi-view guided counterattack.
+# See mac_port.py: the algorithm is copied verbatim from external/MAC/code/mac.py.
+from mac_port import (
+    build_aug as mac_build_aug,
+    build_views as mac_build_views,
+    aggregate_views as mac_aggregate_views,
+    multiview_guided_counterattack as mac_guided_counterattack,
+)
+
 
 def parse_options():
     parser = argparse.ArgumentParser()
@@ -65,8 +74,35 @@ def parse_options():
     parser.add_argument('--ttc_stepsize', type=float, default=1.)
     # NAC config
     parser.add_argument('--counterattack', type=str, default='nac',
-                        choices=['ttc', 'nac', 'doc', 'nac_doc', 'nac_doc_norm', 'nac_doc_orth', 'nac_doc_gate', 'momentum', 'pure_la', 'adam', 'lbfgs', 'adagrad', 'rmsprop', 'rmsprop_bc'],
-                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, nac_doc=NAC+DOC combined, nac_doc_norm/orth/gate=component ablations, momentum=standard momentum, pure_la=pure look-ahead without momentum, adam=Adam optimizer, adagrad/rmsprop=adaptive solver-study baselines, rmsprop_bc=bias-corrected RMSProp')
+                        choices=['ttc', 'nac', 'doc', 'nac_doc', 'nac_doc_norm', 'nac_doc_orth', 'nac_doc_gate', 'mac', 'momentum', 'pure_la', 'adam', 'lbfgs', 'adagrad', 'rmsprop', 'rmsprop_bc'],
+                        help='ttc=original TTC, nac=nesterov TTC, doc=DOC, nac_doc=NAC+DOC combined, nac_doc_norm/orth/gate=component ablations, mac=faithful port of the MAC multi-view guided counterattack (see mac_port.py), momentum=standard momentum, pure_la=pure look-ahead without momentum, adam=Adam optimizer, adagrad/rmsprop=adaptive solver-study baselines, rmsprop_bc=bias-corrected RMSProp')
+    # MAC config (port of "Multi-view Adversarial Counterattack"; see mac_port.py)
+    parser.add_argument('--mac_eps', type=float, default=8.0,
+                        help='MAC counterattack budget (in 255ths), divided by 255 in main(). '
+                             'Published value: 8. mac_stepsize is fixed at mac_eps/4, as in official mac.py.')
+    parser.add_argument('--mac_numsteps', type=int, default=4, help='MAC PGD inner steps (published: 4)')
+    parser.add_argument('--mac_num_views', type=int, default=2,
+                        help='MAC number of views per image including the original (published: 2)')
+    parser.add_argument('--mac_tau_thres', type=float, default=0.7,
+                        help='MAC corruption-degree threshold for the soft weight (published: 0.7)')
+    parser.add_argument('--mac_tau_temp', type=float, default=0.01,
+                        help='MAC soft-weight sigmoid temperature (published: 0.01)')
+    parser.add_argument('--mac_official_mirror', action='store_true', default=False,
+                        help='DIAGNOSTIC (MAC only). Reproduce official mac.py per-batch GPU op order '
+                             'exactly: classify the multi-view clean-MAC pass (instead of the standard '
+                             'clean accuracy) and skip the extra standard adversarial forward. Used only '
+                             'to prove the port is faithful; the reported clean/adv columns are then not '
+                             'the standard ones.')
+    parser.add_argument('--prompt_template', type=str, default=None,
+                        help='If set, override the per-dataset text prompts with this template '
+                             '(e.g. "A photo of a {}."). Used only to reproduce a baseline under its '
+                             'published prompt; without it the dataset\'s canonical prompts are used.')
+    parser.add_argument('--prompt_texts_file', type=str, default=None,
+                        help='If set, override the text prompts with the exact JSON list of strings '
+                             'in this file (one per class, in class order). Used to reproduce a '
+                             'baseline under its exact class names when the class-name spelling '
+                             'differs between codebases (e.g. MAC/CoOp "polka dotted" vs '
+                             '"polka-dotted").')
     parser.add_argument('--nac_momentum', type=float, default=0.9)
     parser.add_argument('--nac_clamp_lookahead', action='store_true', default=False,
                         help='EXPERIMENTAL CONTROL (default off = current published behaviour). '
@@ -993,6 +1029,21 @@ def validate(args, val_dataset_name, model, model_text, model_image,
         val_dataset, val_loader = load_val_dataset(args, val_dataset_name[cnt])
         dataset_name = val_dataset_name[cnt]
         texts = get_text_prompts_val([val_dataset], [dataset_name])[0]
+        # Optional: force a single prompt template (used to reproduce a baseline
+        # under its published prompt, e.g. MAC's "A photo of a {}.").
+        if getattr(args, 'prompt_template', None):
+            texts = get_text_prompts_val([val_dataset], [dataset_name],
+                                         template=args.prompt_template, force_template=True)[0]
+        # Optional: use an exact list of prompt strings (one per class, in class
+        # order) to reproduce a baseline whose class-name spelling differs.
+        if getattr(args, 'prompt_texts_file', None):
+            import json as _json
+            with open(args.prompt_texts_file, 'r') as _f:
+                _texts = _json.load(_f)
+            assert len(_texts) == len(texts), (
+                f"prompt_texts_file has {len(_texts)} entries but dataset has {len(texts)} classes"
+            )
+            texts = _texts
 
         binary = ['PCAM', 'hateful_memes']
         attacks_to_run = ['apgd-ce', 'apgd-dlr']
@@ -1014,6 +1065,11 @@ def validate(args, val_dataset_name, model, model_text, model_image,
         # counterattack reproducible per sample regardless of batch_size.
         sample_offset = 0
 
+        # MAC port setup. Official mac.py builds the augmentation pipeline once
+        # (for num_views>1) and fixes mac_stepsize = mac_eps/4; both are replicated here.
+        mac_aug = mac_build_aug() if (args.counterattack == 'mac' and args.mac_num_views > 1) else None
+        mac_stepsize = args.mac_eps / 4.0
+
         for images, target in tqdm(val_loader, desc=f"  [{dataset_name}/{tag}]"):
             if getattr(args, 'deterministic_batch_seed', False):
                 # Re-seed from (run seed, global index of this batch's first sample).
@@ -1030,14 +1086,48 @@ def validate(args, val_dataset_name, model, model_text, model_image,
             target = target.to(device)
 
             with torch.amp.autocast('cuda'):
-                # Clean accuracy
-                with torch.no_grad():
-                    clean_output, _, _, _ = multiGPU_CLIP(
-                        None, None, None, model,
-                        prompter(clip_img_preprocessing(images)),
-                        text_tokens=text_tokens, prompt_token=None, dataset_name=dataset_name
+                # MAC: replicate the exact per-batch RNG order of official mac.py.
+                # The published code runs the clean-image MAC pass (multi-view
+                # construction + guided counterattack) BEFORE generating the attack,
+                # and that pass consumes RNG. Skipping it would shift every later
+                # draw and make the adversarial examples drift from the official
+                # run, so it must be executed here -- not for its accuracy, which
+                # is not part of the comparison, but for RNG parity.
+                mac_handled = False
+                mac_mirror = bool(getattr(args, 'mac_official_mirror', False)) and args.counterattack == 'mac'
+                if args.counterattack == 'mac':
+                    _V = int(args.mac_num_views)
+                    _clean_views = mac_build_views(images, _V, mac_aug)
+                    _mac_delta_clean = mac_guided_counterattack(
+                        model, _clean_views, prompter, add_prompter,
+                        alpha=mac_stepsize, attack_iters=args.mac_numsteps, norm='l_inf',
+                        epsilon=args.mac_eps, tau_thres=args.mac_tau_thres,
+                        tau_temp=args.mac_tau_temp, clip_visual=clip_visual, aug=mac_aug,
                     )
-                    top1_org.update(accuracy(clean_output, target, topk=(1,))[0].item(), images.size(0))
+                    if mac_mirror:
+                        # Reproduce official mac.py exactly: it classifies the clean-MAC
+                        # views (defence applied to clean images) here, aggregated over
+                        # views, and reports that as its "clean" column.
+                        with torch.no_grad():
+                            _clean_out_views, _, _, _ = multiGPU_CLIP(
+                                None, None, None, model,
+                                prompter(clip_img_preprocessing(_clean_views + _mac_delta_clean)),
+                                text_tokens, prompt_token=None, dataset_name=dataset_name
+                            )
+                            _clean_out = mac_aggregate_views(_clean_out_views, _V)
+                            top1_org.update(accuracy(_clean_out, target, topk=(1,))[0].item(), images.size(0))
+                    del _clean_views, _mac_delta_clean
+                    torch.cuda.empty_cache()
+
+                # Clean accuracy
+                if not mac_mirror:
+                    with torch.no_grad():
+                        clean_output, _, _, _ = multiGPU_CLIP(
+                            None, None, None, model,
+                            prompter(clip_img_preprocessing(images)),
+                            text_tokens=text_tokens, prompt_token=None, dataset_name=dataset_name
+                        )
+                        top1_org.update(accuracy(clean_output, target, topk=(1,))[0].item(), images.size(0))
 
                 # Generate adversarial attack
                 torch.cuda.empty_cache()
@@ -1058,14 +1148,16 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         None, None, epsilon=args.test_eps, attacks_to_run=attacks_to_run
                     )
 
-                # Adv accuracy (no defense)
-                with torch.no_grad():
-                    adv_output, _, _, _ = multiGPU_CLIP(
-                        None, None, None, model,
-                        prompter(clip_img_preprocessing(attacked)),
-                        text_tokens, prompt_token=None, dataset_name=dataset_name
-                    )
-                    top1_adv.update(accuracy(adv_output, target, topk=(1,))[0].item(), images.size(0))
+                # Adv accuracy (no defense). Skipped in mirror mode: official mac.py
+                # has no such forward, and omitting it keeps the GPU op order aligned.
+                if not mac_mirror:
+                    with torch.no_grad():
+                        adv_output, _, _, _ = multiGPU_CLIP(
+                            None, None, None, model,
+                            prompter(clip_img_preprocessing(attacked)),
+                            text_tokens, prompt_token=None, dataset_name=dataset_name
+                        )
+                        top1_adv.update(accuracy(adv_output, target, topk=(1,))[0].item(), images.size(0))
 
                 # Counterattack    ?TTC or NAC
                 ttc_eps_val = args.ttc_eps
@@ -1190,6 +1282,30 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         nac_momentum=args.nac_momentum,
                         clamp_lookahead=getattr(args, 'nac_clamp_lookahead', False)
                     )
+                elif args.counterattack == 'mac':
+                    # Faithful MAC port: counterattack every adversarial view, then
+                    # aggregate logits across views by mean (aggregate_views), exactly
+                    # as official mac.py. Because the delta has one entry per view
+                    # (V*N rows) it cannot go through the single-view path below, so
+                    # this branch performs its own aggregated evaluation and sets
+                    # mac_handled to skip the generic classify.
+                    _V = int(args.mac_num_views)
+                    attacked_views = mac_build_views(attacked, _V, mac_aug)
+                    delta_def = mac_guided_counterattack(
+                        model, attacked_views.data, prompter, add_prompter,
+                        alpha=mac_stepsize, attack_iters=args.mac_numsteps, norm='l_inf',
+                        epsilon=args.mac_eps, tau_thres=args.mac_tau_thres,
+                        tau_temp=args.mac_tau_temp, clip_visual=clip_visual, aug=mac_aug,
+                    )
+                    with torch.no_grad():
+                        def_out_views, _, _, _ = multiGPU_CLIP(
+                            None, None, None, model,
+                            prompter(clip_img_preprocessing(attacked_views + delta_def)),
+                            text_tokens, prompt_token=None, dataset_name=dataset_name
+                        )
+                        def_output = mac_aggregate_views(def_out_views, _V)
+                        top1_def.update(accuracy(def_output, target, topk=(1,))[0].item(), images.size(0))
+                    mac_handled = True
                 else:
                     delta_def = ttc_counterattack(
                         model, attacked.data, prompter, add_prompter,
@@ -1200,13 +1316,14 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                         clip_visual=clip_visual
                     )
 
-                with torch.no_grad():
-                    def_output, _, _, _ = multiGPU_CLIP(
-                        None, None, None, model,
-                        prompter(clip_img_preprocessing(attacked + delta_def)),
-                        text_tokens, prompt_token=None, dataset_name=dataset_name
-                    )
-                    top1_def.update(accuracy(def_output, target, topk=(1,))[0].item(), images.size(0))
+                if not mac_handled:
+                    with torch.no_grad():
+                        def_output, _, _, _ = multiGPU_CLIP(
+                            None, None, None, model,
+                            prompter(clip_img_preprocessing(attacked + delta_def)),
+                            text_tokens, prompt_token=None, dataset_name=dataset_name
+                        )
+                        top1_def.update(accuracy(def_output, target, topk=(1,))[0].item(), images.size(0))
 
             # Advance the global sample index (only meaningful for
             # --deterministic_batch_seed, but harmless otherwise).
@@ -1249,6 +1366,7 @@ def main():
     args.test_stepsize = args.test_stepsize / 255.
     args.ttc_stepsize = args.ttc_stepsize / 255.
     args.ttc_eps = args.ttc_eps / 255.
+    args.mac_eps = args.mac_eps / 255.  # MAC budget in absolute units (published: 8/255)
 
     # Use user-provided root; set defaults for ImageNet/tinyImageNet if not specified
     if not hasattr(args, 'imagenet_root') or args.imagenet_root is None:

@@ -1,0 +1,22 @@
+{
+ "generated_at": "20261013_204725",
+ "dataset": "cifar10",
+ "arch": "ViT-B/32",
+ "K": 4,
+ "alpha_255": 3.0,
+ "eps_def_255": 4.0,
+ "mac_eps_255": 8.0,
+ "mac_views": 2,
+ "batch_size": 32,
+ "warmup": 10,
+ "iters": 60,
+ "seed": 0,
+ "results": {
+  "doc": {
+   "mean_ms": 19.465,
+   "std_ms": 0.13,
+   "peak_gpu_mib": 2907.0,
+   "n_batches": 60
+  }
+ }
+}

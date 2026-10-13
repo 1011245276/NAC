@@ -87,29 +87,38 @@
     "_primary_note": "Primary Table 1 cells are seed 0. The CIFAR-10 _multiseed block is a separate pilot and is not mixed into the main cells."
   },
   "table2_multi_eps": {
-    "_source": "results/eps1/eps2/eps4/pgd_eps_*/{ttc,nac_m0.9}/seed_0.log (5-dataset avg)",
-    "description": "5 datasets (CIFAR-10, CIFAR-100, STL-10, Flowers-102, ImageNet-100). DTD excluded due to low absolute robust accuracy at eps=4 introducing disproportionate variance.",
+    "_source": "CIFAR-10/CIFAR-100/STL-10/Flowers-102: results/eps{1,2,4}/pgd_eps_*/{ttc,nac_m0.9}/seed_0.log; ImageNet-100: results/imagenet_full/pgd_eps_{1,2,4}/{ttc,nac_m0.9}/seed_0.log; DTD eps1: results/eps1/pgd_eps_1.0/ (same log as Table 1); DTD eps2: results/dtd_eps2_fair/20261014_005142/pgd_eps_2.0/{ttc,nac_m0.9}/seed_0.log (run 2026-10-14); DTD eps4: results/dtd_eps4_fair/20261013_174757/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log (run 2026-10-13).",
+    "description": "6-dataset average (CIFAR-10, CIFAR-100, STL-10, Flowers-102, DTD, ImageNet-100), seed 0, bs=64 (ImageNet bs=32). This is the caliber used by the paper's Table 2. The earlier 5-dataset scope (DTD excluded) is retained below for provenance.",
     "datasets": [
       "CIFAR-10",
       "CIFAR-100",
       "STL-10",
       "Flowers-102",
+      "DTD",
       "ImageNet-100"
     ],
     "eps1/255": {
-      "avg_ttc": 40.75,
-      "avg_nac": 44.66,
-      "gain_pp": 3.91
+      "avg_ttc": 38.65,
+      "avg_nac": 42.39,
+      "gain_pp": 3.74
     },
     "eps2/255": {
-      "avg_ttc": 28.49,
-      "avg_nac": 38.46,
-      "gain_pp": 9.97
+      "avg_ttc": 26.20,
+      "avg_nac": 35.40,
+      "gain_pp": 9.20
     },
     "eps4/255": {
-      "avg_ttc": 6.17,
-      "avg_nac": 13.42,
-      "gain_pp": 7.25
+      "avg_ttc": 5.49,
+      "avg_nac": 12.05,
+      "gain_pp": 6.56
+    },
+    "dtd_only_gains_pp": { "eps1": 2.87, "eps2": 4.79, "eps4": 2.77 },
+    "_dtd_generation_note": "DTD eps2/eps4 cells are 2026-10-13/14 code generation; the pre-2026-10 logs that fed the original Table-2 averages (DTD eps2 TTC~13.78/NAC~18.25, eps4 TTC~2.49/NAC~5.10, reverse-engineered) no longer exist in the repository. Cross-generation check: current-gen values agree with the reverse-engineered ones within ~1pp. Per-dataset eps1 row matches Table 1 exactly.",
+    "_legacy_5ds_scope": {
+      "description": "Superseded 5-dataset scope (DTD excluded 'due to low absolute robust accuracy at eps=4'), retained for provenance of earlier drafts.",
+      "eps1/255": { "avg_ttc": 40.75, "avg_nac": 44.66, "gain_pp": 3.91 },
+      "eps2/255": { "avg_ttc": 28.49, "avg_nac": 38.46, "gain_pp": 9.97 },
+      "eps4/255": { "avg_ttc": 6.17, "avg_nac": 13.42, "gain_pp": 7.25 }
     }
   },
   "table3_nstep": {
@@ -327,7 +336,8 @@
         "defended": 37.7,
         "_src": "results/final/pgd_eps_4.0/nac_m0.9/seed_0.log"
       },
-      "_note": "At K=4 a generic adaptive optimizer reaches 37.50 +/- 0.55 vs NAC's 37.70 (seed 0) -- statistically indistinguishable. NAC's optimizer claim is therefore confined to the small-K regime; it must not be stated as 'NAC is the best optimizer tested'."
+      "_note": "At K=4 a generic adaptive optimizer reaches 37.50 +/- 0.55 vs NAC's 37.70 (seed 0) -- statistically indistinguishable. NAC's optimizer claim is therefore confined to the small-K regime; it must not be stated as 'NAC is the best optimizer tested'.",
+      "_update_2026_10_13": "NAC now has 3 seeds at K=4 alpha=1/255 (see k4_optimizer_grid_3seed): 37.50+/-0.24. Conclusion unchanged: only bias-uncorrected RMSProp ties NAC at K=4; Adam/AdaGrad stay ~14pp below."
     },
     "key_finding": "CORRECTED 2026-10. Two claims are supported and one is not. SUPPORTED: (1) at matched alpha and K, NAC beats TTC (alpha=1/255: 17.15 vs 6.88; alpha=2/255: 33.98 vs 22.65); (2) Adam and AdaGrad both fall BELOW the TTC baseline (5.53 and 6.60 vs 6.88), so generic adaptive optimization is not automatically beneficial here. NOT SUPPORTED: the claim that momentum acceleration rather than generic optimizer improvement drives the gain -- RMSProp reaches 31.45 at identical K/alpha/eps/bs/seeds, and the bias-corrected control (8.65) shows that deficit is a step-length artefact that applies equally to NAC's own velocity accumulation, which was never given the same correction. At K=4 RMSProp (37.50) is indistinguishable from NAC (37.70)."
   },
@@ -835,5 +845,90 @@
     "lookahead_pixel_distance_p90_over_alpha": 2.04,
     "references": "arxiv sec:mechanism (new), Why NAC Works (harmonized); 8page L263; single_preview L264; chinese sec:optfamily_cn.",
     "_note": "Corrects earlier varguer 'walks further not more accurate' phrasing with the precise measurement: coherent direction + farther displacement, look-ahead not sharper. Replaced the older paper claim that the look-ahead gradient is a 'more reliable estimate of the next gradient'."
+  },
+  "mac_cifar10_published_port": {
+    "_source": "results/mac_port_cifar10/20261013_155859/pgd_eps_4.0/mac/seed_1.log (run 2026-10-13, exit 0).",
+    "description": "Ported MAC (bit-exact-verified on DTD against official code: mac_official_dtd + mac_mirror_fixed_dtd/20261013_153216 = 41.54/33.24) evaluated on CIFAR-10 at MAC's published config: attack PGD-100 eps=4/255 step=1/255, defense eps=8/255 K=4 (inner step = eps/4 = 2/255), 2 views, tau 0.7/0.01, prompt 'A photo of a {}.', bs=32, seed 1.",
+    "clean": 84.89,
+    "adv": 0.0,
+    "defended": 44.89,
+    "_honest_notes": [
+      "MAC official code does not support CIFAR-10; this row comes from the ported implementation whose DTD reproduction is bit-exact.",
+      "Defense budget is DOUBLE ours (eps=8/255 vs 4/255) and 2 views double the forward cost; not a like-for-like comparison with TTC/NAC/DOC rows.",
+      "Attack uses 100 steps (MAC published protocol) vs the 10-step protocol of all other rows; undefended accuracy is 0.00 under both (attack saturated)."
+    ]
+  },
+  "mac_budget_matched_diagnostic": {
+    "_source": "results/mac_budget_matched_cifar10/20261013_180352/pgd_eps_4.0/mac/seed_0.log (run 2026-10-13).",
+    "description": "DIAGNOSTIC (non-published) MAC config matched to NAC's budget: attack PGD-10 eps=4/255 step=1/255, defense eps=4/255 K=2 (inner step = eps/4 = 1/255), 1 view, tau 0.7/0.01, bs=32, seed 0.",
+    "clean": 84.89,
+    "adv": 0.0,
+    "defended": 6.44,
+    "_reading": "At NAC's budget MAC (6.44) sits at TTC's level (7.05) and 10.73pp below NAC (17.17): MAC's published-config lead is carried by its doubled eps + 2 views + K=4, not by its update mechanism. Port fidelity is verified only at the published config (DTD bit-exact); disclose this row as a diagnostic."
+  },
+  "budget_matched_dual_caliber": {
+    "_source": "K2a1: results/mu_scan/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log + results/mac_budget_matched_cifar10/20261013_180352; K4a3: results/rerun_docB/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_{0,1,2}.log + results/nac_budget_matched_cifar10/20261013_180352 (4th NAC replication, 39.84).",
+    "description": "Same-budget cross-method comparison, CIFAR-10, PGD-10 eps=4/255, bs=32. Answers 'is NAC behind DOC/MAC?': under matched budgets NAC leads at both tested budget points.",
+    "nac_budget_K2_alpha1": {
+      "ttc": 7.05,
+      "nac": 17.17,
+      "mac_diagnostic": 6.44
+    },
+    "doc_budget_K4_alpha3": {
+      "ttc": "34.59+/-0.27",
+      "nac": "40.01+/-0.17 (per-seed 39.84/40.18/40.00; 4th replication 39.84)",
+      "doc": "37.45+/-0.42"
+    },
+    "key_finding": "Published-config ordering (MAC 44.89 > DOC 37.45 > NAC 16.77) reverses under matched budgets: at DOC's budget NAC 40.01 > DOC 37.45 > TTC 34.59; at NAC's budget NAC 17.17 > TTC 7.05 > MAC 6.44. The published-config lead of DOC/MAC over NAC is budget-carried; mechanism-level ordering favors NAC at both tested budgets."
+  },
+  "k4_optimizer_grid_3seed": {
+    "_source": "results/k4_optimizer_grid/20261013_193541/pgd_eps_4.0/{ttc,nac_m0.9,adam,adagrad}/seed_{0,1,2}.log (new seeds 2026-10-13; TTC/NAC seed 0 from results/final/pgd_eps_4.0, bs=32) + results/optimizers_stepsize/pgd_eps_4.0/rmsprop/seed_{0,1,2}.log. All CIFAR-10, PGD-10 eps=4/255, alpha=1/255, K=4, bs=32, std ddof=1.",
+    "description": "Completes the K=4 optimizer family to 3 seeds under the same protocol as the K=2 optimizer block.",
+    "ttc": "25.63+/-0.52 (26.21/25.21/25.48)",
+    "nac": "37.50+/-0.24 (37.70/37.56/37.24)",
+    "adam": "23.78+/-0.28 (23.98/23.46/23.91)",
+    "adagrad": "23.36+/-0.29 (23.70/23.19/23.20)",
+    "rmsprop": "37.50+/-0.55 (existing, unchanged)",
+    "nac_minus_ttc_paired": "+11.87+/-0.44",
+    "key_finding": "Refines optimizer_comparison.K4_control: at K=4 the ONLY optimizer reaching NAC is bias-uncorrected RMSProp (37.50+/-0.55 vs NAC 37.50+/-0.24, statistically identical); Adam and AdaGrad remain ~14pp below NAC even at K=4. NAC's mechanism gain over TTC persists at K=4 (+11.87pp). Any 'other optimizers catch up at larger K' statement must be narrowed to RMSProp."
+  },
+  "dtd_eps4_current_gen": {
+    "_source": "results/dtd_eps4_fair/20261013_174757/pgd_eps_4.0/{ttc,nac_m0.9,doc}/seed_0.log (run 2026-10-13). TTC/NAC bs=64, DOC bs=32 (its published caliber). Attack PGD-10 eps=4/255 step=1/255; defenses at published configs (TTC/NAC K=2 alpha=1/255 eps=4/255; DOC K=4 alpha=3/255 tau=0.155 T=75).",
+    "description": "Same-code-generation DTD ladder at eps=4/255, superseding the 2026-05-30 seed1 logs as the citable source.",
+    "ttc": { "clean": 40.53, "adv": 0.11, "defended": 2.39 },
+    "nac": { "clean": 40.53, "adv": 0.11, "defended": 5.16 },
+    "doc": { "clean": 40.53, "adv": 0.11, "defended": 19.15 },
+    "mac_official_reference": {
+      "clean": 41.54,
+      "adv": 0.0,
+      "defended": 33.24,
+      "attack": "PGD-100 eps=4/255",
+      "defense": "eps=8/255 K=4 2 views",
+      "_src": "results/mac_official_dtd + results/mac_mirror_fixed_dtd/20261013_153216 (bit-exact)"
+    },
+    "_cross_gen_note": "Old 2026-05-30 generation (results/seed1, seed 1): TTC 2.55 / NAC 4.68 -- consistent with current gen (2.39 / 5.16). Old logs retained as cross-generation check only; do not cite."
+  },
+  "latency_grid_2026_10_13": {
+    "_source": "results/benchmark_latency/latency_k2_opt_family_*.json, latency_k4_opt_family_*.json, latency_doc_published_20261013_204725.json, latency_mac_published_20261013_204946.json, latency_mac_matched_20261013_205032.json (scripts/benchmark_latency.py, run 2026-10-13, bs=32, 10 warmup + 60 timed batches, RTX 4060 Laptop, defense-only on clean images, seed 0).",
+    "description": "Per-image counterattack latency (ms) for the unified grid: separates nominal step-size budget (alpha x K) from actual compute cost. Defense-only; attack generation excluded.",
+    "K2_alpha1_eps4": {
+      "ttc": "10.58+/-0.26", "nac": "10.36+/-0.09", "momentum": "10.39+/-0.14",
+      "pure_la": "18.67+/-0.14", "adam": "10.52+/-0.12", "adagrad": "12.22+/-1.56",
+      "rmsprop": "11.61+/-0.14", "rmsprop_bc": "12.04+/-1.35"
+    },
+    "K4_alpha1_eps4": {
+      "ttc": "18.84+/-0.20", "nac": "18.99+/-0.12", "momentum": "18.86+/-0.16",
+      "pure_la": "35.68+/-0.31", "adam": "19.15+/-0.28", "adagrad": "19.05+/-0.38",
+      "rmsprop": "19.01+/-0.19", "rmsprop_bc": "18.96+/-0.17"
+    },
+    "doc_published_K4_alpha3": "19.47+/-0.13",
+    "mac_published_K4_eps8_views2": "59.20+/-5.21",
+    "mac_matched_K2_eps4_views1": "16.00+/-0.64",
+    "key_findings": [
+      "NAC costs the same as TTC at both K (K2: 10.36 vs 10.58; K4: 18.99 vs 18.84) -- the look-ahead adds no measurable per-step cost.",
+      "At DOC's published budget (K=4 alpha=3/255) DOC costs 19.47ms while NAC at the same K=4 costs 18.99ms and scores +2.56pp higher (40.01 vs 37.45): NAC wins on both axes at matched budget.",
+      "MAC's published config costs 59.20ms (5.7x NAC K=2 at 10.36ms, 3.1x NAC K=4 at 18.99ms) for 44.89; at NAC's budget it costs 16.00ms (54% more than NAC) yet scores 6.44 vs NAC's 17.17. MAC is dominated by NAC at matched budget on both accuracy and latency.",
+      "pure_la costs ~1.8x TTC/NAC (extra look-ahead forward), so NAC's gain does NOT come from extra compute that pure lookahead would need."
+    ]
   }
 }

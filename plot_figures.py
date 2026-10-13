@@ -470,11 +470,14 @@ def plot_radar():
 # ================================================================
 def plot_eps_trend():
     epsilons = ['1/255', '2/255', '4/255']
-    # VERIFIED: eps1 = results/eps1 (bs=64) + results/imagenet_full (bs=32);
-    # eps2/eps4 ImageNet from results/multi_eps (bs=32). 5-dataset average, seed 0.
-    ttc_vals = [40.75, 28.49, 6.17]
-    nac_vals = [44.66, 38.46, 13.42]
-    gains = [3.91, 9.97, 7.25]
+    # VERIFIED 2026-10-14: 6-dataset average (CIFAR-10, CIFAR-100, STL-10,
+    # Flowers-102, DTD, ImageNet-100), seed 0, bs=64 (ImageNet bs=32).
+    # Matches paper Table 2 / results/main_results.json table2_multi_eps.
+    # Sources: results/eps{1,2,4}/ + results/imagenet_full/ +
+    # results/dtd_eps2_fair/ + results/dtd_eps4_fair/.
+    ttc_vals = [38.65, 26.20, 5.49]
+    nac_vals = [42.39, 35.40, 12.05]
+    gains = [3.74, 9.20, 6.56]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.5))
 
@@ -505,7 +508,7 @@ def plot_eps_trend():
     ax2.set_title('Improvement Margin', fontsize=12, fontweight='bold')
     ax2.grid(axis='y', alpha=0.3)
 
-    fig.suptitle('Multi-Attack Strength — 5-Dataset Average', fontsize=13, fontweight='bold')
+    fig.suptitle('Multi-Attack Strength — 6-Dataset Average', fontsize=13, fontweight='bold')
     plt.tight_layout()
     save(fig, 'fig6_eps_trend')
 

@@ -1,0 +1,64 @@
+{
+ "generated_at": "20261013_211956",
+ "dataset": "cifar10",
+ "arch": "ViT-B/32",
+ "K": 2,
+ "alpha_255": 1.0,
+ "eps_def_255": 4.0,
+ "mac_eps_255": 8.0,
+ "mac_views": 2,
+ "batch_size": 32,
+ "warmup": 1,
+ "iters": 2,
+ "seed": 0,
+ "results": {
+  "ttc": {
+   "mean_ms": 12.937,
+   "std_ms": 0.136,
+   "peak_gpu_mib": 1712.0,
+   "n_batches": 2
+  },
+  "nac": {
+   "mean_ms": 13.053,
+   "std_ms": 0.066,
+   "peak_gpu_mib": 1749.0,
+   "n_batches": 2
+  },
+  "momentum": {
+   "mean_ms": 12.136,
+   "std_ms": 0.322,
+   "peak_gpu_mib": 1731.0,
+   "n_batches": 2
+  },
+  "pure_la": {
+   "mean_ms": 19.951,
+   "std_ms": 0.12,
+   "peak_gpu_mib": 1676.0,
+   "n_batches": 2
+  },
+  "adam": {
+   "mean_ms": 10.984,
+   "std_ms": 0.13,
+   "peak_gpu_mib": 1804.0,
+   "n_batches": 2
+  },
+  "adagrad": {
+   "mean_ms": 10.642,
+   "std_ms": 0.025,
+   "peak_gpu_mib": 1731.0,
+   "n_batches": 2
+  },
+  "rmsprop": {
+   "mean_ms": 10.623,
+   "std_ms": 0.002,
+   "peak_gpu_mib": 1731.0,
+   "n_batches": 2
+  },
+  "rmsprop_bc": {
+   "mean_ms": 10.677,
+   "std_ms": 0.026,
+   "peak_gpu_mib": 1749.0,
+   "n_batches": 2
+  }
+ }
+}
