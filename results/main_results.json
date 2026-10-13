@@ -819,5 +819,21 @@
     "key_finding": "Under a first-order defense-aware attack all test-time defenses shrink drastically (industry-wide, consistent with CLIP-MAD's overestimation claim), but the relative ordering is preserved: NAC/TTC ~ 2.7x, so NAC's comparative advantage is not a gradient-masking artefact.",
     "_limitations": "First-order (no expectation over defense random init), single seed, CIFAR-10 only; not a full reproduction of CLIP-MAD's second-order attack. Disclosed as such in the paper Limitations.",
     "_references": "arxiv sec:adaptive (L362-377, tab:adaptive) + Limitations 'Adaptive attack scope'; 8page L275; single_preview L275; chinese L294."
+  },
+  "mechanism_diagnostic": {
+    "_source": "results/mechanism_diagnostic/gradient_alignment.json + gradient_alignment.log (scripts/gradient_alignment_diagnostic.py, run 2026-09-13, CIFAR-10, ViT-B/32, K=4, eps_att=def=4/255, 1024 samples, seed 0).",
+    "description": "Per-step gradient mechanistic diagnostic. Key honest findings: NAC's successive-gradient autocorrelation (0.169) far exceeds TTC's essentially-random level (0.027, ~= random-anchor control -0.048); NAC step-to-landing-gradient alignment exceeds TTC's (+0.059). BUT the look-ahead gradient's predictiveness for the next iterate is NOT better than the current position (predictiveness gain -0.051, i.e. chance level), so the benefit is attributed to trajectory coherence / farther aligned displacement, NOT to the look-ahead being a sharper estimate. Reported as diagnostics, not proven causal mechanism.",
+    "ttc_gradient_autocorrelation": 0.027,
+    "nac_current_gradient_autocorrelation": 0.169,
+    "nac_lookahead_gradient_predictiveness": 0.1175,
+    "predictiveness_gain_look_minus_cur": -0.0513,
+    "ttc_step_alignment_with_landing_gradient": 0.0461,
+    "nac_step_alignment_with_landing_gradient": 0.1051,
+    "step_alignment_gain_nac_minus_ttc": 0.059,
+    "random_anchor_autocorrelation_control": -0.0476,
+    "lookahead_pixel_distance_mean_over_alpha": 1.09,
+    "lookahead_pixel_distance_p90_over_alpha": 2.04,
+    "references": "arxiv sec:mechanism (new), Why NAC Works (harmonized); 8page L263; single_preview L264; chinese sec:optfamily_cn.",
+    "_note": "Corrects earlier varguer 'walks further not more accurate' phrasing with the precise measurement: coherent direction + farther displacement, look-ahead not sharper. Replaced the older paper claim that the look-ahead gradient is a 'more reliable estimate of the next gradient'."
   }
 }
