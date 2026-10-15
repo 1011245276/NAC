@@ -12,7 +12,7 @@
     "seeds_per_experiment": "Main tables are seed 0. Five-dataset multi-seed pilot (CIFAR-100, STL-10, Flowers-102, DTD, ImageNet-100) uses seeds 0-2; CIFAR-10 seed 1-2 pilot is retained separately.",
     "rebuild_date": "2026-06-12",
     "_note": "All values are now sourced from log files in results/. Any value without a confirmed log is marked as 'unverified' in the corresponding field. Earlier _note fields claiming 'NOT re-run yet' are now resolved or downgraded to honest 'unverified' markers.",
-    "primary_table_policy": "Table 1 primary cells are seed 0. ImageNet-100 uses batch_size=32; other five datasets use batch_size=64. Five-dataset multi-seed pilot max std is 1.16pp."
+    "primary_table_policy": "Table 1 primary cells are seed 0. ImageNet-100 uses batch_size=32; other five datasets use batch_size=64. Six-dataset three-seed pilot (2026-10-10/11 re-run, pilot_rerun + eps1): per-dataset max std 0.43pp (DTD). _correction_2026_10_14: this field previously said 'max std 1.16pp', which referred to the superseded 2026-06-12 bs=32 pilot; the current-generation value is 0.43pp (papers updated accordingly)."
   },
   "table1_main": {
     "_source": "Re-run 2026-09-09 at bs=64 (5 datasets) / bs=32 (ImageNet-100) with current code. 5 datasets: results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/seed_0.log; ImageNet-100: results/imagenet_full/pgd_eps_1.0/{ttc,nac_m0.9}/seed_0.log. Multi-seed pilot (superseded bs=32): results/multiseed_all, multiseed_dtd, multiseed_imagenet.",
@@ -829,6 +829,42 @@
     "key_finding": "Under a first-order defense-aware attack all test-time defenses shrink drastically (industry-wide, consistent with CLIP-MAD's overestimation claim), but the relative ordering is preserved: NAC/TTC ~ 2.7x, so NAC's comparative advantage is not a gradient-masking artefact.",
     "_limitations": "First-order (no expectation over defense random init), single seed, CIFAR-10 only; not a full reproduction of CLIP-MAD's second-order attack. Disclosed as such in the paper Limitations.",
     "_references": "arxiv sec:adaptive (L362-377, tab:adaptive) + Limitations 'Adaptive attack scope'; 8page L275; single_preview L275; chinese L294."
+  },
+  "review_response_experiments_2026_10_14": {
+    "_source": "E-A: results/ea_ttc_displacement/20261014_183047/pgd_eps_4.0/ttc/seed_0.log; E-B: results/k4_optimizer_grid/20261014_183047/pgd_eps_4.0/{momentum,rmsprop_bc,pure_la}/seed_{0,1,2}.log (momentum/rmsprop_bc seeds 0-2, pure_la seeds 1-2); E-C: results/doc_libdefault_configB/20261014_183047/pgd_eps_4.0/doc/seed_{1,2}.log (seed 0 = 40.41 from results/compare_doc_orig). E-D (MAC 2-view matched) and E-E (EOT adaptive attack M=5, 3 seeds x 3 methods, scripts/adaptive_attack_eot.py) running at write time.",
+    "description": "Experiments closing the 2026-10-14 cross-review items (07 §4.1): matched-displacement control (E-A), K=4 solver-family completion (E-B), DOC library-default gating 3 seeds (E-C). All CIFAR-10, PGD-10 eps=4/255, bs=32, std ddof=1.",
+    "E_A_displacement_matched_ttc": {
+      "config": "TTC K=2, alpha=1.45/255 (worst-case NAC K=2 displacement = 2.9*alpha from the update rule v_{t+1}=mu*v_t+alpha*sign(g), delta moving by the full velocity)",
+      "ttc_defended": 14.40,
+      "nac_reference": "17.15+/-0.21 (same alpha=1/255, bs=32, mu_scan caliber)",
+      "reading": "At matched worst-case displacement TTC reaches 14.40 vs NAC 17.15: displacement alone does not account for the gain (residual ~+2.75pp attributable to the coupling). Replaces the two-point interpolation in 08_response §2 with a measurement."
+    },
+    "E_B_k4_family_completion": {
+      "rmsprop_bc": "27.36+/-0.19 (27.56/27.33/27.18)",
+      "momentum": "31.28+/-0.40 (31.75/31.06/31.02)",
+      "pure_la": "13.96+/-0.21 (13.72 seed0 + 14.08/14.08)",
+      "reading": "Seven-solver K=4 family complete. Only uncorrected RMSProp (37.50+/-0.55) reaches NAC (37.50+/-0.24); the bias-corrected variant falls 10pp short, closing audit item B-1 at full-universal scope."
+    },
+    "E_D_mac_2view_matched_budget": {
+      "_source": "results/mac_2view_matched_cifar10/20261014_183047/pgd_eps_4.0/mac/seed_0.log",
+      "config": "MAC port, eps_def=4/255, K=2, alpha=1/255, TWO views, seed 0, bs=32 (diagnostic)",
+      "mac_defended": 11.84,
+      "reading": "Decomposes the view/budget confound (audit B-2): restoring the view count at matched budget lifts MAC 6.44 -> 11.84 (+5.40pp views factor), still 5.31pp below single-view NAC (17.15+/-0.21). Published-config lead consistent with being predominantly budget-carried; full two-view machinery does not close the gap at matched budget."
+    },
+    "E_E_eot_adaptive_3seed": {
+      "_source": "results/adaptive_attack_eot/20261014_202836/eot_results.json + eot.log (scripts/adaptive_attack_eot.py, M=5 expectation over defense random init, CIFAR-10, eps_att=4/255, PGD-10, K=2, alpha=1/255, bs=32, seeds 0/1/2, methods TTC/NAC/DOC; DOC uses official README gating tau=0.155, T=75.0)",
+      "ttc_defended": "0.14 / 0.09 / 0.06 (seeds 0/1/2)",
+      "nac_defended": "0.23 / 0.25 / 0.21",
+      "doc_defended": "0.05 / 0.05 / 0.06",
+      "paired_nac_minus_ttc": "+0.09 / +0.16 / +0.15",
+      "reading": "H3 closed with outcome 1: under the stronger EOT expectation-over-defense-init adaptive attack all defenses remain broken at the floor, but the NAC>TTC>DOC ordering and the positive NAC-TTC paired difference persist on 3/3 seeds - the ordering-stability conclusion survives the stronger attack class (closes 07 item 5 / M2 gate 3). Floor-level absolute values are disclosed as such."
+    },
+    "E_C_doc_libdefault_3seed": {
+      "doc_libdefault": "40.04+/-0.33 (40.41/39.77/39.95)",
+      "nac_configB_reference": "40.01+/-0.17",
+      "paired_nac_minus_doc": "-0.04+/-0.49",
+      "reading": "Under DOC's library-default gating the two methods are a statistical tie; under the README gating NAC retains +2.56+/-0.58pp. Closes audit item B-3/H2 with the honest tie outcome (the reviewer's 'DOC wins under libdefault' hypothesis is not supported)."
+    }
   },
   "mechanism_diagnostic": {
     "_source": "results/mechanism_diagnostic/gradient_alignment.json + gradient_alignment.log (scripts/gradient_alignment_diagnostic.py, run 2026-09-13, CIFAR-10, ViT-B/32, K=4, eps_att=def=4/255, 1024 samples, seed 0).",

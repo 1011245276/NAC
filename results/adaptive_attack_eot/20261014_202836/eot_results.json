@@ -1,0 +1,59 @@
+{
+  "config": "CIFAR-10, eps_att=4/255, PGD-10 step=1/255, K=2, alpha=1/255, eps_def=4/255, bs=32, EOT M=5 over defense random init, first-order defense-aware adaptive PGD, seeds=[0, 1, 2]",
+  "results": {
+    "ttc_seed0": {
+      "adv": 0.0,
+      "defended": 0.14,
+      "gain": 0.14,
+      "elapsed_min": 136.1
+    },
+    "nac_seed0": {
+      "adv": 0.0,
+      "defended": 0.23,
+      "gain": 0.23,
+      "elapsed_min": 137.5
+    },
+    "doc_seed0": {
+      "adv": 0.0,
+      "defended": 0.05,
+      "gain": 0.05,
+      "elapsed_min": 138.2
+    },
+    "ttc_seed1": {
+      "adv": 0.0,
+      "defended": 0.09,
+      "gain": 0.09,
+      "elapsed_min": 137.2
+    },
+    "nac_seed1": {
+      "adv": 0.02,
+      "defended": 0.25,
+      "gain": 0.23,
+      "elapsed_min": 137.6
+    },
+    "doc_seed1": {
+      "adv": 0.0,
+      "defended": 0.05,
+      "gain": 0.05,
+      "elapsed_min": 138.1
+    },
+    "ttc_seed2": {
+      "adv": 0.0,
+      "defended": 0.06,
+      "gain": 0.06,
+      "elapsed_min": 138.6
+    },
+    "nac_seed2": {
+      "adv": 0.01,
+      "defended": 0.21,
+      "gain": 0.2,
+      "elapsed_min": 142.9
+    },
+    "doc_seed2": {
+      "adv": 0.0,
+      "defended": 0.06,
+      "gain": 0.06,
+      "elapsed_min": 138.5
+    }
+  }
+}

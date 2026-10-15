@@ -1,0 +1,83 @@
+2026-10-14 20:28:36,834 - INFO - EOT adaptive attack | M=5 seeds=[0, 1, 2] methods=['ttc', 'nac', 'doc'] | K=2 alpha=1/255 eps=4/255 bs=32
+2026-10-14 20:28:39,344 - INFO - === seed 0 | EOT M=5 vs ttc ===
+2026-10-14 20:29:25,969 - INFO -   seed 0 ttc batch 0: adv=0.00 def=0.00
+2026-10-14 20:51:30,187 - INFO -   seed 0 ttc batch 50: adv=0.00 def=0.18
+2026-10-14 21:13:20,542 - INFO -   seed 0 ttc batch 100: adv=0.00 def=0.22
+2026-10-14 21:35:13,530 - INFO -   seed 0 ttc batch 150: adv=0.00 def=0.19
+2026-10-14 21:57:03,520 - INFO -   seed 0 ttc batch 200: adv=0.00 def=0.16
+2026-10-14 22:18:52,157 - INFO -   seed 0 ttc batch 250: adv=0.00 def=0.16
+2026-10-14 22:39:59,137 - INFO -   seed 0 ttc batch 300: adv=0.00 def=0.15
+2026-10-14 22:44:45,926 - INFO - ttc_seed0: {'adv': 0.0, 'defended': 0.14, 'gain': 0.14, 'elapsed_min': 136.1}
+2026-10-14 22:44:45,967 - INFO - === seed 0 | EOT M=5 vs nac ===
+2026-10-14 22:45:32,972 - INFO -   seed 0 nac batch 0: adv=0.00 def=0.00
+2026-10-14 23:07:28,303 - INFO -   seed 0 nac batch 50: adv=0.00 def=0.31
+2026-10-14 23:29:28,677 - INFO -   seed 0 nac batch 100: adv=0.00 def=0.22
+2026-10-14 23:51:26,355 - INFO -   seed 0 nac batch 150: adv=0.00 def=0.17
+2026-10-15 00:13:20,100 - INFO -   seed 0 nac batch 200: adv=0.00 def=0.25
+2026-10-15 00:35:14,451 - INFO -   seed 0 nac batch 250: adv=0.00 def=0.24
+2026-10-15 00:57:07,326 - INFO -   seed 0 nac batch 300: adv=0.00 def=0.23
+2026-10-15 01:02:16,771 - INFO - nac_seed0: {'adv': 0.0, 'defended': 0.23, 'gain': 0.23, 'elapsed_min': 137.5}
+2026-10-15 01:02:16,918 - INFO - === seed 0 | EOT M=5 vs doc ===
+2026-10-15 01:03:43,836 - INFO -   seed 0 doc batch 0: adv=0.00 def=0.00
+2026-10-15 01:25:39,658 - INFO -   seed 0 doc batch 50: adv=0.00 def=0.06
+2026-10-15 01:47:35,292 - INFO -   seed 0 doc batch 100: adv=0.00 def=0.03
+2026-10-15 02:09:30,396 - INFO -   seed 0 doc batch 150: adv=0.00 def=0.06
+2026-10-15 02:31:25,723 - INFO -   seed 0 doc batch 200: adv=0.00 def=0.06
+2026-10-15 02:53:21,825 - INFO -   seed 0 doc batch 250: adv=0.00 def=0.05
+2026-10-15 03:15:17,523 - INFO -   seed 0 doc batch 300: adv=0.00 def=0.05
+2026-10-15 03:20:26,209 - INFO - doc_seed0: {'adv': 0.0, 'defended': 0.05, 'gain': 0.05, 'elapsed_min': 138.2}
+2026-10-15 03:20:26,386 - INFO - === seed 1 | EOT M=5 vs ttc ===
+2026-10-15 03:21:54,399 - INFO -   seed 1 ttc batch 0: adv=0.00 def=0.00
+2026-10-15 03:43:41,491 - INFO -   seed 1 ttc batch 50: adv=0.00 def=0.00
+2026-10-15 04:05:26,789 - INFO -   seed 1 ttc batch 100: adv=0.00 def=0.00
+2026-10-15 04:27:12,773 - INFO -   seed 1 ttc batch 150: adv=0.00 def=0.08
+2026-10-15 04:49:01,802 - INFO -   seed 1 ttc batch 200: adv=0.00 def=0.11
+2026-10-15 05:10:47,888 - INFO -   seed 1 ttc batch 250: adv=0.00 def=0.11
+2026-10-15 05:32:32,765 - INFO -   seed 1 ttc batch 300: adv=0.00 def=0.09
+2026-10-15 05:37:40,051 - INFO - ttc_seed1: {'adv': 0.0, 'defended': 0.09, 'gain': 0.09, 'elapsed_min': 137.2}
+2026-10-15 05:37:40,231 - INFO - === seed 1 | EOT M=5 vs nac ===
+2026-10-15 05:39:06,334 - INFO -   seed 1 nac batch 0: adv=0.00 def=0.00
+2026-10-15 06:00:55,322 - INFO -   seed 1 nac batch 50: adv=0.00 def=0.25
+2026-10-15 06:22:47,525 - INFO -   seed 1 nac batch 100: adv=0.00 def=0.28
+2026-10-15 06:44:37,730 - INFO -   seed 1 nac batch 150: adv=0.02 def=0.29
+2026-10-15 07:06:27,290 - INFO -   seed 1 nac batch 200: adv=0.02 def=0.25
+2026-10-15 07:28:18,661 - INFO -   seed 1 nac batch 250: adv=0.01 def=0.27
+2026-10-15 07:50:08,741 - INFO -   seed 1 nac batch 300: adv=0.02 def=0.26
+2026-10-15 07:55:16,068 - INFO - nac_seed1: {'adv': 0.02, 'defended': 0.25, 'gain': 0.23, 'elapsed_min': 137.6}
+2026-10-15 07:55:16,250 - INFO - === seed 1 | EOT M=5 vs doc ===
+2026-10-15 07:56:41,902 - INFO -   seed 1 doc batch 0: adv=0.00 def=0.00
+2026-10-15 08:18:40,438 - INFO -   seed 1 doc batch 50: adv=0.00 def=0.00
+2026-10-15 08:40:33,646 - INFO -   seed 1 doc batch 100: adv=0.00 def=0.03
+2026-10-15 09:02:26,080 - INFO -   seed 1 doc batch 150: adv=0.00 def=0.04
+2026-10-15 09:24:19,838 - INFO -   seed 1 doc batch 200: adv=0.00 def=0.06
+2026-10-15 09:46:18,795 - INFO -   seed 1 doc batch 250: adv=0.00 def=0.06
+2026-10-15 10:08:12,473 - INFO -   seed 1 doc batch 300: adv=0.00 def=0.05
+2026-10-15 10:13:21,818 - INFO - doc_seed1: {'adv': 0.0, 'defended': 0.05, 'gain': 0.05, 'elapsed_min': 138.1}
+2026-10-15 10:13:21,999 - INFO - === seed 2 | EOT M=5 vs ttc ===
+2026-10-15 10:14:49,503 - INFO -   seed 2 ttc batch 0: adv=0.00 def=0.00
+2026-10-15 10:36:38,923 - INFO -   seed 2 ttc batch 50: adv=0.00 def=0.06
+2026-10-15 10:58:45,970 - INFO -   seed 2 ttc batch 100: adv=0.00 def=0.09
+2026-10-15 11:21:01,566 - INFO -   seed 2 ttc batch 150: adv=0.00 def=0.10
+2026-10-15 11:43:10,196 - INFO -   seed 2 ttc batch 200: adv=0.00 def=0.08
+2026-10-15 12:04:54,149 - INFO -   seed 2 ttc batch 250: adv=0.00 def=0.07
+2026-10-15 12:26:44,300 - INFO -   seed 2 ttc batch 300: adv=0.00 def=0.06
+2026-10-15 12:31:57,099 - INFO - ttc_seed2: {'adv': 0.0, 'defended': 0.06, 'gain': 0.06, 'elapsed_min': 138.6}
+2026-10-15 12:31:57,237 - INFO - === seed 2 | EOT M=5 vs nac ===
+2026-10-15 12:34:02,707 - INFO -   seed 2 nac batch 0: adv=0.00 def=0.00
+2026-10-15 12:57:05,184 - INFO -   seed 2 nac batch 50: adv=0.00 def=0.25
+2026-10-15 13:19:55,253 - INFO -   seed 2 nac batch 100: adv=0.00 def=0.22
+2026-10-15 13:41:57,375 - INFO -   seed 2 nac batch 150: adv=0.00 def=0.23
+2026-10-15 14:04:17,519 - INFO -   seed 2 nac batch 200: adv=0.02 def=0.19
+2026-10-15 14:26:43,393 - INFO -   seed 2 nac batch 250: adv=0.01 def=0.20
+2026-10-15 14:49:19,559 - INFO -   seed 2 nac batch 300: adv=0.01 def=0.19
+2026-10-15 14:54:48,942 - INFO - nac_seed2: {'adv': 0.01, 'defended': 0.21, 'gain': 0.2, 'elapsed_min': 142.9}
+2026-10-15 14:54:49,071 - INFO - === seed 2 | EOT M=5 vs doc ===
+2026-10-15 14:56:01,431 - INFO -   seed 2 doc batch 0: adv=0.00 def=0.00
+2026-10-15 15:17:54,829 - INFO -   seed 2 doc batch 50: adv=0.00 def=0.18
+2026-10-15 15:39:47,858 - INFO -   seed 2 doc batch 100: adv=0.00 def=0.12
+2026-10-15 16:01:41,034 - INFO -   seed 2 doc batch 150: adv=0.00 def=0.08
+2026-10-15 16:23:53,725 - INFO -   seed 2 doc batch 200: adv=0.00 def=0.09
+2026-10-15 16:45:44,023 - INFO -   seed 2 doc batch 250: adv=0.00 def=0.07
+2026-10-15 17:08:06,916 - INFO -   seed 2 doc batch 300: adv=0.00 def=0.06
+2026-10-15 17:13:21,891 - INFO - doc_seed2: {'adv': 0.0, 'defended': 0.06, 'gain': 0.06, 'elapsed_min': 138.5}
+2026-10-15 17:13:21,950 - INFO - DONE {"ttc_seed0": {"adv": 0.0, "defended": 0.14, "gain": 0.14, "elapsed_min": 136.1}, "nac_seed0": {"adv": 0.0, "defended": 0.23, "gain": 0.23, "elapsed_min": 137.5}, "doc_seed0": {"adv": 0.0, "defended": 0.05, "gain": 0.05, "elapsed_min": 138.2}, "ttc_seed1": {"adv": 0.0, "defended": 0.09, "gain": 0.09, "elapsed_min": 137.2}, "nac_seed1": {"adv": 0.02, "defended": 0.25, "gain": 0.23, "elapsed_min": 137.6}, "doc_seed1": {"adv": 0.0, "defended": 0.05, "gain": 0.05, "elapsed_min": 138.1}, "ttc_seed2": {"adv": 0.0, "defended": 0.06, "gain": 0.06, "elapsed_min": 138.6}, "nac_seed2": {"adv": 0.01, "defended": 0.21, "gain": 0.2, "elapsed_min": 142.9}, "doc_seed2": {"adv": 0.0, "defended": 0.06, "gain": 0.06, "elapsed_min": 138.5}}
