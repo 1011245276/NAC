@@ -191,7 +191,11 @@ def selfcheck(counter_fn, mk, model, val_loader, text_tokens, prompter,
     g = torch.autograd.grad(mean_loss, d0, allow_unused=True)[0]
     grad_reaches_delta = bool(g is not None and
                               torch.isfinite(g).all().item())
-    ok_s2 = bool('MeanBackward' in names and grad_reaches_delta)
+    # per-branch propagation: every M_def branch output must receive gradient
+    branch_grads = torch.autograd.grad(mean_loss, branch, allow_unused=True)
+    all_branches_reached = all(bg is not None for bg in branch_grads)
+    ok_s2 = bool(any('MeanBackward' in n for n in names) and
+                 grad_reaches_delta and all_branches_reached)
 
     # S3: one-sided clean check on >=256 samples
     n1m = n1j = 0
@@ -219,8 +223,9 @@ def selfcheck(counter_fn, mk, model, val_loader, text_tokens, prompter,
     drop_mean = 100.0 * (k1m - kNm) / max(nNm, 1)
     drop_maj = 100.0 * (k1j - kNj) / max(nNj, 1)
     res = dict(S1_mdef1_identity=ok_s1,
-               S2_mean_node_in_graph=bool('MeanBackward' in names),
+               S2_mean_node_in_graph=any('MeanBackward' in n for n in names),
                S2_grad_reaches_delta=grad_reaches_delta,
+               S2_all_branch_grads_reached=all_branches_reached,
                S2_node_types_sample=sorted(n for n in names if 'Backward' in n)[:8],
                S3_n=seen_batches * images.size(0),
                S3_clean_mdef1_mean_pct=round(100.0 * k1m / max(n1m, 1), 2),
@@ -363,7 +368,7 @@ def main():
                         tallies['majority']['k'] += sum(okj)
                         tallies['majority']['vec'].extend(okj)
                     if bi % 10 == 0:
-                        msg = {a: round(t[a]['k'] / max(t[a]['n'], 1) * 100, 2)
+                        msg = {a: round(tallies[a]['k'] / max(tallies[a]['n'], 1) * 100, 2)
                                for a in ('mean', 'majority')}
                         logging.info(f"  seed {seed} {name} Mdef{md} batch {bi}: {msg}")
                         print(f"  seed {seed} {name} Mdef{md} batch {bi}: {msg}", flush=True)
