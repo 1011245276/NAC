@@ -1,0 +1,5 @@
+﻿[start] M=1 seed0 ttc+nac -> results\research2_eot_mscan\m1\trend_seed0
+[done ] M=1 rc=0 63.5 min
+[start] M=2 seed0 ttc+nac -> results\research2_eot_mscan\m2\trend_seed0
+[done ] M=2 rc=0 120.9 min
+[start] M=10 seed0 ttc+nac -> results\research2_eot_mscan\m10\trend_seed0

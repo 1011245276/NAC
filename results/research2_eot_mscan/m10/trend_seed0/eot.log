@@ -1,0 +1,6 @@
+2026-10-25 17:56:39,200 - INFO - EOT adaptive attack | M=10 seeds=[0] methods=['ttc', 'nac'] | K=2 alpha=1/255 eps=4/255 bs=32
+2026-10-25 17:56:47,789 - INFO - === seed 0 | EOT M=10 vs ttc ===
+2026-10-25 18:11:42,864 - INFO -   seed 0 ttc batch 0: adv=0.00 def=0.00
+2026-10-26 12:06:30,463 - INFO - EOT adaptive attack | M=10 seeds=[0] methods=['ttc', 'nac'] | K=2 alpha=1/255 eps=4/255 bs=32
+2026-10-26 12:06:38,708 - INFO - === seed 0 | EOT M=10 vs ttc ===
+2026-10-26 12:19:38,794 - INFO -   seed 0 ttc batch 0: adv=0.00 def=0.00

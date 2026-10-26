@@ -1,0 +1,2 @@
+2026-10-26 03:54:02,820 - INFO - V3 | methods=['ttc', 'nac'] n_batches=8 bs=16 steps=10
+2026-10-26 03:55:33,285 - INFO - ttc batch 0 equivalence max|diff|=0.000e+00

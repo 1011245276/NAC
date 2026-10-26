@@ -1,0 +1,7 @@
+2026-10-26 03:01:23,455 - INFO - V2 finite-diff check | methods=['ttc', 'nac'] n_batches=2 R=12 eps_fd=0.001
+2026-10-26 03:02:57,097 - INFO - ttc batch 0: loss=1.2015 |g|=3.2211 sat=0.002
+2026-10-26 03:02:59,599 - INFO - ttc batch 1: loss=1.5893 |g|=2.7630 sat=0.006
+2026-10-26 03:03:01,131 - INFO - ttc: pearson=0.3775 spearman=0.3713 sign=0.792 scale=4.294 -> FAIL
+2026-10-26 03:04:21,606 - INFO - nac batch 0: loss=1.1450 |g|=2.4147 sat=0.002
+2026-10-26 03:04:24,146 - INFO - nac batch 1: loss=1.9571 |g|=2.4354 sat=0.006
+2026-10-26 03:04:25,757 - INFO - nac: pearson=0.1076 spearman=0.1313 sign=0.625 scale=3.798 -> FAIL

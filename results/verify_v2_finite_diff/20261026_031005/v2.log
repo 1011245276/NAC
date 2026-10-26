@@ -1,0 +1,1 @@
+2026-10-26 03:10:05,409 - INFO - V2 finite-diff check | methods=['ttc', 'nac'] n_batches=2 R=12 eps_fd=0.001

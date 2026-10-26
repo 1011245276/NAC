@@ -68,6 +68,9 @@ def main():
     ap.add_argument('--methods', nargs='*', default=['ttc', 'nac', 'doc'])
     ap.add_argument('--eot_inits', type=int, default=5)
     ap.add_argument('--outdir', default=None)
+    ap.add_argument('--max_batches', type=int, default=0,
+                    help='V5 smoke test only: limit val batches (0 = all). '
+                         'Does not touch RNG or computation for full runs.')
     cli = ap.parse_args()
 
     stamp = time.strftime('%Y%m%d_%H%M%S')
@@ -147,10 +150,15 @@ def main():
             fn = fns[name]
             top1_adv = AverageMeter('Adv', ':.2f')
             top1_def = AverageMeter(f'Def+{name}', ':.2f')
+            # V5 per-sample records (appended inside existing no_grad blocks;
+            # no RNG consumers added -> full-run behaviour bit-identical)
+            ps_def_correct, ps_adv_correct, ps_l2, ps_linf, ps_index = [], [], [], [], []
             t0 = time.time()
             logging.info(f"=== seed {seed} | EOT M={cli.eot_inits} vs {name} ===")
             print(f"=== seed {seed} | EOT M={cli.eot_inits} vs {name} ===")
             for bi, (images, target) in enumerate(val_loader):
+                if cli.max_batches and bi >= cli.max_batches:
+                    break
                 images, target = images.to(device), target.to(device)
                 delta_atk = eot_adaptive_pgd(
                     fn, lambda x, _n=name: mk(_n, x), model, images, target,
@@ -163,6 +171,10 @@ def main():
                         None, None, None, model, prompter(clip_img_preprocessing(attacked)),
                         text_tokens=text_tokens, prompt_token=None, dataset_name='cifar10')
                     top1_adv.update(accuracy(out_adv, target, topk=(1,))[0].item(), images.size(0))
+                    ps_adv_correct.extend((out_adv.argmax(1) == target).cpu().tolist())
+                    ps_l2.extend(delta_atk.view(delta_atk.size(0), -1).norm(dim=1).cpu().tolist())
+                    ps_linf.extend(delta_atk.view(delta_atk.size(0), -1).abs().amax(dim=1).cpu().tolist())
+                    ps_index.extend((bi * args.batch_size + torch.arange(images.size(0))).tolist())
                 with torch.enable_grad():
                     Delta = fn(**mk(name, attacked.data))
                 with torch.no_grad():
@@ -171,6 +183,7 @@ def main():
                         prompter(clip_img_preprocessing(torch.clamp(attacked + Delta, 0, 1))),
                         text_tokens=text_tokens, prompt_token=None, dataset_name='cifar10')
                     top1_def.update(accuracy(out_def, target, topk=(1,))[0].item(), images.size(0))
+                    ps_def_correct.extend((out_def.argmax(1) == target).cpu().tolist())
                 if bi % 50 == 0:
                     logging.info(f"  seed {seed} {name} batch {bi}: adv={top1_adv.avg:.2f} def={top1_def.avg:.2f}")
                     print(f"  seed {seed} {name} batch {bi}/313: adv={top1_adv.avg:.2f} def={top1_def.avg:.2f}", flush=True)
@@ -178,7 +191,18 @@ def main():
             key = f"{name}_seed{seed}"
             results[key] = dict(adv=round(top1_adv.avg, 2), defended=round(top1_def.avg, 2),
                                 gain=round(top1_def.avg - top1_adv.avg, 2),
-                                elapsed_min=round((time.time() - t0) / 60, 1))
+                                elapsed_min=round((time.time() - t0) / 60, 1),
+                                per_sample=dict(
+                                    n=len(ps_def_correct),
+                                    defended_correct=ps_def_correct,
+                                    adv_correct=ps_adv_correct,
+                                    l2_norm=[round(v, 4) for v in ps_l2],
+                                    linf_norm=[round(v, 6) for v in ps_linf],
+                                    image_index=ps_index),
+                                attack_config=dict(method=name, seed=seed,
+                                                   eot_m=cli.eot_inits,
+                                                   eps_att=round(args.test_eps, 6),
+                                                   steps=args.test_numsteps))
             logging.info(f"{key}: {results[key]}")
             print(f"{key}: {results[key]}", flush=True)
             torch.cuda.empty_cache()
