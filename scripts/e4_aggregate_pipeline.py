@@ -80,14 +80,24 @@ def eot_attack_aggregate(counter_fn, mk, model, images, target, text_tokens,
     the MEAN, compute one CE per repetition, and average the repetition
     losses.  m_def_target=1 reduces to mean-of-CE (production EOT attacker).
     Delta is .detach()-truncated per branch (disclosed approximation).
+
+    Memory: the step gradient equals the MEAN of the per-repetition gradients
+    (gradient linearity -- every repetition loss depends on the same delta
+    leaf), so each repetition is built and differentiated on its own freshly
+    recomputed x_attack, and its graph is freed before the next repetition.
+    This bounds peak memory at ONE repetition (M_def branches) instead of
+    M_att x M_def branches (the unbounded-graph version OOM'd on the 8GB
+    card at M_def=5 with 16.8GB requested).
     """
     delta = torch.zeros_like(images).uniform_(-eps, eps)
     delta = torch.clamp(delta, -eps, eps)
     delta.requires_grad = True
     for _s in range(steps):
-        x_attack = torch.clamp(images + delta, 0, 1)
-        rep_losses = []
+        grad_acc = torch.zeros_like(delta)
         for _r in range(m_att):
+            # x_attack recomputed per repetition: an independent graph path
+            # from delta, freed together with the repetition's backward.
+            x_attack = torch.clamp(images + delta, 0, 1)
             member_logits = []
             for _j in range(m_def_target):
                 Delta = counter_fn(**mk(x_attack.detach())).detach()
@@ -99,11 +109,14 @@ def eot_attack_aggregate(counter_fn, mk, model, images, target, text_tokens,
                     dataset_name=dataset)
                 member_logits.append(out)
             agg_logits = torch.stack(member_logits, dim=0).mean(dim=0)
-            rep_losses.append(F.cross_entropy(agg_logits, target))
-        loss = torch.stack(rep_losses).mean()
-        grad = torch.autograd.grad(loss, delta)[0]
+            loss_r = F.cross_entropy(agg_logits, target)
+            g_r = torch.autograd.grad(loss_r, delta)[0]
+            grad_acc = grad_acc + g_r
+            del member_logits, agg_logits, loss_r, x_attack
+        grad = grad_acc / m_att
         delta = torch.clamp(delta + alpha * torch.sign(grad), -eps, eps).detach()
         delta.requires_grad = True
+        del grad_acc, grad
     return delta.detach()
 
 
