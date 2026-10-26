@@ -71,6 +71,10 @@ def main():
     ap.add_argument('--max_batches', type=int, default=0,
                     help='V5 smoke test only: limit val batches (0 = all). '
                          'Does not touch RNG or computation for full runs.')
+    ap.add_argument('--dataset', default='cifar10',
+                    help='E2 extension: validation dataset name passed to '
+                         'load_val_dataset/get_text_prompts_val (cifar10, '
+                         'stl10, dtd, ...).')
     cli = ap.parse_args()
 
     stamp = time.strftime('%Y%m%d_%H%M%S')
@@ -82,9 +86,9 @@ def main():
 
     sys.argv = [
         'nac_fair_experiment.py', '--evaluate', 'True', '--batch_size', '32',
-        '--test_set', 'cifar10', '--test_attack_type', 'pgd', '--test_eps', '4.0',
+        '--test_set', cli.dataset, '--test_attack_type', 'pgd', '--test_eps', '4.0',
         '--test_numsteps', '10', '--test_stepsize', '1.0', '--method', 'null_patch',
-        '--root', './data', '--dataset', 'cifar10', '--seed', '0', '--num_seeds', '1',
+        '--root', './data', '--dataset', cli.dataset, '--seed', '0', '--num_seeds', '1',
         '--tau_thres', '0.2', '--beta', '2.0', '--ttc_eps', '4.0',
         '--ttc_numsteps', '2', '--ttc_stepsize', '1.0', '--nac_momentum', '0.9',
         '--learnable_tau', '0.155', '--temperature', '75.0',
@@ -112,8 +116,8 @@ def main():
     prompter = torch.nn.DataParallel(NullPrompter()).cuda()
     add_prompter = torch.nn.DataParallel(TokenPrompter(0)).cuda()
 
-    val_dataset, val_loader = load_val_dataset(args, 'cifar10')
-    texts = get_text_prompts_val([val_dataset], ['cifar10'])[0]
+    val_dataset, val_loader = load_val_dataset(args, cli.dataset)
+    texts = get_text_prompts_val([val_dataset], [cli.dataset])[0]
     text_tokens = clip.tokenize(texts).to(device)
 
     class _A: pass
@@ -163,13 +167,13 @@ def main():
                 delta_atk = eot_adaptive_pgd(
                     fn, lambda x, _n=name: mk(_n, x), model, images, target,
                     text_tokens, prompter, add_prompter,
-                    args.test_eps, args.test_stepsize, args.test_numsteps, 'cifar10',
+                    args.test_eps, args.test_stepsize, args.test_numsteps, cli.dataset,
                     cli.eot_inits)
                 attacked = torch.clamp(images + delta_atk, 0, 1)
                 with torch.no_grad():
                     out_adv, _, _, _ = multiGPU_CLIP(
                         None, None, None, model, prompter(clip_img_preprocessing(attacked)),
-                        text_tokens=text_tokens, prompt_token=None, dataset_name='cifar10')
+                        text_tokens=text_tokens, prompt_token=None, dataset_name=cli.dataset)
                     top1_adv.update(accuracy(out_adv, target, topk=(1,))[0].item(), images.size(0))
                     ps_adv_correct.extend((out_adv.argmax(1) == target).cpu().tolist())
                     ps_l2.extend(delta_atk.view(delta_atk.size(0), -1).norm(dim=1).cpu().tolist())
@@ -181,7 +185,7 @@ def main():
                     out_def, _, _, _ = multiGPU_CLIP(
                         None, None, None, model,
                         prompter(clip_img_preprocessing(torch.clamp(attacked + Delta, 0, 1))),
-                        text_tokens=text_tokens, prompt_token=None, dataset_name='cifar10')
+                        text_tokens=text_tokens, prompt_token=None, dataset_name=cli.dataset)
                     top1_def.update(accuracy(out_def, target, topk=(1,))[0].item(), images.size(0))
                     ps_def_correct.extend((out_def.argmax(1) == target).cpu().tolist())
                 if bi % 50 == 0:
@@ -207,7 +211,7 @@ def main():
             print(f"{key}: {results[key]}", flush=True)
             torch.cuda.empty_cache()
             with open(out_json, 'w') as f:
-                json.dump(dict(config=f"CIFAR-10, eps_att=4/255, PGD-10 step=1/255, K=2, alpha=1/255, eps_def=4/255, bs=32, EOT M={cli.eot_inits} over defense random init, first-order defense-aware adaptive PGD, seeds={cli.seeds}",
+                json.dump(dict(config=f"{cli.dataset.upper()}, eps_att=4/255, PGD-10 step=1/255, K=2, alpha=1/255, eps_def=4/255, bs=32, EOT M={cli.eot_inits} over defense random init, first-order defense-aware adaptive PGD, seeds={cli.seeds}",
                                results=results), f, indent=2)
     logging.info("DONE " + json.dumps(results))
     print("DONE:", json.dumps(results), flush=True)
