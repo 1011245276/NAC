@@ -188,11 +188,13 @@ def selfcheck(counter_fn, mk, model, val_loader, text_tokens, prompter,
     mean_loss = F.cross_entropy(torch.stack(branch).mean(0), target)
     names, seen = set(), set()
     _walk_graph(mean_loss.grad_fn, names, seen)
-    g = torch.autograd.grad(mean_loss, d0, allow_unused=True)[0]
+    g = torch.autograd.grad(mean_loss, d0, allow_unused=True,
+                            retain_graph=True)[0]
     grad_reaches_delta = bool(g is not None and
                               torch.isfinite(g).all().item())
     # per-branch propagation: every M_def branch output must receive gradient
-    branch_grads = torch.autograd.grad(mean_loss, branch, allow_unused=True)
+    branch_grads = torch.autograd.grad(mean_loss, branch, allow_unused=True,
+                                       retain_graph=True)
     all_branches_reached = all(bg is not None for bg in branch_grads)
     ok_s2 = bool(any('MeanBackward' in n for n in names) and
                  grad_reaches_delta and all_branches_reached)
