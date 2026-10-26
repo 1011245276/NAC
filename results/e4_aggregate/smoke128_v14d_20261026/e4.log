@@ -1,0 +1,14 @@
+2026-10-26 23:13:44,486 - INFO - E4 aggregate pipeline v1.4 | M_att=5 M_def=[1, 5] steps=10 methods=['ttc', 'nac'] seeds=[0]
+2026-10-26 23:13:48,425 - INFO - === seed 0 | E4 aggregate vs ttc ===
+2026-10-26 23:15:02,267 - INFO - E4 selfcheck: {"S1_mdef1_identity": true, "S2_mean_node_in_graph": true, "S2_grad_reaches_delta": true, "S2_all_branch_grads_reached": true, "S2_node_types_sample": ["AddBackward0", "CatBackward0", "ClampBackward1", "ConvolutionBackward0", "DivBackward0", "LinalgVectorNormBackward0", "LogSoftmaxBackward0", "MeanBackward1"], "S3_n": 256, "S3_clean_mdef1_mean_pct": 78.52, "S3_clean_mdef1_majority_pct": 78.52, "S3_clean_mdefN_mean_pct": 79.3, "S3_clean_mdefN_majority_pct": 79.69, "S3_drop_pp": {"mean": -0.78, "majority": -1.17}, "S3_rule": "ONE-SIDED: drop <= 0.5pp (pre-registered E5 constraint 1)", "S3_pass": true}
+2026-10-26 23:16:36,519 - INFO -   seed 0 ttc Mdef1 batch 0: {'mean': 0.0, 'majority': 0.0}
+2026-10-26 23:18:05,198 - INFO - ttc_seed0_Mdef1: adv=0.0 {"M1_mean": {"robust": 0.0, "k": 0, "n": 128, "wilson95": [0.0, 2.91]}, "M1_majority": {"robust": 0.0, "k": 0, "n": 128, "wilson95": [0.0, 2.91]}}
+2026-10-26 23:21:52,111 - INFO -   seed 0 ttc Mdef5 batch 0: {'mean': 0.0, 'majority': 0.0}
+2026-10-26 23:29:14,954 - INFO - ttc_seed0_Mdef5: adv=0.0 {"M5_mean": {"robust": 0.0, "k": 0, "n": 128, "wilson95": [0.0, 2.91]}, "M5_majority": {"robust": 0.0, "k": 0, "n": 128, "wilson95": [0.0, 2.91]}}
+2026-10-26 23:29:15,122 - INFO - === seed 0 | E4 aggregate vs nac ===
+2026-10-26 23:30:43,155 - INFO - E4 selfcheck: {"S1_mdef1_identity": true, "S2_mean_node_in_graph": true, "S2_grad_reaches_delta": true, "S2_all_branch_grads_reached": true, "S2_node_types_sample": ["AddBackward0", "CatBackward0", "ClampBackward1", "ConvolutionBackward0", "DivBackward0", "LinalgVectorNormBackward0", "LogSoftmaxBackward0", "MeanBackward1"], "S3_n": 256, "S3_clean_mdef1_mean_pct": 79.3, "S3_clean_mdef1_majority_pct": 79.3, "S3_clean_mdefN_mean_pct": 78.12, "S3_clean_mdefN_majority_pct": 78.52, "S3_drop_pp": {"mean": 1.17, "majority": 0.78}, "S3_rule": "ONE-SIDED: drop <= 0.5pp (pre-registered E5 constraint 1)", "S3_pass": false}
+2026-10-26 23:32:31,532 - INFO -   seed 0 nac Mdef1 batch 0: {'mean': 0.0, 'majority': 0.0}
+2026-10-26 23:34:05,691 - INFO - nac_seed0_Mdef1: adv=0.0 {"M1_mean": {"robust": 0.78, "k": 1, "n": 128, "wilson95": [0.14, 4.29]}, "M1_majority": {"robust": 0.78, "k": 1, "n": 128, "wilson95": [0.14, 4.29]}}
+2026-10-26 23:37:43,109 - INFO -   seed 0 nac Mdef5 batch 0: {'mean': 0.0, 'majority': 0.0}
+2026-10-26 23:45:01,429 - INFO - nac_seed0_Mdef5: adv=0.0 {"M5_mean": {"robust": 0.0, "k": 0, "n": 128, "wilson95": [0.0, 2.91]}, "M5_majority": {"robust": 0.0, "k": 0, "n": 128, "wilson95": [0.0, 2.91]}}
+2026-10-26 23:45:01,617 - INFO - DONE
