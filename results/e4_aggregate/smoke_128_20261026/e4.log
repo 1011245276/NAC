@@ -1,0 +1,10 @@
+2026-10-26 21:12:13,145 - INFO - E4 aggregate pipeline | M_att=5 M_def=[1, 5] steps=10 methods=['ttc', 'nac'] seeds=[0]
+2026-10-26 21:12:21,123 - INFO - === seed 0 | E4 aggregate vs ttc ===
+2026-10-26 21:13:15,257 - INFO - E4 selfcheck: {"S1_mdef1_identity": true, "S2_mean_graph": false, "S3_clean_mdef1": {"mean": 90.62, "majority": 90.62}, "S3_clean_mdefN": {"mean": 84.38, "majority": 84.38}, "S3_delta_pp": {"mean": -6.25, "majority": -6.25}, "S3_pass": false}
+2026-10-26 21:14:07,595 - INFO -   seed 0 ttc batch 0: {'M1': {'mean': 0.0, 'majority': 0.0}, 'M5': {'mean': 0.0, 'majority': 0.0}}
+2026-10-26 21:15:33,770 - INFO - ttc_seed0: adv=0.0 {"M1_mean": {"robust": 0.78, "wilson95": [0.14, 4.29], "n": 128}, "M1_majority": {"robust": 0.78, "wilson95": [0.14, 4.29], "n": 128}, "M5_mean": {"robust": 0.0, "wilson95": [0.0, 2.91], "n": 128}, "M5_majority": {"robust": 0.0, "wilson95": [0.0, 2.91], "n": 128}}
+2026-10-26 21:15:33,839 - INFO - === seed 0 | E4 aggregate vs nac ===
+2026-10-26 21:16:03,844 - INFO - E4 selfcheck: {"S1_mdef1_identity": true, "S2_mean_graph": false, "S3_clean_mdef1": {"mean": 81.25, "majority": 81.25}, "S3_clean_mdefN": {"mean": 84.38, "majority": 84.38}, "S3_delta_pp": {"mean": 3.12, "majority": 3.12}, "S3_pass": false}
+2026-10-26 21:16:58,495 - INFO -   seed 0 nac batch 0: {'M1': {'mean': 0.0, 'majority': 0.0}, 'M5': {'mean': 0.0, 'majority': 0.0}}
+2026-10-26 21:18:23,547 - INFO - nac_seed0: adv=0.0 {"M1_mean": {"robust": 0.0, "wilson95": [0.0, 2.91], "n": 128}, "M1_majority": {"robust": 0.0, "wilson95": [0.0, 2.91], "n": 128}, "M5_mean": {"robust": 0.0, "wilson95": [0.0, 2.91], "n": 128}, "M5_majority": {"robust": 0.0, "wilson95": [0.0, 2.91], "n": 128}}
+2026-10-26 21:18:23,616 - INFO - DONE
