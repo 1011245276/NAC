@@ -15,12 +15,14 @@
         ],
         "net_drop_pp": -0.333,
         "paired_se_pp": 0.056,
+        "se_worst_cluster_pp": 0.177,
+        "worst_case_upper_pp": -0.042,
         "discordant_base_right_agg_wrong": 1399,
         "discordant_base_wrong_agg_right": 1732,
         "mcnemar_exact_p": 0.0,
         "boot_ci_pp": [
-          -0.445,
-          -0.224
+          -0.448,
+          -0.223
         ],
         "boot_B": 10000,
         "boot_seed": 2027,
@@ -40,7 +42,9 @@
           81.681
         ],
         "net_drop_pp": -0.308,
-        "paired_se_pp": 0.058,
+        "paired_se_pp": 0.057,
+        "se_worst_cluster_pp": 0.18,
+        "worst_case_upper_pp": -0.011,
         "discordant_base_right_agg_wrong": 1473,
         "discordant_base_wrong_agg_right": 1781,
         "mcnemar_exact_p": 0.0,
@@ -70,12 +74,14 @@
         ],
         "net_drop_pp": -0.333,
         "paired_se_pp": 0.056,
+        "se_worst_cluster_pp": 0.177,
+        "worst_case_upper_pp": -0.042,
         "discordant_base_right_agg_wrong": 1399,
         "discordant_base_wrong_agg_right": 1732,
         "mcnemar_exact_p": 0.0,
         "boot_ci_pp": [
-          -0.445,
-          -0.224
+          -0.448,
+          -0.223
         ],
         "boot_B": 10000,
         "boot_seed": 2027,
@@ -95,7 +101,9 @@
           81.681
         ],
         "net_drop_pp": -0.308,
-        "paired_se_pp": 0.058,
+        "paired_se_pp": 0.057,
+        "se_worst_cluster_pp": 0.18,
+        "worst_case_upper_pp": -0.011,
         "discordant_base_right_agg_wrong": 1473,
         "discordant_base_wrong_agg_right": 1781,
         "mcnemar_exact_p": 0.0,

@@ -26,7 +26,7 @@ from replace import clip
 from models.prompters import TokenPrompter, NullPrompter
 from nac_fair_experiment import (load_val_dataset, get_text_prompts_val,
                                  ttc_counterattack, nac_counterattack,
-                                 clip_img_preprocessing)
+                                 clip_img_preprocessing, multiGPU_CLIP)
 from utils import convert_models_to_fp32
 
 device = "cuda"
@@ -115,11 +115,37 @@ def probe(tag, x):
 
 
 def main():
-    images, _ = next(iter(val_loader))
-    images = images.to(device)
+    images, target = next(iter(val_loader))
+    images, target = images.to(device), target.to(device)
+    texts = get_text_prompts_val([val_dataset], ['cifar10'])[0]
+    text_tokens = clip.tokenize(texts).to(device)
     probe("clean", images)
     strong = torch.clamp(images + 8 / 255. * torch.randn_like(images).sign(), 0, 1)
     probe("x + 8/255 sign-random (high-deviation proxy)", strong)
+
+    # adversarial probe: quick PGD-10 on UNDEFENDED CLIP (CE loss), then the
+    # same ttc/nac comparison on x_adv -- decides whether the gating also
+    # suppresses the method-specific trajectory on attacked inputs (which
+    # would make the deployed defense a pure random-noise defense there).
+    x_adv = images.clone().detach().requires_grad_(True)
+    for _s in range(10):
+        out, _, _, _ = multiGPU_CLIP(
+            None, None, None, model,
+            prompter(clip_img_preprocessing(torch.clamp(images + x_adv, 0, 1))),
+            text_tokens=text_tokens, prompt_token=None, dataset_name='cifar10')
+        loss = torch.nn.functional.cross_entropy(out, target)
+        g = torch.autograd.grad(loss, x_adv)[0]
+        x_adv = torch.clamp(x_adv + args.ttc_stepsize * torch.sign(g),
+                            -args.ttc_eps, args.ttc_eps).detach().requires_grad_(True)
+    x_adv = torch.clamp(images + x_adv.detach(), 0, 1)
+    with torch.no_grad():
+        out, _, _, _ = multiGPU_CLIP(
+            None, None, None, model,
+            prompter(clip_img_preprocessing(x_adv)),
+            text_tokens=text_tokens, prompt_token=None, dataset_name='cifar10')
+        print(f"[pgd-10 probe] undefended adv acc = "
+              f"{(out.argmax(1) == target).float().mean().item() * 100:.2f}%")
+    probe("PGD-10 adversarial images", x_adv)
 
 
 if __name__ == '__main__':
