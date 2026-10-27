@@ -265,6 +265,13 @@ def main():
     ap.add_argument('--steps', type=int, default=10)
     ap.add_argument('--dataset', default='cifar10')
     ap.add_argument('--max_batches', type=int, default=0)
+    ap.add_argument('--batch_size', type=int, default=32,
+                    help='deployment/attack batch size.  Default 32; the '
+                         'E5 driver passes 16 for the M_def=10 configs '
+                         '(10-branch graph peak at bs=32, ~7.3GB, thrashes '
+                         'the 8GB card ~15x; per-image results are '
+                         'stream-shifted per the S1 RNG-stream finding -- '
+                         'disclosed deviation, user-approved 2026-10-27).')
     ap.add_argument('--outdir', default=None)
     cli = ap.parse_args()
 
@@ -276,7 +283,7 @@ def main():
                         format="%(asctime)s - %(levelname)s - %(message)s")
 
     sys.argv = [
-        'nac_fair_experiment.py', '--evaluate', 'True', '--batch_size', '32',
+        'nac_fair_experiment.py', '--evaluate', 'True', '--batch_size', str(cli.batch_size),
         '--test_set', cli.dataset, '--test_attack_type', 'pgd', '--test_eps', '4.0',
         '--test_numsteps', '10', '--test_stepsize', '1.0', '--method', 'null_patch',
         '--root', './data', '--dataset', cli.dataset, '--seed', '0', '--num_seeds', '1',
@@ -433,7 +440,7 @@ def main():
                 with open(out_json, 'w') as f:
                     json.dump(dict(
                         config=(f"{cli.dataset.upper()}, eps_att=4/255, PGD-{cli.steps} "
-                                f"step=1/255, K=2, alpha=1/255, eps_def=4/255, bs=32, "
+                                f"step=1/255, K=2, alpha=1/255, eps_def=4/255, bs={cli.batch_size}, "
                                 f"M_att={cli.m_att} repetitions x full M_def-branch "
                                 f"aggregate attack target (v1.4; M_def=1 -> "
                                 f"mean-of-CE), deployment M_def={cli.m_def_list} "
