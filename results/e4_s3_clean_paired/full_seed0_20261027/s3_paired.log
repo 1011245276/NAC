@@ -1,0 +1,38 @@
+2026-10-27 00:17:38,338 - INFO - E4-S3 full clean paired | methods=['ttc', 'nac'] seed=0 M_eval=10 M_def=[1, 5]
+2026-10-27 00:17:46,319 - INFO - === ttc (seed 0) ===
+2026-10-27 00:19:27,242 - INFO -   ttc batch 0: n=320 base=87.19 agg_mean=86.25 agg_maj=85.94
+2026-10-27 00:29:40,411 - INFO -   ttc batch 20: n=6720 base=81.56 agg_mean=81.79 agg_maj=81.64
+2026-10-27 00:40:04,049 - INFO -   ttc batch 40: n=13120 base=81.74 agg_mean=81.97 agg_maj=81.88
+2026-10-27 00:50:35,775 - INFO -   ttc batch 60: n=19520 base=82.37 agg_mean=82.46 agg_maj=82.44
+2026-10-27 01:01:07,329 - INFO -   ttc batch 80: n=25920 base=81.84 agg_mean=81.99 agg_maj=81.99
+2026-10-27 01:11:39,578 - INFO -   ttc batch 100: n=32320 base=81.58 agg_mean=81.83 agg_maj=81.79
+2026-10-27 01:22:12,155 - INFO -   ttc batch 120: n=38720 base=81.60 agg_mean=81.92 agg_maj=81.89
+2026-10-27 01:32:44,608 - INFO -   ttc batch 140: n=45120 base=81.61 agg_mean=82.03 agg_maj=81.97
+2026-10-27 01:43:17,314 - INFO -   ttc batch 160: n=51520 base=81.43 agg_mean=81.78 agg_maj=81.73
+2026-10-27 01:53:47,951 - INFO -   ttc batch 180: n=57920 base=81.19 agg_mean=81.56 agg_maj=81.52
+2026-10-27 02:04:19,919 - INFO -   ttc batch 200: n=64320 base=81.14 agg_mean=81.50 agg_maj=81.46
+2026-10-27 02:14:52,170 - INFO -   ttc batch 220: n=70720 base=81.00 agg_mean=81.40 agg_maj=81.35
+2026-10-27 02:25:24,784 - INFO -   ttc batch 240: n=77120 base=81.23 agg_mean=81.61 agg_maj=81.57
+2026-10-27 02:35:56,486 - INFO -   ttc batch 260: n=83520 base=81.28 agg_mean=81.65 agg_maj=81.61
+2026-10-27 02:46:28,491 - INFO -   ttc batch 280: n=89920 base=81.06 agg_mean=81.43 agg_maj=81.38
+2026-10-27 02:57:00,493 - INFO -   ttc batch 300: n=96320 base=81.12 agg_mean=81.48 agg_maj=81.45
+2026-10-27 03:03:07,881 - INFO - ttc done: n=10000 elapsed=165.4min
+2026-10-27 03:03:07,911 - INFO - === nac (seed 0) ===
+2026-10-27 03:04:46,786 - INFO -   nac batch 0: n=320 base=87.19 agg_mean=86.25 agg_maj=85.94
+2026-10-27 03:15:18,102 - INFO -   nac batch 20: n=6720 base=81.56 agg_mean=81.79 agg_maj=81.64
+2026-10-27 03:25:52,312 - INFO -   nac batch 40: n=13120 base=81.74 agg_mean=81.97 agg_maj=81.88
+2026-10-27 03:36:26,857 - INFO -   nac batch 60: n=19520 base=82.37 agg_mean=82.46 agg_maj=82.44
+2026-10-27 03:47:01,003 - INFO -   nac batch 80: n=25920 base=81.84 agg_mean=81.99 agg_maj=81.99
+2026-10-27 03:57:34,958 - INFO -   nac batch 100: n=32320 base=81.58 agg_mean=81.83 agg_maj=81.79
+2026-10-27 04:08:09,195 - INFO -   nac batch 120: n=38720 base=81.60 agg_mean=81.92 agg_maj=81.89
+2026-10-27 04:18:44,062 - INFO -   nac batch 140: n=45120 base=81.61 agg_mean=82.03 agg_maj=81.97
+2026-10-27 04:29:17,707 - INFO -   nac batch 160: n=51520 base=81.43 agg_mean=81.78 agg_maj=81.73
+2026-10-27 04:39:52,024 - INFO -   nac batch 180: n=57920 base=81.19 agg_mean=81.56 agg_maj=81.52
+2026-10-27 04:50:25,784 - INFO -   nac batch 200: n=64320 base=81.14 agg_mean=81.50 agg_maj=81.46
+2026-10-27 05:00:57,862 - INFO -   nac batch 220: n=70720 base=81.00 agg_mean=81.40 agg_maj=81.35
+2026-10-27 05:11:31,723 - INFO -   nac batch 240: n=77120 base=81.23 agg_mean=81.61 agg_maj=81.57
+2026-10-27 05:22:05,809 - INFO -   nac batch 260: n=83520 base=81.28 agg_mean=81.65 agg_maj=81.61
+2026-10-27 05:32:39,756 - INFO -   nac batch 280: n=89920 base=81.06 agg_mean=81.43 agg_maj=81.38
+2026-10-27 05:43:14,400 - INFO -   nac batch 300: n=96320 base=81.12 agg_mean=81.48 agg_maj=81.45
+2026-10-27 05:49:23,518 - INFO - nac done: n=10000 elapsed=166.3min
+2026-10-27 05:49:23,546 - INFO - DONE

@@ -1,0 +1,115 @@
+{
+  "source": "F:\\codex\\NAC\\nac_project\\results\\e4_s3_clean_paired\\full_seed0_20261027\\s3_paired_results.json",
+  "methods": {
+    "ttc_seed0": {
+      "agg_mean": {
+        "pooled_base_pct": 81.133,
+        "pooled_agg_pct": 81.466,
+        "pooled_base_wilson": [
+          80.889,
+          81.374
+        ],
+        "pooled_agg_wilson": [
+          81.224,
+          81.706
+        ],
+        "net_drop_pp": -0.333,
+        "paired_se_pp": 0.056,
+        "discordant_base_right_agg_wrong": 1399,
+        "discordant_base_wrong_agg_right": 1732,
+        "mcnemar_exact_p": 0.0,
+        "boot_ci_pp": [
+          -0.445,
+          -0.224
+        ],
+        "boot_B": 10000,
+        "boot_seed": 2027,
+        "threshold_pp": 0.5,
+        "rule": "one-sided: PASS iff boot upper <= 0.5pp",
+        "verdict": "PASS"
+      },
+      "agg_majority": {
+        "pooled_base_pct": 81.133,
+        "pooled_agg_pct": 81.441,
+        "pooled_base_wilson": [
+          80.889,
+          81.374
+        ],
+        "pooled_agg_wilson": [
+          81.199,
+          81.681
+        ],
+        "net_drop_pp": -0.308,
+        "paired_se_pp": 0.058,
+        "discordant_base_right_agg_wrong": 1473,
+        "discordant_base_wrong_agg_right": 1781,
+        "mcnemar_exact_p": 0.0,
+        "boot_ci_pp": [
+          -0.423,
+          -0.196
+        ],
+        "boot_B": 10000,
+        "boot_seed": 2027,
+        "threshold_pp": 0.5,
+        "rule": "one-sided: PASS iff boot upper <= 0.5pp",
+        "verdict": "PASS"
+      },
+      "note": "paired design: d_i computed from M_eval repetition rates per image; bootstrap resamples images (respects within-image repetition correlation)"
+    },
+    "nac_seed0": {
+      "agg_mean": {
+        "pooled_base_pct": 81.133,
+        "pooled_agg_pct": 81.466,
+        "pooled_base_wilson": [
+          80.889,
+          81.374
+        ],
+        "pooled_agg_wilson": [
+          81.224,
+          81.706
+        ],
+        "net_drop_pp": -0.333,
+        "paired_se_pp": 0.056,
+        "discordant_base_right_agg_wrong": 1399,
+        "discordant_base_wrong_agg_right": 1732,
+        "mcnemar_exact_p": 0.0,
+        "boot_ci_pp": [
+          -0.445,
+          -0.224
+        ],
+        "boot_B": 10000,
+        "boot_seed": 2027,
+        "threshold_pp": 0.5,
+        "rule": "one-sided: PASS iff boot upper <= 0.5pp",
+        "verdict": "PASS"
+      },
+      "agg_majority": {
+        "pooled_base_pct": 81.133,
+        "pooled_agg_pct": 81.441,
+        "pooled_base_wilson": [
+          80.889,
+          81.374
+        ],
+        "pooled_agg_wilson": [
+          81.199,
+          81.681
+        ],
+        "net_drop_pp": -0.308,
+        "paired_se_pp": 0.058,
+        "discordant_base_right_agg_wrong": 1473,
+        "discordant_base_wrong_agg_right": 1781,
+        "mcnemar_exact_p": 0.0,
+        "boot_ci_pp": [
+          -0.423,
+          -0.196
+        ],
+        "boot_B": 10000,
+        "boot_seed": 2027,
+        "threshold_pp": 0.5,
+        "rule": "one-sided: PASS iff boot upper <= 0.5pp",
+        "verdict": "PASS"
+      },
+      "note": "paired design: d_i computed from M_eval repetition rates per image; bootstrap resamples images (respects within-image repetition correlation)"
+    }
+  }
+}
