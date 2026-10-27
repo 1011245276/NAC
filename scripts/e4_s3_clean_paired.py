@@ -87,6 +87,9 @@ def main():
     ap.add_argument('--max_batches', type=int, default=0,
                     help='smoke hook only (0 = full test set)')
     ap.add_argument('--outdir', default=None)
+    ap.add_argument('--m_def_agg_list', type=int, nargs='*', default=[5],
+                    help='aggregate M_def values evaluated alongside the '
+                         'M_def=1 baseline (each with both aggregations)')
     cli = ap.parse_args()
 
     stamp = time.strftime('%Y%m%d_%H%M%S')
@@ -114,9 +117,10 @@ def main():
     args.tinyimagenet_root = os.path.join(args.root, 'tiny-imagenet-200', 'tiny-imagenet-200')
 
     logging.info("E4-S3 full clean paired | methods=%s seed=%d M_eval=%d "
-                 "M_def=%s", cli.methods, cli.seed, cli.m_eval, M_DEF_LIST)
-    print(f"E4-S3 clean paired M_eval={cli.m_eval} M_def={M_DEF_LIST}; log:",
-          log_path, flush=True)
+                 "base M_def=1, agg M_def=%s", cli.methods, cli.seed,
+                 cli.m_eval, cli.m_def_agg_list)
+    print(f"E4-S3 clean paired M_eval={cli.m_eval} base=1 "
+          f"agg={cli.m_def_agg_list}; log:", log_path, flush=True)
 
     model, _ = clip_load('ViT-B/32', device, jit=False, prompt_len=0)
     for p in model.parameters():
@@ -153,7 +157,8 @@ def main():
         torch.backends.cudnn.benchmark = False
         fn = fns[name]
         mk_fn = lambda x, _n=name: mk(_n, x)
-        base_vec, agg_mean_vec, agg_maj_vec, idx_vec = [], [], [], []
+        base_vec, idx_vec = [], []
+        agg_vecs = {md: ([], []) for md in cli.m_def_agg_list}   # (mean, maj)
         t0 = time.time()
         logging.info("=== %s (seed %d) ===", name, cli.seed)
         for bi, (images, target) in enumerate(val_loader):
@@ -166,35 +171,38 @@ def main():
                                        prompter, 'cifar10', 1)
                 c1, _ = aggregate_correct(ls1, target)
                 base_vec.extend(c1)
-                # aggregate deployment: M_def=5, both aggregations
-                ls5 = deploy_aggregate(fn, mk_fn, model, images, text_tokens,
-                                       prompter, 'cifar10', 5)
-                cm, cj = aggregate_correct(ls5, target)
-                agg_mean_vec.extend(cm)
-                agg_maj_vec.extend(cj)
+                # aggregate deployments: one per configured M_def
+                for md in cli.m_def_agg_list:
+                    lsN = deploy_aggregate(fn, mk_fn, model, images,
+                                           text_tokens, prompter,
+                                           'cifar10', md)
+                    cm, cj = aggregate_correct(lsN, target)
+                    agg_vecs[md][0].extend(cm)
+                    agg_vecs[md][1].extend(cj)
             idx_vec.extend((bi * args.batch_size
                             + torch.arange(images.size(0))).tolist())
             if bi % 20 == 0:
                 nb = len(base_vec)
-                logging.info("  %s batch %d: n=%d base=%.2f agg_mean=%.2f "
-                             "agg_maj=%.2f", name, bi, nb,
-                             100 * sum(base_vec) / max(nb, 1),
-                             100 * sum(agg_mean_vec) / max(len(agg_mean_vec), 1),
-                             100 * sum(agg_maj_vec) / max(len(agg_maj_vec), 1))
+                rates = {md: round(100 * sum(v[0]) / max(len(v[0]), 1), 2)
+                         for md, v in agg_vecs.items()}
+                logging.info("  %s batch %d: n=%d base=%.2f agg=%s",
+                             name, bi, nb,
+                             100 * sum(base_vec) / max(nb, 1), rates)
                 print(f"  {name} batch {bi}: n={nb} base="
-                      f"{100 * sum(base_vec) / max(nb, 1):.2f}", flush=True)
+                      f"{100 * sum(base_vec) / max(nb, 1):.2f} agg={rates}",
+                      flush=True)
                 torch.cuda.empty_cache()
+        per_reps = dict(image_index=idx_vec, base_correct_reps=base_vec)
+        for md, (vm, vj) in agg_vecs.items():
+            per_reps[f"agg{md}_mean_correct_reps"] = vm
+            per_reps[f"agg{md}_maj_correct_reps"] = vj
         results[f"{name}_seed{cli.seed}"] = dict(
             n_images=len(idx_vec),
             m_eval=cli.m_eval,
-            m_def_list=M_DEF_LIST,
+            m_def_list=dict(base=1, agg=list(cli.m_def_agg_list)),
             seed=cli.seed,
             elapsed_min=round((time.time() - t0) / 60, 1),
-            per_image_reps=dict(
-                image_index=idx_vec,
-                base_correct_reps=base_vec,
-                agg_mean_correct_reps=agg_mean_vec,
-                agg_maj_correct_reps=agg_maj_vec),
+            per_image_reps=per_reps,
             config=dict(method=name, dataset='cifar10', batch_size=32,
                         k=args.ttc_numsteps, eps_def=round(args.ttc_eps, 6),
                         tau_thres=args.tau_thres, beta=args.beta,
