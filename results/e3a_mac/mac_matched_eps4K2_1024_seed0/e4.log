@@ -1,2 +1,9 @@
 2026-10-29 00:02:02,704 - INFO - E4 aggregate pipeline v1.4 | M_att=5 M_def=[1] steps=10 methods=['mac'] seeds=[0]
 2026-10-29 00:02:12,449 - INFO - === seed 0 | E4 aggregate vs mac ===
+2026-10-29 00:04:21,593 - INFO - E4 selfcheck: {"S1_mdef1_identity": true, "S2_mean_node_in_graph": true, "S2_grad_reaches_delta": true, "S2_all_branch_grads_reached": true, "S2_node_types_sample": ["AddBackward0", "CatBackward0", "ClampBackward1", "ConvolutionBackward0", "DivBackward0", "LinalgVectorNormBackward0", "LogSoftmaxBackward0", "MeanBackward1"], "S3_n": 256, "S3_clean_mdef1_mean_pct": 83.2, "S3_clean_mdef1_majority_pct": 83.2, "S3_clean_mdefN_mean_pct": 84.77, "S3_clean_mdefN_majority_pct": 84.77, "S3_drop_pp": {"mean": -1.56, "majority": -1.56}, "S3_rule": "ONE-SIDED: drop <= 0.5pp (pre-registered E5 constraint 1)", "S3_pass": true}
+2026-10-29 00:08:06,041 - INFO -   seed 0 mac Mdef1 batch 0: {'mean': 0.0, 'majority': 0.0}
+2026-10-29 00:24:38,104 - INFO -   seed 0 mac Mdef1 batch 10: {'mean': 0.85, 'majority': 0.85}
+2026-10-29 00:41:09,939 - INFO -   seed 0 mac Mdef1 batch 20: {'mean': 0.74, 'majority': 0.74}
+2026-10-29 00:57:44,518 - INFO -   seed 0 mac Mdef1 batch 30: {'mean': 0.81, 'majority': 0.81}
+2026-10-29 00:59:25,395 - INFO - mac_seed0_Mdef1: adv=0.0 {"M1_mean": {"robust": 0.78, "k": 8, "n": 1024, "wilson95": [0.4, 1.53]}, "M1_majority": {"robust": 0.78, "k": 8, "n": 1024, "wilson95": [0.4, 1.53]}}
+2026-10-29 00:59:25,479 - INFO - DONE
