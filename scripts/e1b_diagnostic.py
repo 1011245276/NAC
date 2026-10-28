@@ -12,7 +12,7 @@ Aggregates per method -> results/e1b_diagnostic/e1b_stats_seed0.json.
 Read-only w.r.t. production code; the attack itself proceeds on the mean
 gradient (sign step) so gradients are on-trajectory.
 """
-import sys, os, json, time
+import sys, os, json, time, logging
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..'))
 
@@ -97,7 +97,12 @@ def draw_grad(name, x_attack, target, delta):
         None, None, None, model, prompter(clip_img_preprocessing(defended)),
         text_tokens=text_tokens, prompt_token=None, dataset_name='cifar10')
     loss = F.cross_entropy(out, target)
-    g = torch.autograd.grad(loss, delta)[0]
+    # retain_graph=True: the x_attack prefix graph (clamp(images + delta)) is
+    # SHARED by the M_att draws of one step; the first autograd.grad would
+    # otherwise free it and the second draw would raise
+    # "backward through the graph a second time".  The graph is freed when
+    # the step's tensors go out of scope.
+    g = torch.autograd.grad(loss, delta, retain_graph=True)[0]
     return g.detach()
 
 
@@ -121,58 +126,81 @@ def stats_for_grads(grads):
 
 
 def main():
-    out = {}
-    for name in ('ttc', 'nac', 'doc'):
-        torch.manual_seed(0)
-        torch.cuda.manual_seed_all(0)
-        agg = dict(pair_cos=[], norm_mean=[], norm_std=[], cos_to_mean=[])
-        t0 = time.time()
-        for bi, (images, target) in enumerate(val_loader):
-            if bi >= MAX_BATCHES:
-                break
-            images, target = images.to(device), target.to(device)
-            delta = torch.clamp(torch.zeros_like(images).uniform_(-EPS, EPS),
-                                -EPS, EPS).requires_grad_(True)
-            for _s in range(STEPS):
-                x_attack = torch.clamp(images + delta, 0, 1)
-                grads = []
-                for _m in range(M_ATT):
-                    grads.append(draw_grad(name, x_attack, target, delta))
-                nm, ns, pc, cm = stats_for_grads(grads)
-                agg['norm_mean'].append(nm)
-                agg['norm_std'].append(ns)
-                agg['pair_cos'].append(pc)
-                agg['cos_to_mean'].append(cm)
-                mean_g = torch.stack(grads, 0).mean(0)
-                delta = torch.clamp(delta + ALPHA * torch.sign(mean_g),
-                                    -EPS, EPS).detach().requires_grad_(True)
-                del grads
-            if bi % 2 == 0:
-                print(f"  {name} batch {bi}: pair_cos={agg['pair_cos'][-1]:.4f} "
-                      f"cos_to_mean={agg['cos_to_mean'][-1]:.4f}", flush=True)
-                torch.cuda.empty_cache()
-        import numpy as np
-        out[name] = dict(
-            n_batches=MAX_BATCHES, m_att=M_ATT, steps=STEPS,
-            pair_cos_mean=float(np.mean(agg['pair_cos'])),
-            dispersion_mean=float(1.0 - np.mean(agg['pair_cos'])),
-            norm_mean=float(np.mean(agg['norm_mean'])),
-            norm_std_over_mean=float(np.mean(agg['norm_std']) / max(np.mean(agg['norm_mean']), 1e-12)),
-            cos_to_mean_mean=float(np.mean(agg['cos_to_mean'])),
-            elapsed_min=round((time.time() - t0) / 60, 1))
-        print(f"[{name}] dispersion={out[name]['dispersion_mean']:.4f} "
-              f"cos_to_mean={out[name]['cos_to_mean_mean']:.4f} "
-              f"norm={out[name]['norm_mean']:.1f}", flush=True)
-        torch.cuda.empty_cache()
+    import numpy as np
     outdir = os.path.join(HERE, '..', 'results', 'e1b_diagnostic')
     os.makedirs(outdir, exist_ok=True)
-    with open(os.path.join(outdir, 'e1b_stats_seed0.json'), 'w') as f:
-        json.dump(dict(config=('CIFAR-10, 256 samples (8 batches), seed 0, '
-                               'M_att=5 draws/step, steps=10, K=2, bs=32, '
-                               'mean-of-CE instrumented attack (E-E lineage, '
-                               'disclosed); per-draw gradient statistics'),
-                       results=out), f, indent=2)
-    print('written:', os.path.join(outdir, 'e1b_stats_seed0.json'), flush=True)
+    for seed in (0, 1, 2):
+        out_json = os.path.join(outdir, f'e1b_stats_seed{seed}.json')
+        if os.path.exists(out_json):
+            print(f'[skip] seed {seed} already done', flush=True)
+            continue
+        log_path = os.path.join(outdir, f'e1b_seed{seed}.log')
+        logging.basicConfig(filename=log_path, level=logging.INFO,
+                            format="%(asctime)s - %(message)s", force=True)
+        out = {}
+        for name in ('ttc', 'nac', 'doc'):
+            torch.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+            agg = dict(pair_cos=[], norm_mean=[], norm_std=[], cos_to_mean=[])
+            t0 = time.time()
+            logging.info("=== seed %d | %s ===", seed, name)
+            for bi, (images, target) in enumerate(val_loader):
+                if bi >= MAX_BATCHES:
+                    break
+                images, target = images.to(device), target.to(device)
+                delta = torch.clamp(torch.zeros_like(images).uniform_(-EPS, EPS),
+                                    -EPS, EPS).requires_grad_(True)
+                for _s in range(STEPS):
+                    x_attack = torch.clamp(images + delta, 0, 1)
+                    grads = []
+                    for _m in range(M_ATT):
+                        grads.append(draw_grad(name, x_attack, target, delta))
+                    nm, ns, pc, cm = stats_for_grads(grads)
+                    agg['norm_mean'].append(nm)
+                    agg['norm_std'].append(ns)
+                    agg['pair_cos'].append(pc)
+                    agg['cos_to_mean'].append(cm)
+                    mean_g = torch.stack(grads, 0).mean(0)
+                    delta = torch.clamp(delta + ALPHA * torch.sign(mean_g),
+                                        -EPS, EPS).detach().requires_grad_(True)
+                    del grads
+                logging.info("%s batch %d: pair_cos=%.4f cos_to_mean=%.4f "
+                             "norm=%.4f", name, bi, agg['pair_cos'][-1],
+                             agg['cos_to_mean'][-1], agg['norm_mean'][-1])
+                if bi % 2 == 0:
+                    print(f"  s{seed} {name} batch {bi}: "
+                          f"pair_cos={agg['pair_cos'][-1]:.4f} "
+                          f"cos_to_mean={agg['cos_to_mean'][-1]:.4f}", flush=True)
+                    torch.cuda.empty_cache()
+            out[name] = dict(
+                n_batches=MAX_BATCHES, m_att=M_ATT, steps=STEPS,
+                pair_cos_mean=float(np.mean(agg['pair_cos'])),
+                dispersion_mean=float(1.0 - np.mean(agg['pair_cos'])),
+                norm_mean=float(np.mean(agg['norm_mean'])),
+                norm_std_over_mean=float(np.mean(agg['norm_std']) / max(np.mean(agg['norm_mean']), 1e-12)),
+                cos_to_mean_mean=float(np.mean(agg['cos_to_mean'])),
+                per_batch=dict(pair_cos=agg['pair_cos'],
+                               cos_to_mean=agg['cos_to_mean'],
+                               norm_mean=agg['norm_mean'],
+                               norm_std=agg['norm_std']),
+                elapsed_min=round((time.time() - t0) / 60, 1))
+            logging.info("[%s] dispersion=%.4f cos_to_mean=%.4f", name,
+                         out[name]['dispersion_mean'],
+                         out[name]['cos_to_mean_mean'])
+            print(f"[s{seed} {name}] dispersion={out[name]['dispersion_mean']:.4f} "
+                  f"cos_to_mean={out[name]['cos_to_mean_mean']:.4f}", flush=True)
+            torch.cuda.empty_cache()
+        with open(out_json, 'w') as f:
+            json.dump(dict(config=(f'CIFAR-10, 256 samples (8 batches), '
+                                   f'seed {seed}, M_att=5 draws/step, '
+                                   f'steps=10, K=2, bs=32, mean-of-CE '
+                                   f'instrumented attack (E-E lineage, '
+                                   f'disclosed); per-draw gradient statistics, '
+                                   f'per-batch arrays included'),
+                           results=out), f, indent=2)
+        logging.info("written: %s", out_json)
+        print(f'written: {out_json}', flush=True)
+    print('[E1b recollection complete: seeds 0-2]', flush=True)
 
 
 if __name__ == '__main__':
