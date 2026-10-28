@@ -37,7 +37,7 @@ for name, ca, k in CONFIGS:
     print(f"[start] {name} (K={k}, counterattack={ca}, bs=32, seed 0)",
           flush=True)
     r = subprocess.run(
-        [sys.executable, os.path.join("scripts", "nac_fair_experiment.py"),
+        [sys.executable, os.path.join(ROOT, "nac_fair_experiment.py"),
          "--evaluate", "True", "--batch_size", "32",
          "--test_set", "cifar10", "--test_attack_type", "pgd",
          "--test_eps", "4.0", "--test_numsteps", "10", "--test_stepsize", "1.0",
