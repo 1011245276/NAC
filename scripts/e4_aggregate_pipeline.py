@@ -50,6 +50,12 @@ from nac_fair_experiment import (
     multiGPU_CLIP, clip_img_preprocessing,
     nac_counterattack, ttc_counterattack,
 )
+from mac_port import (
+    build_aug as mac_build_aug,
+    build_views as mac_build_views,
+    aggregate_views as mac_aggregate_views,
+    multiview_guided_counterattack as mac_guided_counterattack,
+)
 
 clip_load = clip.load
 from utils import convert_models_to_fp32
@@ -72,7 +78,7 @@ def wilson_ci(k, n, z=1.96):
 
 def eot_attack_aggregate(counter_fn, mk, model, images, target, text_tokens,
                          prompter, dataset, eps, alpha, steps, m_att,
-                         m_def_target):
+                         m_def_target, member_fn=None):
     """Aggregate-aware EOT attack (v1.4 objective).
 
     Per attack step: for r in 1..m_att repetitions, draw m_def_target fresh
@@ -80,6 +86,11 @@ def eot_attack_aggregate(counter_fn, mk, model, images, target, text_tokens,
     the MEAN, compute one CE per repetition, and average the repetition
     losses.  m_def_target=1 reduces to mean-of-CE (production EOT attacker).
     Delta is .detach()-truncated per branch (disclosed approximation).
+
+    member_fn (additive, E3a): when given, ONE repetition = member_fn(x_attack)
+    returning the method's deployed logits directly (e.g. one full MAC pass
+    with view-mean aggregation); the counter_fn/mk single-delta path is
+    skipped.  ttc/nac keep the default path byte-identical (member_fn=None).
 
     Memory: the step gradient equals the MEAN of the per-repetition gradients
     (gradient linearity -- every repetition loss depends on the same delta
@@ -98,17 +109,21 @@ def eot_attack_aggregate(counter_fn, mk, model, images, target, text_tokens,
             # x_attack recomputed per repetition: an independent graph path
             # from delta, freed together with the repetition's backward.
             x_attack = torch.clamp(images + delta, 0, 1)
-            member_logits = []
-            for _j in range(m_def_target):
-                Delta = counter_fn(**mk(x_attack.detach())).detach()
-                defended = torch.clamp(x_attack + Delta, 0, 1)
-                out, _, _, _ = multiGPU_CLIP(
-                    None, None, None, model,
-                    prompter(clip_img_preprocessing(defended)),
-                    text_tokens=text_tokens, prompt_token=None,
-                    dataset_name=dataset)
-                member_logits.append(out)
-            agg_logits = torch.stack(member_logits, dim=0).mean(dim=0)
+            member_logits = None
+            if member_fn is not None:
+                agg_logits = member_fn(x_attack)
+            else:
+                member_logits = []
+                for _j in range(m_def_target):
+                    Delta = counter_fn(**mk(x_attack.detach())).detach()
+                    defended = torch.clamp(x_attack + Delta, 0, 1)
+                    out, _, _, _ = multiGPU_CLIP(
+                        None, None, None, model,
+                        prompter(clip_img_preprocessing(defended)),
+                        text_tokens=text_tokens, prompt_token=None,
+                        dataset_name=dataset)
+                    member_logits.append(out)
+                agg_logits = torch.stack(member_logits, dim=0).mean(dim=0)
             loss_r = F.cross_entropy(agg_logits, target)
             g_r = torch.autograd.grad(loss_r, delta)[0]
             grad_acc = grad_acc + g_r
@@ -121,16 +136,24 @@ def eot_attack_aggregate(counter_fn, mk, model, images, target, text_tokens,
 
 
 def deploy_aggregate(counter_fn, mk, model, images, text_tokens, prompter,
-                     dataset, m_def):
+                     dataset, m_def, member_fn=None):
     """Run the deployed aggregate defense: M_def independent counterattacks
     (fresh random inits), return per-member logits [M_def, B, C].
 
     Counter fns rely on autograd internally (their inner loop calls
     torch.autograd.grad), so each run is wrapped in enable_grad exactly like
     the audited deployment path in adaptive_attack_eot.py; the classification
-    forward runs under no_grad."""
+    forward runs under no_grad.  member_fn (E3a): one member = one full
+    method-specific defense pass returning deployed logits; the member's
+    counterattack stage still runs under enable_grad, its classification
+    forward under no_grad (grad_out=False)."""
     member_logits = []
     for _j in range(m_def):
+        if member_fn is not None:
+            with torch.enable_grad():
+                out_j = member_fn(images, grad_out=False)
+            member_logits.append(out_j)
+            continue
         with torch.enable_grad():
             Delta = counter_fn(**mk(images))
         with torch.no_grad():
@@ -138,7 +161,8 @@ def deploy_aggregate(counter_fn, mk, model, images, text_tokens, prompter,
             out, _, _, _ = multiGPU_CLIP(
                 None, None, None, model,
                 prompter(clip_img_preprocessing(defended)),
-                text_tokens=text_tokens, prompt_token=None, dataset_name=dataset)
+                text_tokens=text_tokens, prompt_token=None,
+                dataset_name=dataset)
         member_logits.append(out)
     return torch.stack(member_logits, dim=0)
 
@@ -168,7 +192,7 @@ def _walk_graph(node, names, seen, depth=0):
 
 
 def selfcheck(counter_fn, mk, model, val_loader, text_tokens, prompter,
-              dataset, m_def, log):
+              dataset, m_def, log, member_fn=None):
     """E4 hard-acceptance preflight (v1.4):
     S1 M_def=1 mean-logits deployment == plain single-run deployment;
     S2 the aggregate node is IN the computed graph (MeanBackward reachable
@@ -176,13 +200,15 @@ def selfcheck(counter_fn, mk, model, val_loader, text_tokens, prompter,
     S3 clean-image sanity on >=256 samples, ONE-SIDED pre-registered
        constraint: clean(M_def) >= clean(M_def=1) - 0.5pp for both
        aggregations (E5 constraint 1; small-n smoke cannot prove the
-       population bound, only exclude gross implementation bugs)."""
+       population bound, only exclude gross implementation bugs).
+    member_fn (E3a): the S2 branch logits come from the method-specific
+    member (for MAC the aggregation node is the official view-mean)."""
     # S1: identity check on one batch
     it = iter(val_loader)
     images, target = next(it)
     images, target = images.to(device), target.to(device)
     ls1 = deploy_aggregate(counter_fn, mk, model, images, text_tokens, prompter,
-                           dataset, 1)
+                           dataset, 1, member_fn=member_fn)
     pm1, pj1, _ = aggregate_predicts(ls1)
     ok_s1 = bool(torch.equal(pm1, ls1[0].argmax(dim=1)))
 
@@ -192,6 +218,9 @@ def selfcheck(counter_fn, mk, model, val_loader, text_tokens, prompter,
     x = torch.clamp(images + d0, 0, 1)
     branch = []
     for _m in range(2):
+        if member_fn is not None:
+            branch.append(member_fn(x))
+            continue
         Delta = counter_fn(**mk(x.detach())).detach()
         branch.append(multiGPU_CLIP(
             None, None, None, model,
@@ -222,10 +251,10 @@ def selfcheck(counter_fn, mk, model, val_loader, text_tokens, prompter,
         cim, ctg = cim.to(device), ctg.to(device)
         _, pj1b, _ = aggregate_predicts(
             deploy_aggregate(counter_fn, mk, model, cim, text_tokens,
-                             prompter, dataset, 1))
+                             prompter, dataset, 1, member_fn=member_fn))
         pmNb, pjNb, _ = aggregate_predicts(
             deploy_aggregate(counter_fn, mk, model, cim, text_tokens,
-                             prompter, dataset, m_def))
+                             prompter, dataset, m_def, member_fn=member_fn))
         okm = (pj1b == ctg).cpu().tolist()
         n1j += len(okm); k1j += sum(okm)
         okmN = (pmNb == ctg).cpu().tolist()
@@ -291,6 +320,8 @@ def main():
         '--ttc_numsteps', '2', '--ttc_stepsize', '1.0', '--nac_momentum', '0.9',
         '--learnable_tau', '0.155', '--temperature', '75.0',
         '--counterattack', 'ttc', '--outdir', outdir,
+        '--mac_eps', '8.0', '--mac_numsteps', '4', '--mac_num_views', '2',
+        '--mac_tau_thres', '0.7', '--mac_tau_temp', '0.01',
     ]
     from nac_fair_experiment import parse_options
     args = parse_options()
@@ -298,10 +329,15 @@ def main():
     args.test_stepsize = args.test_stepsize / 255.
     args.ttc_eps = args.ttc_eps / 255.
     args.ttc_stepsize = args.ttc_stepsize / 255.
+    args.mac_eps = args.mac_eps / 255.   # MAC published budget (8/255)
+    mac_stepsize = args.mac_eps / 4.0    # official mac.py: stepsize = eps/4
     args.imagenet_root = os.path.join(args.root, 'imagenet-100', 'imagenet_folder')
     args.tinyimagenet_root = os.path.join(args.root, 'tiny-imagenet-200', 'tiny-imagenet-200')
 
     m_def_max = max(cli.m_def_list)
+    mac_note = (" | MAC defense: published config eps=8/255, V=2 views, "
+                "K=4, stepsize=eps/4, tau_thres=0.7, tau_temp=0.01"
+                if 'mac' in cli.methods else '')
     logging.info("E4 aggregate pipeline v1.4 | M_att=%d M_def=%s steps=%d methods=%s seeds=%s",
                  cli.m_att, cli.m_def_list, cli.steps, cli.methods, cli.seeds)
     print(f"E4 aggregate pipeline v1.4 M_att={cli.m_att} M_def={cli.m_def_list}; log:", log_path)
@@ -318,6 +354,7 @@ def main():
     val_dataset, val_loader = load_val_dataset(args, cli.dataset)
     texts = get_text_prompts_val([val_dataset], [cli.dataset])[0]
     text_tokens = clip.tokenize(texts).to(device)
+    mac_aug = mac_build_aug() if 'mac' in cli.methods else None
 
     def mk(name, x):
         if name == 'ttc':
@@ -332,6 +369,43 @@ def main():
                     nac_momentum=args.nac_momentum, clamp_lookahead=False)
 
     fns = {'ttc': ttc_counterattack, 'nac': nac_counterattack}
+
+    def mac_member(x, grad_out=True):
+        """One full published-config MAC defense pass -> deployed logits
+        (E3a member).  views = [clean view] + (V-1) augmented views (official
+        build_views, no_grad); per-view guided-counterattack deltas detached
+        (same disclosed truncation as the production attacker); defended
+        views formed WITHOUT an outer clamp (faithful to official mac.py);
+        logits aggregated by the official view-mean.  Attack-side gradient
+        flows through the un-augmented view only (build_views is no_grad)
+        while the loss keeps the full view-mean expectation -- disclosed in
+        the plan pre-registration."""
+        V = int(args.mac_num_views)
+        views = mac_build_views(x, V, mac_aug)
+        with torch.enable_grad():
+            delta_v = mac_guided_counterattack(
+                model, views.data, prompter, add_prompter,
+                alpha=mac_stepsize, attack_iters=args.mac_numsteps,
+                norm='l_inf', epsilon=args.mac_eps,
+                tau_thres=args.mac_tau_thres, tau_temp=args.mac_tau_temp,
+                clip_visual=None, aug=mac_aug).detach()
+        def_im = views + delta_v
+        if grad_out:
+            out, _, _, _ = multiGPU_CLIP(
+                None, None, None, model,
+                prompter(clip_img_preprocessing(def_im)),
+                text_tokens=text_tokens, prompt_token=None,
+                dataset_name=cli.dataset)
+        else:
+            with torch.no_grad():
+                out, _, _, _ = multiGPU_CLIP(
+                    None, None, None, model,
+                    prompter(clip_img_preprocessing(def_im)),
+                    text_tokens=text_tokens, prompt_token=None,
+                    dataset_name=cli.dataset)
+        return mac_aggregate_views(out, V)
+
+    members = {'mac': mac_member}
     results = {}
     out_json = os.path.join(outdir, 'e4_results.json')
     for seed in cli.seeds:
@@ -340,12 +414,14 @@ def main():
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
         for name in cli.methods:
-            fn = fns[name]
+            fn = fns.get(name)
             mk_fn = lambda x, _n=name: mk(_n, x)
+            member_fn = members.get(name)
             logging.info(f"=== seed {seed} | E4 aggregate vs {name} ===")
             # hard-acceptance preflight (S1/S2 single batch; S3 8 batches)
             chk = selfcheck(fn, mk_fn, model, val_loader, text_tokens,
-                            prompter, cli.dataset, m_def_max, logging)
+                            prompter, cli.dataset, m_def_max, logging,
+                            member_fn=member_fn)
             for md in cli.m_def_list:
                 t0 = time.time()
                 tallies = dict(mean=dict(n=0, k=0, vec=[]),
@@ -360,7 +436,8 @@ def main():
                     delta_atk = eot_attack_aggregate(
                         fn, mk_fn, model, images, target, text_tokens,
                         prompter, cli.dataset, args.test_eps,
-                        args.test_stepsize, cli.steps, cli.m_att, md)
+                        args.test_stepsize, cli.steps, cli.m_att, md,
+                        member_fn=member_fn)
                     attacked = torch.clamp(images + delta_atk, 0, 1)
                     with torch.no_grad():
                         out_adv, _, _, _ = multiGPU_CLIP(
@@ -377,8 +454,9 @@ def main():
                         ps_index.extend((bi * args.batch_size + torch.arange(images.size(0))).tolist())
                         te = time.time()
                         ls = deploy_aggregate(fn, mk_fn, model, attacked,
-                                              text_tokens, prompter,
-                                              cli.dataset, md)
+                                                  text_tokens, prompter,
+                                                  cli.dataset, md,
+                                                  member_fn=member_fn)
                         eval_time_s += time.time() - te
                         pm, pj, _ = aggregate_predicts(ls)
                         okm = (pm == target).cpu().tolist()
@@ -429,6 +507,25 @@ def main():
                                         'always evaluated on the real vote')),
                     aggregations=aggs)
                 results[key] = entry
+                if name == 'mac':
+                    results[key]['attack_config'].update(
+                        mac_eps='8/255 (published)',
+                        mac_stepsize='2/255 (= eps/4, official mac.py)',
+                        mac_numsteps=int(args.mac_numsteps),
+                        mac_num_views=int(args.mac_num_views),
+                        mac_tau_thres=args.mac_tau_thres,
+                        mac_tau_temp=args.mac_tau_temp,
+                        defense_disclosure=(
+                            'one member = one full published MAC pass '
+                            '(view-mean logits, faithful mac_port.py); '
+                            'per-view counterattack deltas detached (same '
+                            'disclosed truncation as the production '
+                            'attacker); official build_views runs under '
+                            'no_grad so the attack gradient flows through '
+                            'the un-augmented view only, while the loss '
+                            'keeps the full view-mean expectation; defended '
+                            'views formed without an outer clamp '
+                            '(faithful to official mac.py)'))
                 logging.info(f"{key}: adv={entry['adv']} "
                              + json.dumps({k: {kk: vv for kk, vv in v.items()
                                                if kk != 'per_sample_defended_correct'}
@@ -445,7 +542,7 @@ def main():
                                 f"aggregate attack target (v1.4; M_def=1 -> "
                                 f"mean-of-CE), deployment M_def={cli.m_def_list} "
                                 f"fresh inits, majority tie-break=smallest label "
-                                f"(disclosed), seeds={cli.seeds}"),
+                                f"(disclosed), seeds={cli.seeds}" + mac_note),
                         results=results), f, indent=2)
                 torch.cuda.empty_cache()
     logging.info("DONE")
