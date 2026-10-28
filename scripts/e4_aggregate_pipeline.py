@@ -302,6 +302,12 @@ def main():
                          'stream-shifted per the S1 RNG-stream finding -- '
                          'disclosed deviation, user-approved 2026-10-27).')
     ap.add_argument('--outdir', default=None)
+    ap.add_argument('--mac_eps', type=float, default=8.0,
+                    help='MAC defense budget in /255 units (published 8; '
+                         'the matched-budget cell uses 4)')
+    ap.add_argument('--mac_numsteps', type=int, default=4,
+                    help='MAC PGD inner steps (published 4; the '
+                         'matched-budget cell uses 2)')
     cli = ap.parse_args()
 
     stamp = time.strftime('%Y%m%d_%H%M%S')
@@ -320,7 +326,8 @@ def main():
         '--ttc_numsteps', '2', '--ttc_stepsize', '1.0', '--nac_momentum', '0.9',
         '--learnable_tau', '0.155', '--temperature', '75.0',
         '--counterattack', 'ttc', '--outdir', outdir,
-        '--mac_eps', '8.0', '--mac_numsteps', '4', '--mac_num_views', '2',
+        '--mac_eps', str(cli.mac_eps), '--mac_numsteps', str(cli.mac_numsteps),
+        '--mac_num_views', '2',
         '--mac_tau_thres', '0.7', '--mac_tau_temp', '0.01',
     ]
     from nac_fair_experiment import parse_options
@@ -335,8 +342,9 @@ def main():
     args.tinyimagenet_root = os.path.join(args.root, 'tiny-imagenet-200', 'tiny-imagenet-200')
 
     m_def_max = max(cli.m_def_list)
-    mac_note = (" | MAC defense: published config eps=8/255, V=2 views, "
-                "K=4, stepsize=eps/4, tau_thres=0.7, tau_temp=0.01"
+    mac_note = (f" | MAC defense: eps={cli.mac_eps:g}/255, V=2 views, "
+                f"K={cli.mac_numsteps}, stepsize=eps/4, tau_thres=0.7, "
+                f"tau_temp=0.01"
                 if 'mac' in cli.methods else '')
     logging.info("E4 aggregate pipeline v1.4 | M_att=%d M_def=%s steps=%d methods=%s seeds=%s",
                  cli.m_att, cli.m_def_list, cli.steps, cli.methods, cli.seeds)
@@ -509,8 +517,11 @@ def main():
                 results[key] = entry
                 if name == 'mac':
                     results[key]['attack_config'].update(
-                        mac_eps='8/255 (published)',
-                        mac_stepsize='2/255 (= eps/4, official mac.py)',
+                        mac_eps=f'{cli.mac_eps:g}/255'
+                                + (' (published)' if cli.mac_eps == 8.0 else
+                                   ' (matched-budget; published is 8/255)'),
+                        mac_stepsize=f'{cli.mac_eps / 4:g}/255 (= eps/4, '
+                                     f'official mac.py)',
                         mac_numsteps=int(args.mac_numsteps),
                         mac_num_views=int(args.mac_num_views),
                         mac_tau_thres=args.mac_tau_thres,
