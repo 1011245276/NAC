@@ -1,0 +1,31 @@
+2026-10-28 17:55:23,005 - === seed 2 | ttc ===
+2026-10-28 17:57:44,179 - ttc batch 0: pair_cos=0.2053 cos_to_mean=0.5140 norm=0.4320
+2026-10-28 17:58:12,955 - ttc batch 1: pair_cos=0.1795 cos_to_mean=0.4930 norm=0.3854
+2026-10-28 17:58:42,843 - ttc batch 2: pair_cos=0.1610 cos_to_mean=0.4759 norm=0.4175
+2026-10-28 17:59:12,747 - ttc batch 3: pair_cos=0.1609 cos_to_mean=0.4765 norm=0.4160
+2026-10-28 17:59:42,425 - ttc batch 4: pair_cos=0.1623 cos_to_mean=0.4741 norm=0.4069
+2026-10-28 18:00:13,269 - ttc batch 5: pair_cos=0.1588 cos_to_mean=0.4804 norm=0.4666
+2026-10-28 18:00:44,586 - ttc batch 6: pair_cos=0.1751 cos_to_mean=0.4922 norm=0.3952
+2026-10-28 18:01:15,622 - ttc batch 7: pair_cos=0.1902 cos_to_mean=0.5037 norm=0.4097
+2026-10-28 18:01:17,514 - [ttc] dispersion=0.8479 cos_to_mean=0.4632
+2026-10-28 18:01:17,580 - === seed 2 | nac ===
+2026-10-28 18:03:37,873 - nac batch 0: pair_cos=0.1646 cos_to_mean=0.4857 norm=0.3842
+2026-10-28 18:04:08,481 - nac batch 1: pair_cos=0.1611 cos_to_mean=0.4812 norm=0.3998
+2026-10-28 18:04:39,329 - nac batch 2: pair_cos=0.1186 cos_to_mean=0.4491 norm=0.4093
+2026-10-28 18:05:10,240 - nac batch 3: pair_cos=0.1635 cos_to_mean=0.4812 norm=0.4063
+2026-10-28 18:05:41,204 - nac batch 4: pair_cos=0.1434 cos_to_mean=0.4652 norm=0.3881
+2026-10-28 18:06:12,073 - nac batch 5: pair_cos=0.1571 cos_to_mean=0.4690 norm=0.3885
+2026-10-28 18:06:42,949 - nac batch 6: pair_cos=0.1643 cos_to_mean=0.4758 norm=0.3529
+2026-10-28 18:07:13,700 - nac batch 7: pair_cos=0.1341 cos_to_mean=0.4536 norm=0.3608
+2026-10-28 18:07:15,778 - [nac] dispersion=0.8685 cos_to_mean=0.4451
+2026-10-28 18:07:15,814 - === seed 2 | doc ===
+2026-10-28 18:09:45,850 - doc batch 0: pair_cos=0.2156 cos_to_mean=0.5228 norm=0.4416
+2026-10-28 18:10:16,632 - doc batch 1: pair_cos=0.1885 cos_to_mean=0.5063 norm=0.3962
+2026-10-28 18:10:47,463 - doc batch 2: pair_cos=0.1697 cos_to_mean=0.4872 norm=0.4261
+2026-10-28 18:11:18,508 - doc batch 3: pair_cos=0.2115 cos_to_mean=0.5196 norm=0.4800
+2026-10-28 18:11:49,439 - doc batch 4: pair_cos=0.1802 cos_to_mean=0.5000 norm=0.4230
+2026-10-28 18:12:20,306 - doc batch 5: pair_cos=0.1739 cos_to_mean=0.4887 norm=0.4864
+2026-10-28 18:12:51,356 - doc batch 6: pair_cos=0.1977 cos_to_mean=0.5050 norm=0.4130
+2026-10-28 18:13:22,246 - doc batch 7: pair_cos=0.1578 cos_to_mean=0.4814 norm=0.3860
+2026-10-28 18:13:23,686 - [doc] dispersion=0.8213 cos_to_mean=0.4903
+2026-10-28 18:13:23,734 - written: F:\codex\NAC\nac_project\scripts\..\results\e1b_diagnostic\e1b_stats_seed2.json
