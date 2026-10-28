@@ -1,0 +1,9 @@
+2026-10-28 14:23:45,166 - INFO - E4 aggregate pipeline v1.4 | M_att=2 M_def=[1] steps=5 methods=['nac'] seeds=[0]
+2026-10-28 14:23:52,999 - INFO - === seed 0 | E4 aggregate vs nac ===
+2026-10-28 14:25:16,673 - INFO - E4 selfcheck: {"S1_mdef1_identity": true, "S2_mean_node_in_graph": true, "S2_grad_reaches_delta": true, "S2_all_branch_grads_reached": true, "S2_node_types_sample": ["AddBackward0", "CatBackward0", "ClampBackward1", "ConvolutionBackward0", "DivBackward0", "LinalgVectorNormBackward0", "LogSoftmaxBackward0", "MeanBackward1"], "S3_n": 256, "S3_clean_mdef1_mean_pct": 79.69, "S3_clean_mdef1_majority_pct": 79.69, "S3_clean_mdefN_mean_pct": 78.91, "S3_clean_mdefN_majority_pct": 78.91, "S3_drop_pp": {"mean": 0.78, "majority": 0.78}, "S3_rule": "ONE-SIDED: drop <= 0.5pp (pre-registered E5 constraint 1)", "S3_pass": false}
+2026-10-28 14:26:36,731 - INFO -   seed 0 nac Mdef1 batch 0: {'mean': 3.12, 'majority': 3.12}
+2026-10-28 14:27:57,456 - INFO -   seed 0 nac Mdef1 batch 10: {'mean': 5.4, 'majority': 5.4}
+2026-10-28 14:29:09,297 - INFO -   seed 0 nac Mdef1 batch 20: {'mean': 5.8, 'majority': 5.8}
+2026-10-28 14:30:42,334 - INFO -   seed 0 nac Mdef1 batch 30: {'mean': 5.65, 'majority': 5.65}
+2026-10-28 14:30:52,912 - INFO - nac_seed0_Mdef1: adv=0.98 {"M1_mean": {"robust": 5.76, "k": 59, "n": 1024, "wilson95": [4.49, 7.36]}, "M1_majority": {"robust": 5.76, "k": 59, "n": 1024, "wilson95": [4.49, 7.36]}}
+2026-10-28 14:30:52,965 - INFO - DONE
