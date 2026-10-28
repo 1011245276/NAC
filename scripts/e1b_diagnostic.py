@@ -164,13 +164,19 @@ def main():
                     delta = torch.clamp(delta + ALPHA * torch.sign(mean_g),
                                         -EPS, EPS).detach().requires_grad_(True)
                     del grads
-                logging.info("%s batch %d: pair_cos=%.4f cos_to_mean=%.4f "
-                             "norm=%.4f", name, bi, agg['pair_cos'][-1],
-                             agg['cos_to_mean'][-1], agg['norm_mean'][-1])
+                logging.info("%s batch %d (batch-mean over %d steps): "
+                             "pair_cos=%.4f cos_to_mean=%.4f norm=%.4f",
+                             name, bi, STEPS,
+                             float(np.mean(agg['pair_cos'][-STEPS:])),
+                             float(np.mean(agg['cos_to_mean'][-STEPS:])),
+                             float(np.mean(agg['norm_mean'][-STEPS:])))
                 if bi % 2 == 0:
-                    print(f"  s{seed} {name} batch {bi}: "
-                          f"pair_cos={agg['pair_cos'][-1]:.4f} "
-                          f"cos_to_mean={agg['cos_to_mean'][-1]:.4f}", flush=True)
+                    print(f"  s{seed} {name} batch {bi} (mean over "
+                          f"{STEPS} steps): pair_cos="
+                          f"{float(np.mean(agg['pair_cos'][-STEPS:])):.4f} "
+                          f"cos_to_mean="
+                          f"{float(np.mean(agg['cos_to_mean'][-STEPS:])):.4f}",
+                          flush=True)
                     torch.cuda.empty_cache()
             out[name] = dict(
                 n_batches=MAX_BATCHES, m_att=M_ATT, steps=STEPS,
