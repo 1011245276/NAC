@@ -86,8 +86,11 @@ CFN = {'ttc': ttc_counterattack, 'nac': nac_counterattack, 'doc': doc_counteratt
 
 def draw_grad(name, x_attack, target, delta):
     """One EOT draw: counterattack (detached) -> defended logits -> CE grad
-    w.r.t. the attack delta.  Graph freed on return."""
-    kw = mk(name, x_attack)
+    w.r.t. the attack delta.  Graph freed on return.  NOTE: the counter fn
+    receives x_attack.DETACH() (as in the production pipelines) -- passing
+    the grad-carrying tensor makes the counter's internal clamp output a
+    non-leaf and its requires_grad assignment raises RuntimeError."""
+    kw = mk(name, x_attack.detach())
     Delta = CFN[name](**kw).detach()
     defended = torch.clamp(x_attack + Delta, 0, 1)
     out, _, _, _ = multiGPU_CLIP(
