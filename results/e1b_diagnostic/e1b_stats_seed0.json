@@ -1,0 +1,38 @@
+{
+  "config": "CIFAR-10, 256 samples (8 batches), seed 0, M_att=5 draws/step, steps=10, K=2, bs=32, mean-of-CE instrumented attack (E-E lineage, disclosed); per-draw gradient statistics",
+  "results": {
+    "ttc": {
+      "n_batches": 8,
+      "m_att": 5,
+      "steps": 10,
+      "pair_cos_mean": 0.15777626102790238,
+      "dispersion_mean": 0.8422237389720977,
+      "norm_mean": 0.4177903067320585,
+      "norm_std_over_mean": 0.6520622744424492,
+      "cos_to_mean_mean": 0.4680758211761713,
+      "elapsed_min": 5.6
+    },
+    "nac": {
+      "n_batches": 8,
+      "m_att": 5,
+      "steps": 10,
+      "pair_cos_mean": 0.13903870210051536,
+      "dispersion_mean": 0.8609612978994846,
+      "norm_mean": 0.37976761367172,
+      "norm_std_over_mean": 0.7048600229069665,
+      "cos_to_mean_mean": 0.4503466162830591,
+      "elapsed_min": 6.0
+    },
+    "doc": {
+      "n_batches": 8,
+      "m_att": 5,
+      "steps": 10,
+      "pair_cos_mean": 0.1802393665537238,
+      "dispersion_mean": 0.8197606334462761,
+      "norm_mean": 0.4381302673369646,
+      "norm_std_over_mean": 0.6340642481421351,
+      "cos_to_mean_mean": 0.49112321212887766,
+      "elapsed_min": 6.0
+    }
+  }
+}
