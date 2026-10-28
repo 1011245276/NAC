@@ -799,23 +799,25 @@
     "_note": "Retained: results/multiseed_all|_dtd|_imagenet/ (support the other 5 datasets of the supplementary pilot table) and results/eps1/pgd_eps_1.0/{ttc,nac_m0.9}/seed_{0,1,2}.log (Table 1 + pilot evidence)."
   },
   "clamp_lookahead_control": {
-    "_source": "results/clamp_lookahead/pgd_eps_4.0/nac_m0.9/seed_0.log (K=4) and _archive/seed_0_20261012_174712.log (K=2, archived when the K=4 run reused the same outdir; distinguishable by ttc_numsteps in the Namespace line). Both re-run 2026-10-12 after fixing a scalar-clamp bug in the clamp_lookahead branch (never exercised before).",
+    "_source": "Clamped arms (2026-10-12, after fixing the scalar-clamp bug): results/clamp_lookahead/pgd_eps_4.0/nac_m0.9/seed_0.log (K=4, ttc_numsteps=4) and _archive/seed_0_20261012_184517.log (K=2, ttc_numsteps=2, value logged 18:45:11 and archived when the K=4 run reused the same outdir at 18:45:17). Unclamped reference arms (2026-10-28): results/clamp_rerun_20261028/{ttc,nac}_K{2,4}/pgd_eps_4.0/{ttc,nac_m0.9}/seed_0.log. All eight logs are single-dataset CIFAR-10 processes (PGD-10 eps_att=4/255, alpha=1/255, bs=32, seed 0), so every arm is drawn from the same attack-RNG stream position.",
     "description": "CIFAR-10, ViT-B/32, PGD eps_att=4/255, alpha=1/255, bs=32, seed 0. Control: look-ahead point projected into the eps-ball and clamped to [0,1] before encoding (--nac_clamp_lookahead), isolating how much of NAC gain comes from out-of-budget gradient evaluation.",
     "K2": {
-      "nac_default": 17.59,
+      "nac_default": 17.17,
       "nac_clamped": 15.23,
-      "ttc": 7.16,
-      "gain_retained_frac": 0.77
+      "ttc": 7.05,
+      "gain_retained_frac": 0.808,
+      "_src": "nac_default 17.17 and ttc 7.05: results/clamp_rerun_20261028/{nac,ttc}_K2/.../seed_0.log (2026-10-28); nac_clamped 15.23: results/clamp_lookahead/.../_archive/seed_0_20261012_184517.log (2026-10-12). Retention = (15.23-7.05)/(17.17-7.05)."
     },
     "K4": {
-      "nac_default": 37.52,
+      "nac_default": 37.70,
       "nac_clamped": 36.44,
-      "ttc": 26.0,
-      "gain_retained_frac": 0.91
+      "ttc": 26.21,
+      "gain_retained_frac": 0.89,
+      "_src": "nac_default 37.70 and ttc 26.21: results/clamp_rerun_20261028/{nac,ttc}_K4/.../seed_0.log (2026-10-28); nac_clamped 36.44: results/clamp_lookahead/pgd_eps_4.0/nac_m0.9/seed_0.log (2026-10-12). Retention = (36.44-26.21)/(37.70-26.21)."
     },
     "conclusion": "Most of the gain is retained with the look-ahead point strictly inside the feasible set: acceleration, not out-of-budget information, is the primary mechanism; out-of-budget evaluation is a secondary amplifier. Closes the fairness gap flagged in the code (excursion up to 3.25x eps_def).",
-    "_superseded_20261027": "External audit 2026-10-27: the four values 17.59/37.52/7.16/26.00 were presented as same-run clamp-control arms; re-attribution follows. (a) nac_default 17.59/37.52 are transcription drift of the 2026-09-14 pilot grid (results/adaptive_pilot/pilot_analysis.json grid_accuracy nac_K2_eps2=17.57, nac_K4_eps2=37.51); the 2026-10-12 clamp logs contain only the clamped arms (15.23/36.44). (b) ttc K2 7.16 originates from the same 09-14 pilot grid (ttc_K2_eps2=7.16), i.e. cross-run, 28 days before the clamp runs. (c) ttc K4 26.00 is an orphan: no repository file produces it (pilot grid has no ttc K4 entry; nearest canonical same-config value 26.21). Old values preserved above unchanged; paper text corrected 2026-10-27 to cite the clamped arms plus canonical TTC references (7.02/26.21 from tab:eps_sym / tab:mu / tab:nstep) WITHOUT same-run pairing claims. Same-batch rerun of {nac-no-clamp, ttc} x K in {2,4} queued after E5.",
-    "_note": "Single seed (0), same code generation as final_verify (nac_counterattack body unchanged; clamp branch default-off does not affect the default-path numbers). References: arxiv L456, 8page L266, single_preview L266, chinese L266."
+    "_superseded_20261027": "External audit 2026-10-27: the four values 17.59/37.52/7.16/26.00 were presented as same-run clamp-control arms; re-attribution follows. (a) nac_default 17.59/37.52 are transcription drift of the 2026-09-14 pilot grid (results/adaptive_pilot/pilot_analysis.json grid_accuracy nac_K2_eps2=17.57, nac_K4_eps2=37.51); the 2026-10-12 clamp logs contain only the clamped arms (15.23/36.44). (b) ttc K2 7.16 originates from the same 09-14 pilot grid (ttc_K2_eps2=7.16), i.e. cross-run, 28 days before the clamp runs. (c) ttc K4 26.00 is an orphan: no repository file produces it (pilot grid has no ttc K4 entry; nearest canonical same-config value 26.21). Old values preserved above unchanged; paper text corrected 2026-10-27 to cite the clamped arms plus canonical TTC references (7.02/26.21 from tab:eps_sym / tab:mu / tab:nstep) WITHOUT same-run pairing claims. Same-batch rerun of {nac-no-clamp, ttc} x K in {2,4} queued after E5. (d) 2026-10-28: that rerun completed (results/clamp_rerun_20261028, bs=32 seed 0, single-dataset CIFAR-10 per arm) and returned ttc 7.05/26.21 and unclamped nac 17.17/37.70 -- the K=2 arms reproduce the 2026-09-03 mu_scan and 2026-09-04 compare values to the digit and the K=4 arms reproduce results/final (37.70) and the canonical TTC-4 (26.21), so the same-batch pairing claim the paper now makes is file-backed. The live K2/K4 fields above were therefore replaced by these values with the retention recomputed from them (0.808/0.890); the 17.59/37.52/7.16/26.00 numbers survive only as the historical record described in (a)-(c).",
+    "_note": "Single seed (0); same code version as final_verify (nac_counterattack body unchanged; clamp branch default-off does not affect the default-path numbers). References tracked by section label rather than line number, because line numbers drift as the papers grow: arxiv material-mechanism section (look-ahead containment paragraph + tab:mechdecomp), 8page/single_preview same paragraph + tab:mechdecomp plus the Mechanism-controls item in the Data Integrity list, chinese corresponding section + tab:mechdecomp."
   },
   "adaptive_attack_pilot": {
     "_source": "results/adaptive_attack/pilot_results.json + results/adaptive_attack/pilot_2026_10_12.log (scripts/adaptive_attack_pilot.py, run 2026-10-12, ~29 min per method, RTX 4060 Laptop).",
