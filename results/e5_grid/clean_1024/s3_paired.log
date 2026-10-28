@@ -1,0 +1,10 @@
+2026-10-28 07:19:32,702 - INFO - E4-S3 full clean paired | methods=['ttc', 'nac'] seed=0 M_eval=10 base M_def=1, agg M_def=[2, 5, 10]
+2026-10-28 07:19:40,618 - INFO - === ttc (seed 0) ===
+2026-10-28 07:22:23,883 - INFO -   ttc batch 0: n=320 base=86.56 agg={2: 86.88, 5: 85.62, 10: 85.0}
+2026-10-28 07:53:55,660 - INFO -   ttc batch 20: n=6720 base=81.40 agg={2: 81.77, 5: 81.68, 10: 81.68}
+2026-10-28 08:11:08,999 - INFO - ttc done: n=1024 elapsed=51.5min
+2026-10-28 08:11:09,104 - INFO - === nac (seed 0) ===
+2026-10-28 08:14:08,793 - INFO -   nac batch 0: n=320 base=86.56 agg={2: 86.88, 5: 85.62, 10: 85.0}
+2026-10-28 08:45:47,277 - INFO -   nac batch 20: n=6720 base=81.40 agg={2: 81.77, 5: 81.68, 10: 81.68}
+2026-10-28 09:03:13,798 - INFO - nac done: n=1024 elapsed=52.1min
+2026-10-28 09:03:13,816 - INFO - DONE
