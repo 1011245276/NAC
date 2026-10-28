@@ -1,0 +1,2 @@
+2026-10-29 00:02:02,704 - INFO - E4 aggregate pipeline v1.4 | M_att=5 M_def=[1] steps=10 methods=['mac'] seeds=[0]
+2026-10-29 00:02:12,449 - INFO - === seed 0 | E4 aggregate vs mac ===
