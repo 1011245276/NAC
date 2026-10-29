@@ -969,5 +969,26 @@
       "MAC's published config costs 59.20ms (5.7x NAC K=2 at 10.36ms, 3.1x NAC K=4 at 18.99ms) for 44.89; at NAC's budget it costs 16.00ms (54% more than NAC) yet scores 6.44 vs NAC's 17.17. MAC is dominated by NAC at matched budget on both accuracy and latency.",
       "pure_la costs ~1.8x TTC/NAC (extra look-ahead forward), so NAC's gain does NOT come from extra compute that pure lookahead would need."
     ]
+  },
+  "table_lipschitz": {
+    "_source": "results/smoothness/seed_0.json (10 CIFAR-10 mini-batches, seed 0; per-batch values stored in the JSON).",
+    "description": "Local Lipschitz ratio ||grad_x f_I(x)||/||x|| for CLIP image encoders (tab:lip in the paper; arxiv + chinese versions). Backfilled 2026-10-29 per external review: the values existed in the source JSON but had no ledger block while the paper's Data Integrity Statement claims ledger traceability for all tables.",
+    "ViT-B/32": {
+      "mean_local_lipschitz": 0.184,
+      "std_local_lipschitz": 0.017,
+      "unrounded": {
+        "mean": 0.18376951427766447,
+        "std": 0.01674406581332544
+      }
+    },
+    "RN50": {
+      "mean_local_lipschitz": 0.325,
+      "std_local_lipschitz": 0.023,
+      "unrounded": {
+        "mean": 0.3251622250021655,
+        "std": 0.023486735103649983
+      }
+    },
+    "ratio_RN50_over_ViT": 1.77
   }
 }
