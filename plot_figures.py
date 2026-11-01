@@ -386,22 +386,10 @@ def plot_pca():
             ax.set_title(title, fontsize=12, fontweight='bold', family='sans-serif', pad=6)
             ax.set_xticks([]); ax.set_yticks([])
             ax.set_facecolor('#FCFCFC')
-
-            # Compute compactness
-            spreads = []
-            for ci in range(10):
-                if labels is not None:
-                    mask_i = labels == ci
-                else:
-                    per_class = len(coords) // 10
-                    mask_i = slice(ci * per_class, (ci+1) * per_class)
-                pc = coords[mask_i]
-                if len(pc) > 1:
-                    spreads.append(np.std(pc[:, 0]) + np.std(pc[:, 1]))
-            compact = 1.0 / max(np.mean(spreads), 0.001)
-            ax.text(0.97, 0.04, f'Compactness: {compact:.1f}', transform=ax.transAxes,
-                    fontsize=8, ha='right', color='#888888',
-                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='#DDDDDD', alpha=0.7))
+            # NOTE: the previous per-panel "Compactness: 0.4" annotation was
+            # removed (audit 2026-11-01): the metric printed the same value at
+            # 1 dp for all four panels, i.e. it carried no information. The
+            # qualitative illustration needs no numeric overlay.
     else:
         # No synthetic fallback: fig4 must never render fabricated data.
         # If results/tsne/*.npy is missing, fail loudly instead.
@@ -470,14 +458,17 @@ def plot_radar():
 # ================================================================
 def plot_eps_trend():
     epsilons = ['1/255', '2/255', '4/255']
-    # VERIFIED 2026-10-14: 6-dataset average (CIFAR-10, CIFAR-100, STL-10,
-    # Flowers-102, DTD, ImageNet-100), seed 0, bs=64 (ImageNet bs=32).
-    # Matches paper Table 2 / results/main_results.json table2_multi_eps.
+    # VERIFIED 2026-11-01: 6-dataset average (CIFAR-10, CIFAR-100, STL-10,
+    # Flowers-102, DTD, ImageNet-100). eps=1/255 row uses the Table-1
+    # three-seed means (seeds 0-2, 2026-11-01 upgrade); eps=2/255 and
+    # eps=4/255 rows remain seed 0 (matches paper Table 2 /
+    # results/main_results.json table2_multi_eps).
     # Sources: results/eps{1,2,4}/ + results/imagenet_full/ +
+    # results/eps1_seeds12/ + results/imagenet_full_seeds12/ +
     # results/dtd_eps2_fair/ + results/dtd_eps4_fair/.
-    ttc_vals = [38.65, 26.20, 5.49]
-    nac_vals = [42.39, 35.40, 12.05]
-    gains = [3.74, 9.20, 6.56]
+    ttc_vals = [38.63, 26.20, 5.49]
+    nac_vals = [42.29, 35.40, 12.05]
+    gains = [3.66, 9.20, 6.56]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.5))
 
