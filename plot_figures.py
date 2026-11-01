@@ -427,10 +427,12 @@ def plot_pca():
 # ================================================================
 def plot_radar():
     datasets = ['CIFAR-10', 'CIFAR-100', 'STL-10', 'Flowers-102', 'DTD', 'ImageNet-100']
-    # VERIFIED from results/eps1/pgd_eps_1.0 (bs=64) + results/imagenet_full/pgd_eps_1.0 (bs=32), seed 0
-    ttc_vals = [28.17, 14.48, 77.01, 38.90, 28.14, 45.17]
-    nac_vals = [31.27, 16.86, 79.71, 45.83, 31.01, 49.65]
-    gains = [3.10, 2.38, 2.70, 6.93, 2.87, 4.48]
+    # VERIFIED: 3-seed means (seeds 0-2) from results/eps1/pgd_eps_1.0 (bs=64, seed 0)
+    # + results/eps1_seeds12/pgd_eps_1.0 (bs=64, seeds 1-2, 2026-11-01)
+    # + results/imagenet_full{,_seeds12}/pgd_eps_1.0 (bs=32); Table 1 caliber
+    ttc_vals = [28.50, 14.45, 76.92, 38.96, 27.36, 45.58]
+    nac_vals = [31.34, 16.78, 79.52, 45.83, 30.48, 49.79]
+    gains = [2.84, 2.33, 2.61, 6.87, 3.12, 4.21]
 
     N = len(datasets)
     angles = np.linspace(0, 2*np.pi, N, endpoint=False).tolist()
