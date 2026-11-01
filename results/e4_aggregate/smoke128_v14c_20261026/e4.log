@@ -1,0 +1,5 @@
+2026-10-26 22:57:32,680 - INFO - E4 aggregate pipeline v1.4 | M_att=5 M_def=[1, 5] steps=10 methods=['ttc', 'nac'] seeds=[0]
+2026-10-26 22:57:41,500 - INFO - === seed 0 | E4 aggregate vs ttc ===
+2026-10-26 22:59:12,151 - INFO - E4 selfcheck: {"S1_mdef1_identity": true, "S2_mean_node_in_graph": true, "S2_grad_reaches_delta": true, "S2_all_branch_grads_reached": true, "S2_node_types_sample": ["AddBackward0", "CatBackward0", "ClampBackward1", "ConvolutionBackward0", "DivBackward0", "LinalgVectorNormBackward0", "LogSoftmaxBackward0", "MeanBackward1"], "S3_n": 256, "S3_clean_mdef1_mean_pct": 78.52, "S3_clean_mdef1_majority_pct": 78.52, "S3_clean_mdefN_mean_pct": 79.3, "S3_clean_mdefN_majority_pct": 79.69, "S3_drop_pp": {"mean": -0.78, "majority": -1.17}, "S3_rule": "ONE-SIDED: drop <= 0.5pp (pre-registered E5 constraint 1)", "S3_pass": true}
+2026-10-26 23:00:52,711 - INFO -   seed 0 ttc Mdef1 batch 0: {'mean': 0.0, 'majority': 0.0}
+2026-10-26 23:02:26,409 - INFO - ttc_seed0_Mdef1: adv=0.0 {"M1_mean": {"robust": 0.0, "k": 0, "n": 128, "wilson95": [0.0, 2.91]}, "M1_majority": {"robust": 0.0, "k": 0, "n": 128, "wilson95": [0.0, 2.91]}}

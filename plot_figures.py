@@ -403,14 +403,12 @@ def plot_pca():
                     fontsize=8, ha='right', color='#888888',
                     bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='#DDDDDD', alpha=0.7))
     else:
-        # Fallback: synthetic but realistic
-        np.random.seed(42)
-        n = 80
-        centers = np.array([[np.cos(t), np.sin(t)] for t in np.linspace(0, 2*np.pi, 11)[:10]]) * 4
-        clean = np.array([c + np.random.randn(n, 2)*0.5 for c in centers])
-        adv   = np.array([clean[ci]*0.15 + np.random.randn(n, 2)*0.9 for ci in range(10)])
-        ttc   = np.array([adv[ci]*2.2 + centers[ci]*0.5 + np.random.randn(n, 2)*0.45 for ci in range(10)])
-        nac   = np.array([adv[ci]*2.8 + centers[ci]*1.0 + np.random.randn(n, 2)*0.3 for ci in range(10)])
+        # No synthetic fallback: fig4 must never render fabricated data.
+        # If results/tsne/*.npy is missing, fail loudly instead.
+        raise FileNotFoundError(
+            "fig4 (PCA): results/tsne/*.npy not found; refusing to draw "
+            "a synthetic placeholder. Regenerate the npz/tsne artifacts first."
+        )
 
         for ax, data, title in zip(axes.flat, [clean, adv, ttc, nac], titles):
             for ci in range(10):

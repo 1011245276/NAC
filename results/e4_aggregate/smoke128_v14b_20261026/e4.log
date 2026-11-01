@@ -1,0 +1,2 @@
+2026-10-26 22:38:18,283 - INFO - E4 aggregate pipeline v1.4 | M_att=5 M_def=[1, 5] steps=10 methods=['ttc', 'nac'] seeds=[0]
+2026-10-26 22:38:25,986 - INFO - === seed 0 | E4 aggregate vs ttc ===

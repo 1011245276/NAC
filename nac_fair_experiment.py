@@ -49,6 +49,20 @@ def parse_options():
     parser.add_argument('--test_set', default=[], type=str, nargs='*')
     parser.add_argument('--test_attack_type', type=str, default="pgd",
                         choices=['pgd', 'CW', 'autoattack'])
+    parser.add_argument('--aa_attacks', type=str, default="subset",
+                        choices=['subset', 'full'],
+                        help="AutoAttack composition (used only when "
+                             "test_attack_type=autoattack): 'subset' = "
+                             "apgd-ce+apgd-dlr (the configuration used for "
+                             "the paper's Table 7); 'full' = the complete "
+                             "standard suite apgd-ce+apgd-dlr+apgd-t+fab-t+"
+                             "square.")
+    parser.add_argument('--test_max_batches', type=int, default=0,
+                        help="0 = full test split; N = evaluate only the first "
+                             "N batches (deterministic loader order, so every "
+                             "method sees the identical subset). Intended for "
+                             "expensive attack suites (e.g. full AutoAttack); "
+                             "any such subset must be disclosed in the paper.")
     parser.add_argument('--test_eps', type=float, default=4)
     parser.add_argument('--test_numsteps', type=int, default=10)
     parser.add_argument('--test_stepsize', type=float, default=1)
@@ -1064,6 +1078,7 @@ def validate(args, val_dataset_name, model, model_text, model_image,
         # --deterministic_batch_seed is set, to make both the attack and the
         # counterattack reproducible per sample regardless of batch_size.
         sample_offset = 0
+        batch_seen = 0  # batches evaluated so far (for --test_max_batches)
 
         # MAC port setup. Official mac.py builds the augmentation pipeline once
         # (for num_views>1) and fixes mac_stepsize = mac_eps/4; both are replicated here.
@@ -1071,6 +1086,12 @@ def validate(args, val_dataset_name, model, model_text, model_image,
         mac_stepsize = args.mac_eps / 4.0
 
         for images, target in tqdm(val_loader, desc=f"  [{dataset_name}/{tag}]"):
+            if getattr(args, 'test_max_batches', 0) and batch_seen >= args.test_max_batches:
+                # Optional cap (e.g. for expensive attack suites): evaluate only
+                # the first N batches of the loader (loader order is deterministic,
+                # shuffle=False), so all methods see the identical subset.
+                break
+            batch_seen += 1
             if getattr(args, 'deterministic_batch_seed', False):
                 # Re-seed from (run seed, global index of this batch's first sample).
                 # See the --deterministic_batch_seed help text: without this, the
@@ -1140,7 +1161,10 @@ def validate(args, val_dataset_name, model, model_text, model_image,
                     attacked = images + delta_atk
                 elif args.test_attack_type == "autoattack":
                     binary = ['PCAM', 'hateful_memes']
-                    attacks_to_run = ['apgd-ce', 'apgd-dlr']
+                    if getattr(args, 'aa_attacks', 'subset') == 'full':
+                        attacks_to_run = ['apgd-ce', 'apgd-dlr', 'apgd-t', 'fab-t', 'square']
+                    else:
+                        attacks_to_run = ['apgd-ce', 'apgd-dlr']
                     if dataset_name in binary:
                         attacks_to_run = ['apgd-ce']
                     attacked = attack_auto(

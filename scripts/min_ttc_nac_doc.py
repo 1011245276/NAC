@@ -26,7 +26,7 @@ def main():
               '--tau_thres','0.2','--beta','2.0','--seed','0','--outdir',_NAC_ROOT+'/results/adaptive_pilot']
     args=parse_options()
     for a in ('test_eps','test_stepsize','ttc_stepsize','ttc_eps'): setattr(args,a,getattr(args,a)/255.)
-    np.random.seed(0); torch.manual_seed(0); torch.cuda.manual_seed_all(0)jinsu
+    np.random.seed(0); torch.manual_seed(0); torch.cuda.manual_seed_all(0)
     torch.backends.cudnn.deterministic=True; torch.backends.cudnn.benchmark=False
     model,_=clip.load('ViT-B/32',device,jit=False,prompt_len=0)
     for p in model.parameters(): p.requires_grad=False
