@@ -1,0 +1,15 @@
+﻿Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+[grid] N=256 tau=0.2 K=10 def budget=4/255 step=1/255
+eps=1 a=e                          adv=  0.78%  s=0.203  >tau=0.461  |d|inf=1.00 |d|1= 0.70  ttc=29.69% (D=2.04)  nac=35.16% (D=2.12)
+eps=1 a=e/2                        adv=  0.39%  s=0.260  >tau=0.820  |d|inf=1.00 |d|1= 0.68  ttc=12.11% (D=2.01)  nac=13.28% (D=2.04)
+eps=1 a=e/4                        adv=  0.00%  s=0.364  >tau=0.980  |d|inf=1.00 |d|1= 0.61  ttc=2.73% (D=1.99)  nac=2.73% (D=1.99)
+eps=1 a=e/10                       adv=  0.39%  s=0.513  >tau=1.000  |d|inf=1.00 |d|1= 0.40  ttc=6.25% (D=1.99)  nac=6.25% (D=1.99)
+eps=2 a=e                          adv=  0.00%  s=0.129  >tau=0.039  |d|inf=2.00 |d|1= 1.35  ttc=28.12% (D=2.08)  nac=34.38% (D=2.22)
+eps=2 a=e/2                        adv=  0.00%  s=0.153  >tau=0.109  |d|inf=2.00 |d|1= 1.27  ttc=29.30% (D=2.08)  nac=40.62% (D=2.21)
+eps=2 a=e/4                        adv=  0.00%  s=0.188  >tau=0.355  |d|inf=2.00 |d|1= 1.13  ttc=20.70% (D=2.05)  nac=26.56% (D=2.15)
+eps=2 a=e/10                       adv=  0.00%  s=0.390  >tau=0.992  |d|inf=2.00 |d|1= 0.66  ttc=1.56% (D=1.99)  nac=1.56% (D=1.99)
+saved -> results\_diag_grid\grid_e12.json

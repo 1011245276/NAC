@@ -1,0 +1,15 @@
+﻿Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+[structure] N=128 tau=0.2 K=10 def budget=4/255 step=1/255
+eps=2 pgd_sharp                    adv=  0.00%  s=0.382  >tau=0.992  |d|inf=2.00 |d|1= 0.67  ttc=0.78% (D=1.99)  nac=0.78% (D=1.99)
+eps=2 pgd_smooth28                 adv=  1.56%  s=0.488  >tau=1.000  |d|inf=2.00 |d|1= 0.82  ttc=10.94% (D=1.99)  nac=10.94% (D=1.99)
+eps=2 scat0.25r                    adv= 79.69%  s=0.304  >tau=1.000  |d|inf=2.00 |d|1= 0.50  ttc=79.69% (D=1.99)  nac=79.69% (D=1.99)
+eps=2 scat0.25b                    adv= 81.25%  s=0.320  >tau=1.000  |d|inf=2.00 |d|1= 0.50  ttc=78.91% (D=1.99)  nac=78.91% (D=1.99)
+eps=2 scat0.5r                     adv= 80.47%  s=0.299  >tau=1.000  |d|inf=2.00 |d|1= 0.99  ttc=78.91% (D=1.99)  nac=78.91% (D=1.99)
+eps=2 scat0.5b                     adv= 80.47%  s=0.296  >tau=1.000  |d|inf=2.00 |d|1= 0.99  ttc=79.69% (D=1.99)  nac=79.69% (D=1.99)
+eps=2 scat0.75r                    adv= 81.25%  s=0.298  >tau=1.000  |d|inf=2.00 |d|1= 1.49  ttc=80.47% (D=1.99)  nac=80.47% (D=1.99)
+eps=2 scat0.75b                    adv= 82.03%  s=0.295  >tau=1.000  |d|inf=2.00 |d|1= 1.49  ttc=80.47% (D=1.99)  nac=80.47% (D=1.99)
+saved -> results\_diag_grid\structure_e2.json
