@@ -520,7 +520,8 @@ def plot_eps_trend():
     ax2.set_xticklabels([f'ε={e}' for e in epsilons], fontsize=11)
     ax2.set_ylabel('NAC Gain (pp)', fontsize=11)
     ax2.set_title('Improvement Margin', fontsize=12, fontweight='bold')
-    ax2.legend(fontsize=8, loc='upper right')
+    ax2.legend(fontsize=8, loc='upper center')
+    ax2.set_ylim(0, 11.2)
     ax2.grid(axis='y', alpha=0.3)
 
     fig.suptitle('Multi-Attack Strength — 6-Dataset Average', fontsize=13, fontweight='bold')
