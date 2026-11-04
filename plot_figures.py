@@ -469,6 +469,14 @@ def plot_eps_trend():
     ttc_vals = [38.63, 26.20, 5.49]
     nac_vals = [42.29, 35.40, 12.05]
     gains = [3.66, 9.20, 6.56]
+    # Standard-step attack (alpha=eps/4, Madry convention), seed 0, 2026-11-04.
+    # eps=1/255: six-dataset average (dense_eps1 + dense_eps1_imagenet).
+    # eps=2/255: FIVE-dataset average only (ImageNet-100 not re-run under this
+    # convention) -- annotated in the legend/caption; not directly comparable
+    # to the six-dataset solid lines.
+    std_eps_idx = [0, 1]
+    std_ttc_vals = [12.04, 23.64]
+    std_nac_vals = [12.63, 29.91]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.5))
 
@@ -476,13 +484,21 @@ def plot_eps_trend():
     x = np.arange(len(epsilons))
     ax1.plot(x, ttc_vals, 's-', color=C['ttc'], linewidth=2.5, markersize=8, label='TTC')
     ax1.plot(x, nac_vals, 'o-', color=C['blue'], linewidth=2.5, markersize=8, label='NAC')
+    xs = np.array(std_eps_idx)
+    ax1.plot(xs, std_ttc_vals, 's--', color=C['ttc'], linewidth=1.8, markersize=7,
+             alpha=0.55, label=r'TTC ($\alpha{=}\epsilon/4$)')
+    ax1.plot(xs, std_nac_vals, 'o--', color=C['blue'], linewidth=1.8, markersize=7,
+             alpha=0.55, label=r'NAC ($\alpha{=}\epsilon/4$)')
     for i, (t, n) in enumerate(zip(ttc_vals, nac_vals)):
         ax1.text(i, n+2, f'{n:.1f}', ha='center', fontsize=9, fontweight='bold', color=C['blue'])
         ax1.text(i, t-3, f'{t:.1f}', ha='center', fontsize=9, color=C['ttc'])
+    for i, (t, n) in zip(std_eps_idx, zip(std_ttc_vals, std_nac_vals)):
+        ax1.text(i, t-4.5, f'{t:.1f}', ha='center', fontsize=8, color=C['ttc'], alpha=0.75)
+        ax1.text(i, n+1.2, f'{n:.1f}', ha='center', fontsize=8, color=C['blue'], alpha=0.75)
     ax1.set_xticks(x)
     ax1.set_xticklabels([f'ε={e}' for e in epsilons], fontsize=11)
     ax1.set_ylabel('Robust Accuracy (%)', fontsize=11)
-    ax1.legend(fontsize=10)
+    ax1.legend(fontsize=8, loc='upper right')
     ax1.set_title('Accuracy vs Attack Strength', fontsize=12, fontweight='bold')
     ax1.grid(axis='y', alpha=0.3)
     ax1.set_ylim(0, 55)
@@ -492,15 +508,27 @@ def plot_eps_trend():
     bars = ax2.bar(x, gains, color=colors, width=0.5, edgecolor='white', linewidth=0.8)
     for i, (b, g) in enumerate(zip(bars, gains)):
         ax2.text(i, g+0.3, f'+{g:.2f}pp', ha='center', fontsize=10, fontweight='bold', color=C['blue'])
+    # standard-step gains (hatched, at eps=1 and 2 only)
+    std_gains = [0.59, 6.27]
+    bars_s = ax2.bar(xs - 0.28, std_gains, color='gray', width=0.22, alpha=0.6,
+                     hatch='//', edgecolor='white', linewidth=0.8,
+                     label=r'gain ($\alpha{=}\epsilon/4$)')
+    for i, g in zip(std_eps_idx, std_gains):
+        ax2.text(i - 0.28, g + 0.3, f'+{g:.2f}', ha='center', fontsize=8.5, color='dimgray')
     ax2.axhline(y=0, color='black', linewidth=0.5)
     ax2.set_xticks(x)
     ax2.set_xticklabels([f'ε={e}' for e in epsilons], fontsize=11)
     ax2.set_ylabel('NAC Gain (pp)', fontsize=11)
     ax2.set_title('Improvement Margin', fontsize=12, fontweight='bold')
+    ax2.legend(fontsize=8, loc='upper right')
     ax2.grid(axis='y', alpha=0.3)
 
     fig.suptitle('Multi-Attack Strength — 6-Dataset Average', fontsize=13, fontweight='bold')
-    plt.tight_layout()
+    fig.text(0.5, 0.005,
+             'Solid: TTC-protocol attack (fixed α=1/255). Dashed/hatched: standard-step attack (α=ε/4, seed 0); '
+             'the ε=2 dashed point is a 5-dataset average (ImageNet-100 not re-run).',
+             ha='center', fontsize=8, color='dimgray')
+    plt.tight_layout(rect=[0, 0.04, 1, 1])
     save(fig, 'fig6_eps_trend')
 
 
