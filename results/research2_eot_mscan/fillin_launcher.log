@@ -1,0 +1,9 @@
+﻿[start] m1_doc_seed0: M=1 seeds=[0] methods=['doc'] -> results/research2_eot_mscan/m1/trend_seed0_doc
+[done ] m1_doc_seed0: rc=0 36.1 min
+[start] m2_doc_seed0: M=2 seeds=[0] methods=['doc'] -> results/research2_eot_mscan/m2/trend_seed0_doc
+[done ] m2_doc_seed0: rc=0 68.0 min
+[start] m1_seed12: M=1 seeds=[1, 2] methods=['ttc', 'nac', 'doc'] -> results/research2_eot_mscan/m1/trend_seed12
+[done ] m1_seed12: rc=0 215.4 min
+[start] m2_seed12: M=2 seeds=[1, 2] methods=['ttc', 'nac', 'doc'] -> results/research2_eot_mscan/m2/trend_seed12
+[done ] m2_seed12: rc=0 405.6 min
+[E1 fill-in done]
